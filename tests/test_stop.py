@@ -93,3 +93,61 @@ def test_cwd_subdirectorio(tmp_path, monkeypatch):
     entrada = json.dumps({"session_id": "s", "cwd": str(tmp_path / "clientes/acme")})
     r = subprocess.run([sys.executable, str(HOOK)], input=entrada, capture_output=True, text=True)
     assert r.returncode == 0 and "bitácora" in json.loads(r.stdout)["reason"]
+
+
+def _commit(cwd, msg="x"):
+    _git(cwd, "add", "-A")
+    _git(cwd, "-c", "user.email=a@b", "-c", "user.name=a", "commit", "-q", "--allow-empty", "-m", msg)
+
+
+def _inicio(cwd, sid):
+    entrada = json.dumps({"session_id": sid, "cwd": str(cwd)})
+    subprocess.run([sys.executable, str(HOOK.parent / "session_start.py")], input=entrada,
+                   capture_output=True, text=True, check=True)
+
+
+def _stop(cwd, sid):
+    entrada = json.dumps({"session_id": sid, "cwd": str(cwd), "stop_hook_active": False})
+    r = subprocess.run([sys.executable, str(HOOK)], input=entrada, capture_output=True, text=True,
+                       env={k: v for k, v in __import__("os").environ.items()
+                            if k != "CLAUDE_PROJECT_DIR"})
+    assert r.returncode == 0
+    return json.loads(r.stdout)["reason"] if r.stdout else None
+
+
+def test_cambio_ya_commiteado_igual_bloquea(tmp_path):
+    _git(tmp_path, "init", "-q")
+    _commit(tmp_path, "inicial")
+    _inicio(tmp_path, "s1")
+    (tmp_path / "clientes/acme").mkdir(parents=True)
+    (tmp_path / "clientes/acme/x.md").write_text("hola")
+    _commit(tmp_path, "auto-commit de Obsidian Git")
+    assert "bitácora" in _stop(tmp_path, "s1")
+
+
+def test_entregable_invalido_commiteado_bloquea(tmp_path):
+    _git(tmp_path, "init", "-q")
+    _commit(tmp_path, "inicial")
+    _inicio(tmp_path, "s1")
+    escribir(tmp_path / "clientes/acme/entregables/e.md", {"tipo": "entregable", "cliente": "acme"}, "")
+    _commit(tmp_path)
+    assert "falta 'formato'" in _stop(tmp_path, "s1")
+
+
+def test_commit_previo_a_la_sesion_no_cuenta(tmp_path):
+    _git(tmp_path, "init", "-q")
+    (tmp_path / "clientes/acme").mkdir(parents=True)
+    (tmp_path / "clientes/acme/x.md").write_text("hola")
+    _commit(tmp_path)
+    _inicio(tmp_path, "s1")
+    assert _stop(tmp_path, "s1") is None
+
+
+def test_base_inalcanzable_usa_solo_sucios(tmp_path):
+    _git(tmp_path, "init", "-q")
+    _commit(tmp_path)
+    (tmp_path / ".git/aos-sesion-s1").write_text("0" * 40)
+    (tmp_path / "clientes/acme").mkdir(parents=True)
+    (tmp_path / "clientes/acme/x.md").write_text("hola")
+    _commit(tmp_path)
+    assert _stop(tmp_path, "s1") is None

@@ -60,16 +60,35 @@ def revisar(raiz: Path, session_id: str, cambiados: list[Path], ya_bloqueado: bo
     return "\n\n".join(partes) or None
 
 
-def cambiados(raiz: Path) -> list[Path]:
-    salida = subprocess.run(["git", "status", "--porcelain", "-z", "-uall"], cwd=raiz,
-                            capture_output=True, text=True, check=True).stdout
-    rutas, entradas = [], iter(salida.split("\0"))
+def _git(raiz: Path, *a: str) -> str:
+    return subprocess.run(["git", *a], cwd=raiz, capture_output=True, text=True,
+                          check=True).stdout
+
+
+def _sucios(raiz: Path) -> list[str]:
+    rutas, entradas = [], iter(_git(raiz, "status", "--porcelain", "-z", "-uall").split("\0"))
     for e in entradas:
         if len(e) < 4:
             continue
         rutas.append(e[3:])
         if e[0] in "RC":
             next(entradas, None)  # el origen del renombre
+    return rutas
+
+
+def _commiteados(raiz: Path, session_id: str) -> list[str]:
+    """Lo commiteado desde el inicio de la sesión (Obsidian Git auto-commitea cada 5 min)."""
+    archivo = Path(_git(raiz, "rev-parse", "--absolute-git-dir").strip()) / f"aos-sesion-{session_id}"
+    try:
+        base = archivo.read_text().strip()
+        _git(raiz, "merge-base", "--is-ancestor", base, "HEAD")
+    except (OSError, subprocess.CalledProcessError):
+        return []  # sin base o inalcanzable: solo lo sucio
+    return _git(raiz, "diff", "--name-only", "-z", f"{base}..HEAD").split("\0")
+
+
+def cambiados(raiz: Path, session_id: str = "") -> list[Path]:
+    rutas = dict.fromkeys(_sucios(raiz) + (_commiteados(raiz, session_id) if session_id else []))
     return [raiz / r for r in rutas
             if r.endswith(".md") and r.split("/")[0] in CARPETAS and (raiz / r).is_file()]
 
@@ -81,7 +100,7 @@ def main() -> None:
         ["git", "rev-parse", "--show-toplevel"], cwd=cwd, capture_output=True, text=True,
         check=True).stdout.strip()
     raiz = Path(raiz).resolve()
-    motivo = revisar(raiz, datos.get("session_id", ""), cambiados(raiz),
+    motivo = revisar(raiz, datos.get("session_id", ""), cambiados(raiz, datos.get("session_id", "")),
                      bool(datos.get("stop_hook_active")))
     if motivo:
         print(json.dumps({"decision": "block", "reason": motivo}))
