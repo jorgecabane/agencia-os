@@ -240,6 +240,16 @@ Reflexión nocturna:
 3. **Aplica solo**: crea skill nueva (desde plantilla + evals, ver §10), mejora skill existente (nueva versión con changelog), actualiza `contexto.md`, re-genera Graphify y `equipo/skills.md`.
 4. Deja `bandeja/YYYY-MM-DD-lo-que-cambie.md` con todo lo aplicado y cómo revertirlo.
 
+**También en vivo, dentro de la sesión:** si en la conversación aparece algo que ya se habló o hizo antes (Claude lo ve en `sesiones/` y Graphify), lo dice en el momento y **ofrece convertirlo en skill** ahí mismo ("es la 3ª vez que armamos un brief de casting; ¿lo dejo como skill?").
+
+### 8.9 Postura: jefe de proyecto de la agencia
+Regla central de `CLAUDE.md`: el agente actúa como **jefe de proyecto** de la compañía, no como asistente que espera instrucciones. En cada sesión y en cada pasada automática:
+- Cierra con próximos pasos concretos y quién los hace.
+- Avisa lo que vence, lo atrasado y lo prometido sin cumplir, aunque nadie pregunte.
+- Detecta sobrecarga (alguien con demasiados entregables en la semana) y propone redistribuir o mover fechas.
+- Propone mejoras al cliente desde los datos (métricas, feedback, aprendizajes).
+- Propone mejoras a cómo opera el equipo (procesos repetidos → skill, pasos manuales → automatización).
+
 ### 8.8 Prospectos y pipeline
 Un prospecto es un cliente con `etapa: prospecto`; misma carpeta, misma estructura. Pasa por `propuesta` → `activo` sin migrar nada. Vista kanban por etapa.
 
