@@ -14,6 +14,7 @@ views:
     name: Entregables
     filters:
       and:
+        - file.inFolder("clientes")
         - tipo == "entregable"
     dateProperty: note.vence
     range: month
@@ -26,9 +27,11 @@ views:
   - type: calendar-cards
     name: Reuniones
     filters:
-      or:
-        - tipo == "reunion"
-        - tipo == "brief-reunion"
+      and:
+        - file.inFolder("clientes")
+        - or:
+            - tipo == "reunion"
+            - tipo == "brief-reunion"
     dateProperty: note.fecha
     range: month
     weekStart: monday

@@ -1,5 +1,6 @@
 filters:
   and:
+    - file.inFolder("clientes")
     - tipo == "cliente"
 properties:
   nombre:

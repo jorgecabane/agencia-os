@@ -78,6 +78,8 @@ pide `claude` con sesión iniciada; Anthropic pide API key para herramientas de 
 
 ### Verificación pendiente (dueño del espacio, en la app)
 
+- [ ] Las vistas muestran solo registros bajo `clientes/` (no plantillas ni fixtures).
+- [ ] Los kanban muestran columnas en el orden del enum (se fijó con `columnOrders`, clave leída del código del plugin).
 - [ ] Instalar Obsidian (`brew install --cask obsidian`) y abrir el repo como bóveda; activar plugins.
 - [ ] Con datos de prueba en `clientes/acme` (temporal): arrastrar un post en `calendario` cambia `vence` (`git diff`) y no toca `recurrencia_fecha`.
 - [ ] `uv run scripts/validar.py` sigue en 0 tras editar en Obsidian.

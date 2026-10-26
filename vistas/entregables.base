@@ -1,5 +1,6 @@
 filters:
   and:
+    - file.inFolder("clientes")
     - tipo == "entregable"
 properties:
   vence:
@@ -8,6 +9,8 @@ views:
   - type: kanban-view
     name: Por estado
     groupByProperty: note.estado
+    columnOrders:
+      note.estado: [brief, en_curso, revision, aprobado, publicado, cancelado]
     order:
       - file.name
       - cliente

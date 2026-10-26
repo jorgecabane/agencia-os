@@ -1,5 +1,7 @@
+# Incluye a propósito lo atrasado: vence <= hoy+7 sin cota inferior.
 filters:
   and:
+    - file.inFolder("clientes")
     - tipo == "entregable"
     - vence <= today() + "7d"
     - estado != "publicado"

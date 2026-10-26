@@ -7,3 +7,5 @@ __pycache__/
 .env*
 .obsidian/cache
 vistas/*.local.base
+.obsidian/plugins/*/data.json
+!.obsidian/plugins/obsidian-git/data.json
