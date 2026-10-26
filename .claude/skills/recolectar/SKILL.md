@@ -14,6 +14,10 @@ lectura en los conectores; nunca envíes nada hacia afuera.
 **Idempotente**: una pasada repetida sobre la misma ventana no debe cambiar nada. Antes de cada escritura
 comprueba que no exista ya (ver § 4). Horas y fechas, siempre en America/Santiago: `TZ=America/Santiago date +%Y-%m-%dT%H:%M`.
 
+## Consentimiento (antes de todo)
+
+Lo primero: lee `equipo/personas/<persona>.md`. Si no tiene `consentimiento_privacidad`, detente de inmediato: no leas ningún conector, no escribas nada y di en el resumen que falta el consentimiento (la persona debe correr `/bienvenida`).
+
 ## 0. Git al inicio
 
 `git switch main && git pull --rebase origin main`. Si `git branch --show-current` no imprime `main`, detente y

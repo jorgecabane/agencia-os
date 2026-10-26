@@ -54,7 +54,7 @@ rol: <rol>
 nivel_automatizacion: <alto|medio|bajo>
 excluir_remitentes: []
 excluir_calendarios: []
-consentimiento_privacidad: <YYYY-MM-DD de hoy>
+consentimiento_privacidad: <YYYY-MM-DD de hoy>   # solo si dijo sí; si rechazó, omite esta línea
 ---
 
 # <nombre>
@@ -78,7 +78,7 @@ Guíala en claude.ai → Connectors a conectar con su cuenta: Gmail, Google Cale
 
 ## 6. Tareas programadas (solo con consentimiento)
 
-No puedes crearlas en silencio: la guías a crearlas con `/schedule`, una por una, según `docs/tareas-programadas.md` (repo del espacio, por defecto `agencia-os`, cron UTC, minuto :07, prompt que termina con "haz commit y push directo a main"). Para su nivel:
+No puedes crearlas en silencio: la guías a crearlas con `/schedule`, una por una, según `docs/tareas-programadas.md` (el repo que creó `/setup-espacio`, cron UTC, minuto :07, prompt que termina con "haz commit y push directo a main"). Para su nivel:
 
 - Tarea `recolectar-<slug>`: cron del nivel elegido y prompt `/recolectar <slug>`.
 - Si es el dueño del espacio y aún no existe: tarea `recurrentes` con `/materializar-recurrentes`.

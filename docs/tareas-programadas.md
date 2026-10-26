@@ -1,6 +1,6 @@
 # Tareas programadas
 
-Se crean con `/schedule` (la skill `/bienvenida` te guía; no se pueden crear en silencio). Todas usan el repo del espacio (por defecto `agencia-os`; `/setup-espacio` puede nombrarlo distinto) y la rama por defecto. Cron en UTC (Chile = UTC-3 en verano, UTC-4 en invierno), minuto `:07`,
+Se crean con `/schedule` (la skill `/bienvenida` te guía; no se pueden crear en silencio). Todas usan el repo que creó `/setup-espacio` (propone `<slug>-os`) y la rama por defecto. Cron en UTC (Chile = UTC-3 en verano, UTC-4 en invierno), minuto `:07`,
 intervalo mínimo 1 h. Cada prompt termina con "haz commit y push directo a main".
 
 ## Entorno en la nube
