@@ -17,9 +17,10 @@ def main(args: list[str]) -> int:
     for ruta in rutas:
         try:
             meta, _ = leer(ruta)
-            errs = validar(meta)
         except Exception as e:  # YAML roto o archivo ilegible
-            errs = [f"no se pudo leer: {e}"]
+            meta, errs = None, [f"no se pudo leer: {e}"]
+        else:
+            errs = validar(meta)
         for e in errs:
             print(f"{ruta}: {e}")
             hubo = True

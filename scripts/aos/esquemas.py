@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 DIAS = ("lun", "mar", "mie", "jue", "vie", "sab", "dom")
 _ETAPAS = {"prospecto", "propuesta", "activo", "pausado", "cerrado"}
@@ -29,11 +29,13 @@ ESQUEMAS: dict[str, dict] = {
 def _es_fecha(v) -> bool:
     if isinstance(v, date):  # incluye datetime
         return True
-    try:
-        date.fromisoformat(v)
-        return True
-    except (TypeError, ValueError):
-        return False
+    for parse in (date.fromisoformat, datetime.fromisoformat):
+        try:
+            parse(v)
+            return True
+        except (TypeError, ValueError):
+            pass
+    return False
 
 
 def _errores_recurrente(i: int, r) -> list[str]:
@@ -41,7 +43,9 @@ def _errores_recurrente(i: int, r) -> list[str]:
         return [f"recurrentes[{i}]: debe ser un mapa"]
     errs = [f"recurrentes[{i}]: falta '{c}'" for c in _RECURRENTE if r.get(c) is None]
     cada = r.get("cada")
-    if cada is not None:
+    if cada is not None and not isinstance(cada, (str, list)):
+        errs.append(f"recurrentes[{i}].cada debe ser texto o lista")
+    elif cada is not None:
         for d in [cada] if isinstance(cada, str) else cada:
             if d not in DIAS:
                 errs.append(f"recurrentes[{i}].cada: '{d}' no es día ({' '.join(DIAS)})")
@@ -65,6 +69,10 @@ def validar(meta: dict) -> list[str]:
         if v is not None and not _es_fecha(v):
             errs.append(f"'{campo}' no es fecha (YYYY-MM-DD)")
     if tipo == "plan":
-        for i, r in enumerate(meta.get("recurrentes") or []):
-            errs += _errores_recurrente(i, r)
+        rec = meta.get("recurrentes") or []
+        if not isinstance(rec, list):
+            errs.append("'recurrentes' debe ser lista")
+        else:
+            for i, r in enumerate(rec):
+                errs += _errores_recurrente(i, r)
     return errs

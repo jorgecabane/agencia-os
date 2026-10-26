@@ -68,3 +68,15 @@ def test_cli_sin_rutas_recorre_dirs_y_sale_0(tmp_path):
     (tmp_path / "clientes").mkdir()
     (tmp_path / "clientes" / "a.md").write_text("---\ntipo: decision\ncliente: a\nfecha: 2026-10-22\n---\n")
     assert _cli(tmp_path).returncode == 0
+
+
+def test_fecha_datetime_string_valida():
+    assert validar({"tipo": "decision", "cliente": "a", "fecha": "2026-10-22T10:00:00"}) == []
+
+
+def test_plan_cada_tipo_invalido_y_recurrentes_no_lista():
+    r = {"nombre": "x", "formato": "f", "cada": 5, "responsable": "ia"}
+    assert validar({"tipo": "plan", "cliente": "a", "recurrentes": [r]}) == [
+        "recurrentes[0].cada debe ser texto o lista"]
+    assert validar({"tipo": "plan", "cliente": "a", "recurrentes": "x"}) == [
+        "'recurrentes' debe ser lista"]
