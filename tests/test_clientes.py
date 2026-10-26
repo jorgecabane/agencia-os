@@ -3,7 +3,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from aos.clientes import cargar_clientes, cliente_para
+from aos.clientes import candidatos, cargar_clientes, cliente_para
 from aos.esquemas import validar
 
 FIX = Path(__file__).parent / "fixtures" / "repo"
@@ -26,6 +26,8 @@ def test_generico_no_calza_por_dominio(): assert cliente_para(["otro@gmail.com"]
 def test_generico_calza_por_email_exacto(): assert cliente_para(["dueño.acme@gmail.com"], C) == "acme"
 def test_internos_se_ignoran(): assert cliente_para(["jorge@agencia.cl", "x@acme.cl"], C, {"agencia.cl"}) == "acme"
 def test_ambiguo(): assert cliente_para(["a@acme.cl", "b@beta.com"], C) is None
+def test_candidatos_ambiguo(): assert candidatos(["a@acme.cl", "b@beta.com"], C) == {"acme", "beta"}
+def test_candidatos_nadie(): assert candidatos(["x@gmail.com"], C) == set()
 def test_nadie(): assert cliente_para(["jorge@agencia.cl"], C, {"agencia.cl"}) is None
 
 
@@ -38,3 +40,12 @@ def test_cli_ignora_dominio_de_marca(tmp_path):
     assert cli(FIX, "x@acme.cl") == "acme"
     assert cli(FIX, "x@zzz.cl") == "ninguno"
     assert cli(FIX, "j@beta.com", "x@acme.cl", "--interno", "beta.com") == "acme"
+
+
+def test_cli_ambiguo(tmp_path):
+    assert cli(FIX, "a@acme.cl", "b@beta.com") == "ambiguo: acme, beta"
+    repo = tmp_path / "repo"
+    shutil.copytree(FIX, repo)
+    ficha = repo / "clientes" / "beta" / "_ficha.md"
+    ficha.write_text(ficha.read_text(encoding="utf-8").replace("[beta.com]", "[beta.com, acme.cl]"), encoding="utf-8")
+    assert cli(repo, "ana@acme.cl") == "ambiguo: acme, beta"  # un solo email, dos fichas

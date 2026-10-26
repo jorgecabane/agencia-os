@@ -5,7 +5,8 @@ Sistema operativo de la agencia. Este repo (markdown + frontmatter YAML, sincron
 aprendizajes. Obsidian, ClickUp y cualquier otra herramienta leen o se sincronizan desde acá; nunca al revés.
 El equipo trabaja conversando contigo y, como subproducto, tú dejas todo documentado en el cliente correcto.
 
-Persona actual = `$AOS_PERSONA` (léela con `printenv AOS_PERSONA`). Escribe siempre en español de Chile (tú, nunca voseo).
+Persona actual = `$AOS_PERSONA` (léela con `printenv AOS_PERSONA`). Si está vacía en una sesión con
+alguien, pregúntale quién es antes de escribir nada; `ia` es solo para pasadas automáticas. Escribe siempre en español de Chile (tú, nunca voseo).
 
 ## Postura: jefe de proyecto de la agencia
 
@@ -87,6 +88,9 @@ Tipos: `reunion`, `decision`, `entregable_creado`, `estado`, `reprogramado`, `pu
 | Enviar correos a clientes, publicar en redes, responder DMs, crear/activar/gastar en ads | **Requiere aprobación humana**: deja el borrador listo |
 | Borrar archivos de clientes o material en Drive | **Nunca** automático |
 
+Excepción: `materializar.py` puede eliminar entregables recurrentes futuros en `brief` que nadie tocó
+(cuerpo igual a la plantilla generada) cuando la regla del plan ya no los genera.
+
 Todo cambio queda en git y se puede revertir.
 
 ## Privacidad
@@ -96,11 +100,10 @@ El filtro va **antes** de escribir nada al repo (un push no se des-ve):
   de un cliente o prospecto (`dominios_email` o `emails` exactos).
 - Antes de escribir cualquier cosa sacada de correo o reuniones, extrae los emails *pelados*
   (`ana@cliente.cl`, no `Ana <ana@cliente.cl>`) y corre `uv run scripts/cliente.py <email> [<email>...]`.
-  Imprime el slug del cliente o `ninguno` (también `ninguno` si calzan dos o más clientes; para
-  distinguir ese caso corre un email a la vez).
+  Imprime el slug del cliente, `ninguno`, o `ambiguo: <slug1>, <slug2>` si calzan dos o más.
 - `ninguno` → se ignora y **no se escribe en ninguna parte**, ni en la bandeja, ni en la bitácora.
   Nunca: 1:1 internas, temas personales, sueldos, precios internos.
-- Lo que calza parcial o ambiguamente va a la bandeja de **su propio dueño** (`bandeja/YYYY-MM-DD-<slug>-<persona>.md`)
+- Lo que sale `ambiguo:` (o calza solo parcialmente) va a la bandeja de **su propio dueño** (`bandeja/YYYY-MM-DD-<slug>-<persona>.md`)
   con lo mínimo para decidir: fecha, título, emails y clientes candidatos; sin contenido.
 
 ## Skills en vivo
@@ -118,12 +121,11 @@ dilo en el momento y **ofrece convertirlo en skill** ahí mismo
    tipo: sesion
    persona: <$AOS_PERSONA>
    fecha: YYYY-MM-DD
-   session_id: <id de esta sesión>
+   session_id: <id de esta sesión>   # te lo da el hook SessionStart al inicio
    clientes: [<slugs>]
    ```
    Cuerpo: qué se hizo, skill usada, correcciones del usuario, pendientes (con responsable).
-3. El hook `Stop` bloquea el cierre si hay frontmatter inválido o si cambió `clientes/` y falta una
-   bitácora con el `session_id` de esta sesión. No inventes el `session_id` (no es el nombre de una
-   carpeta ni de un archivo): si no lo tienes, escribe la bitácora con `session_id: pendiente` y termina; el mensaje del hook
-   lo trae, ponlo y termina de nuevo. El hook `SessionEnd` hace commit y sincroniza
+3. El hook `SessionStart` te muestra `session_id: <id>` al inicio de la sesión; usa ese valor, no lo
+   inventes. El hook `Stop` bloquea el cierre si hay frontmatter inválido o si cambió `clientes/` y
+   falta una bitácora con ese `session_id` (su mensaje también trae el id). El hook `SessionEnd` hace commit y sincroniza
    con el equipo (pull --rebase + push); no hagas push a mano.

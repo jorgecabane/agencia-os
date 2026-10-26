@@ -4,12 +4,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from aos.clientes import cargar_clientes, cliente_para  # noqa: E402
+from aos.clientes import candidatos, cargar_clientes  # noqa: E402
 from aos.fm import leer  # noqa: E402
 
 
 def main(args: list[str]) -> int:
-    ap = argparse.ArgumentParser(description="Imprime el slug del cliente o 'ninguno'.")
+    ap = argparse.ArgumentParser(description="Imprime el slug del cliente, 'ninguno' o 'ambiguo: <slugs>'.")
     ap.add_argument("emails", nargs="+")
     ap.add_argument("--interno", action="append", default=[], metavar="DOMINIO")
     a = ap.parse_args(args)
@@ -17,7 +17,11 @@ def main(args: list[str]) -> int:
     marca = Path("marca/marca.md")
     if marca.exists() and (d := leer(marca)[0].get("dominio_email")):
         internos.add(d)
-    print(cliente_para(a.emails, cargar_clientes(Path.cwd()), internos) or "ninguno")
+    slugs = sorted(candidatos(a.emails, cargar_clientes(Path.cwd()), internos))
+    if len(slugs) > 1:
+        print("ambiguo: " + ", ".join(slugs))
+    else:
+        print(slugs[0] if slugs else "ninguno")
     return 0
 
 

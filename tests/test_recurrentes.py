@@ -104,6 +104,15 @@ def test_cli(tmp_path):
     assert r.stdout.strip() == "acme: +8 -0"
 
 
+def test_cli_detalle(tmp_path):
+    mk(tmp_path)
+    r = subprocess.run([sys.executable, str(MAT), "--hoy", "2026-10-26", "--detalle"], cwd=tmp_path,
+                       capture_output=True, text=True)
+    lineas = r.stdout.splitlines()
+    assert lineas[0] == "acme: +8 -0"
+    assert lineas[1] == "  + clientes/acme/entregables/2026-10-27-post-feed.md" and len(lineas) == 9
+
+
 def test_brief_con_contenido_no_se_borra(tmp_path):
     cli = mk(tmp_path)
     materializar(cli, HOY)

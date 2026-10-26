@@ -19,8 +19,12 @@ def _calza(email: str, dominio: str, cliente: dict) -> bool:
     return dominio in dominios and dominio not in DOMINIOS_GENERICOS
 
 
-def cliente_para(emails: list[str], clientes: list[dict], internos: set[str] = frozenset()) -> str | None:
+def candidatos(emails: list[str], clientes: list[dict], internos: set[str] = frozenset()) -> set[str]:
     internos = {d.lower() for d in internos}
     externos = [e.lower() for e in emails if e.rpartition("@")[2].lower() not in internos]
-    slugs = {c["slug"] for c in clientes for e in externos if _calza(e, e.rpartition("@")[2], c)}
+    return {c["slug"] for c in clientes for e in externos if _calza(e, e.rpartition("@")[2], c)}
+
+
+def cliente_para(emails: list[str], clientes: list[dict], internos: set[str] = frozenset()) -> str | None:
+    slugs = candidatos(emails, clientes, internos)
     return slugs.pop() if len(slugs) == 1 else None

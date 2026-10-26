@@ -12,14 +12,14 @@ Persona = `$AOS_PERSONA`. Sigue las convenciones de `CLAUDE.md` (§ Dónde anota
 ## 1. Filtro de privacidad (antes de escribir NADA)
 
 1. Extrae los emails pelados de los asistentes (`Ana <ana@x.cl>` → `ana@x.cl`).
-2. Corre `uv run scripts/cliente.py <email>` **una vez por cada email** y junta los slugs distintos de `ninguno`.
-3. Según el resultado:
-   - **Ningún slug** → no escribas nada en ninguna parte (ni bandeja, ni bitácora, ni resumen en el
+2. Corre `uv run scripts/cliente.py <email> [<email>...]` con todos los emails.
+3. Según lo que imprime:
+   - **`ninguno`** → no escribas nada en ninguna parte (ni bandeja, ni bitácora, ni resumen en el
      chat del contenido). Responde solo: "Esta reunión no involucra a ningún cliente registrado; no la anoté." y termina.
-   - **2 o más slugs distintos** (ambiguo) → crea solo `bandeja/YYYY-MM-DD-reunion-por-clasificar-<persona>.md`
+   - **`ambiguo: <slug1>, <slug2>`** → crea solo `bandeja/YYYY-MM-DD-reunion-por-clasificar-<persona>.md`
      sin frontmatter, con: fecha, título, emails externos y los clientes candidatos. Nada del contenido.
      Pide al usuario que diga a qué cliente corresponde y termina.
-   - **Exactamente 1 slug** → ese es el cliente `<c>`. Sigue.
+   - **Un slug** → ese es el cliente `<c>`. Sigue.
 
 ## 2. Lee el cliente
 
@@ -28,7 +28,7 @@ Lee `clientes/<c>/_ficha.md`, `contexto.md` y las promesas abiertas (`- [ ]`) de
 
 ## 3. Acta
 
-- Si viene `granola_id`, busca con Grep `granola_id: "<id>"` en `clientes/<c>/reuniones/`. Si existe,
+- Si viene `granola_id`, busca con Grep la regex `granola_id:.*<id>` en `clientes/<c>/reuniones/`. Si existe,
   **actualiza ese archivo** (y lo derivado) en vez de crear otro; no dupliques decisiones ni entregables.
 - Si no existe, crea `clientes/<c>/reuniones/YYYY-MM-DD-<slug>.md` (fecha de la reunión, slug del título):
 
