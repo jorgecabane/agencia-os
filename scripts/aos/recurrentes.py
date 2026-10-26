@@ -7,6 +7,9 @@ from .fm import escribir, leer
 from .slug import slug
 
 
+CUERPO = "## Brief\n\n## Versiones\n"
+
+
 @dataclass
 class Cambios:
     creados: list[Path]
@@ -39,9 +42,11 @@ def materializar(carpeta_cliente: Path, hoy: date, semanas: int = 4) -> Cambios:
     fin = hoy + timedelta(days=7 * semanas)
     existentes = {}  # (recurrente_de, recurrencia_fecha) -> (ruta, meta); nunca por `vence`
     for p in sorted(carpeta.glob("*.md")):
-        meta, _ = leer(p)
+        meta, cuerpo = leer(p)
         if meta.get("recurrente_de") and meta.get("recurrencia_fecha"):
-            existentes[(meta["recurrente_de"], meta["recurrencia_fecha"])] = (p, meta)
+            f = meta["recurrencia_fecha"]
+            f = date.fromisoformat(f) if isinstance(f, str) else f
+            existentes[(meta["recurrente_de"], f)] = (p, meta, cuerpo)
 
     cambios = Cambios([], [])
     for (nombre, fecha), r in slots.items():
@@ -53,10 +58,11 @@ def materializar(carpeta_cliente: Path, hoy: date, semanas: int = 4) -> Cambios:
         if r.get("skill"):
             meta["skill"] = r["skill"]
         p = _ruta_libre(carpeta, fecha, nombre)
-        escribir(p, meta, "## Brief\n\n## Versiones\n")
+        escribir(p, meta, CUERPO)
         cambios.creados.append(p)
-    for clave, (p, meta) in existentes.items():
-        if hoy <= clave[1] < fin and clave not in slots and meta.get("estado") == "brief":
+    for clave, (p, meta, cuerpo) in existentes.items():
+        # solo se borra lo que nadie tocó: estado brief y cuerpo aún igual a la plantilla
+        if hoy <= clave[1] < fin and clave not in slots and meta.get("estado") == "brief" and cuerpo == CUERPO:
             p.unlink()
             cambios.eliminados.append(p)
     return cambios

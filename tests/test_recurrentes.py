@@ -80,7 +80,10 @@ def test_fuera_de_ventana_no_se_toca(tmp_path):
     plan(cli, cada=["mar"])
     c = materializar(cli, date(2026, 11, 2))  # 27/10 y 29/10 quedan atrás
     assert (cli / "entregables/2026-10-29-post-feed.md").exists()
-    assert all("2026-10-" not in p.name for p in c.eliminados)
+    assert (cli / "entregables/2026-10-27-post-feed.md").exists()
+    assert (cli / "entregables/2026-10-29-post-feed.md").exists()
+    assert not (cli / "entregables/2026-11-05-post-feed.md").exists()
+    assert len(c.eliminados) == 3
 
 
 def test_colision_de_nombre(tmp_path):
@@ -99,3 +102,24 @@ def test_cli(tmp_path):
                        capture_output=True, text=True)
     assert r.returncode == 0, r.stderr
     assert r.stdout.strip() == "acme: +8 -0"
+
+
+def test_brief_con_contenido_no_se_borra(tmp_path):
+    cli = mk(tmp_path)
+    materializar(cli, HOY)
+    p = cli / "entregables/2026-11-05-post-feed.md"
+    m, _ = leer(p)
+    escribir(p, m, "## Brief\n\nIdea: promo de primavera\n\n## Versiones\n")
+    plan(cli, cada=["mar"])
+    c = materializar(cli, HOY)
+    assert p.exists() and len(c.eliminados) == 3
+
+
+def test_recurrencia_fecha_como_texto(tmp_path):
+    cli = mk(tmp_path)
+    materializar(cli, HOY)
+    p = cli / "entregables/2026-10-27-post-feed.md"
+    m, b = leer(p)
+    m["recurrencia_fecha"] = "2026-10-27"
+    escribir(p, m, b)
+    assert materializar(cli, HOY) == Cambios([], [])
