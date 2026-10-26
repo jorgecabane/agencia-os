@@ -18,19 +18,19 @@ Habla en español de Chile (tú). Sigue `CLAUDE.md` (§ Privacidad, § Línea de
 ## 1. Prepara
 
 1. Lee `clientes/<slug>/_ficha.md`: el campo `drive` es la carpeta raíz. Si es `REEMPLAZAR` o está vacío, avisa y termina.
-2. Lee `clientes/<slug>/material.md`. Si tiene `ultimo_indexado`, es una corrida incremental: solo agrega lo creado o modificado después de esa fecha y que no esté ya por link.
+2. Lee `clientes/<slug>/material.md`. Si no existe, créalo copiando `plantillas/cliente/material.md` y agrega el bloque de frontmatter (`ultimo_indexado`) sobre el H1. Los links ya presentes en la tabla son lo ya indexado.
 
 ## 2. Recorre Drive
 
 1. Parte desde la carpeta `drive` y baja por subcarpetas.
-2. **Tope por corrida: 200 ítems** (archivos o carpetas leídos). Al llegar, detente, anota hasta dónde llegaste y cuántos faltan (aprox.), y deja `ultimo_indexado` en la fecha del último ítem procesado (orden por fecha de creación ascendente) para que la próxima corrida continúe desde ahí.
+2. **Dedup por link:** salta toda pieza o carpeta cuyo link ya aparezca en `material.md`. **Tope por corrida: 200 ítems NUEVOS**; los ya indexados y las carpetas que no son del cliente no cuentan. Al llegar al tope, detente y estima cuántos nuevos faltan: la próxima corrida retoma sola por el dedup.
 3. Por pieza reúne: nombre, tipo (`foto`, `video`, `logo`, `post`, `documento`), fecha (creación o la del evento), link.
 4. **Fotos:** descríbelas mirando la miniatura o vista previa si el conector la ofrece (qué se ve, en 1 frase). Si no la ofrece, descríbelas por nombre y carpeta y marca `(sin vista previa)`.
 5. Carpetas con muchos ítems parecidos van en una sola línea, con cantidad: `Casting sep — 48 fotos`.
 
 ## 3. Escribe `material.md`
 
-Frontmatter: solo `ultimo_indexado: YYYY-MM-DDTHH:MM` (hora actual de America/Santiago). No agregues `tipo`.
+Frontmatter: solo `ultimo_indexado: YYYY-MM-DDTHH:MM`, hora local de Santiago de esta corrida (informativo; no decide qué se indexa). No agregues `tipo`.
 
 Cuerpo: conserva la tabla de la plantilla (`Pieza | Tipo | Campaña / evento | Descripción | Link`). Una fila por pieza o carpeta, ordenadas por campaña/evento y luego tipo; agrupa con un `##` por campaña o evento si hay varios. En corridas siguientes agrega filas al grupo que corresponda; no reescribas ni borres las existentes. Si quedó material pendiente por el tope, agrega al final una línea `Pendiente: ~N ítems sin indexar (continuar con /indexar-material <slug>)`, reemplazando la anterior si existe.
 
