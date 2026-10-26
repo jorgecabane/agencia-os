@@ -67,6 +67,7 @@ su bitácora y su respuesta final en el chat las cubre la única bitácora de §
 
 Hora local de Santiago:
 - Primera pasada a las 06:00 o después, si no existe `bandeja/<hoy>-hoy-<persona>.md` → `brief-del-dia`.
+- Si la persona tiene `nivel_automatizacion: bajo`, esa misma pasada de la mañana (primera ≥06:00) también corre `brief-reunion` para las reuniones de HOY, si aún no están generados (`tipo: brief-reunion` con fecha de hoy).
 - Primera pasada a las 17:00 o después, si aún no están los briefs de mañana (`tipo: brief-reunion` con
   fecha de mañana en `clientes/*/reuniones/` para las reuniones de mañana de la persona) → `brief-reunion` para mañana.
 

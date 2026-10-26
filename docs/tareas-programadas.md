@@ -1,7 +1,6 @@
 # Tareas programadas
 
-Se crean con `/schedule` (la skill `/bienvenida` te guía; no se pueden crear en silencio). Todas usan el repo
-`agencia-os` y la rama por defecto. Cron en UTC (Chile = UTC-3 en verano, UTC-4 en invierno), minuto `:07`,
+Se crean con `/schedule` (la skill `/bienvenida` te guía; no se pueden crear en silencio). Todas usan el repo del espacio (por defecto `agencia-os`; `/setup-espacio` puede nombrarlo distinto) y la rama por defecto. Cron en UTC (Chile = UTC-3 en verano, UTC-4 en invierno), minuto `:07`,
 intervalo mínimo 1 h. Cada prompt termina con "haz commit y push directo a main".
 
 ## Entorno en la nube
@@ -27,9 +26,8 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 ## Cómo disparan los briefs
 
 Los briefs no dependen del cron: `recolectar` genera `brief-del-dia` en la primera pasada desde las 06:00
-de Santiago y `brief-reunion` (de mañana) en la primera pasada desde las 17:00. Con nivel alto y medio
-ambos salen solos. Con nivel bajo hay una sola pasada por la mañana, así que solo sale el brief del día;
-el brief de reunión se pide a mano con `/brief-reunion`.
+de Santiago y `brief-reunion` (de mañana) en la primera pasada desde las 17:00. Con nivel alto y medio ambos salen solos. Con nivel bajo hay una sola pasada por la mañana: genera
+`brief-del-dia` y también `brief-reunion` para las reuniones de hoy.
 
 ## Cada persona
 

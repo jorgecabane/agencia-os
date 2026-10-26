@@ -39,7 +39,7 @@ Dile, en palabras simples, lo que dice la spec §9.1, y pide un "sí" claro ante
 
 Pregunta también si quiere excluir de entrada algún remitente o calendario (llena `excluir_remitentes` / `excluir_calendarios`).
 
-**Si dice que no (o duda):** crea la ficha sin `consentimiento_privacidad`, **no crees ni guíes ninguna tarea programada**, no conectes cuentas, y explica que puede volver a correr `/bienvenida` cuando quiera. Salta al paso 7.
+**Si dice que no (o duda):** igual creas la ficha (sin `consentimiento_privacidad`) y `.claude/settings.local.json` con `AOS_PERSONA` (paso 4), porque los hooks y `/nuevo-cliente` necesitan una persona. Solo omites los conectores (paso 5) y las tareas programadas (paso 6): no conectes cuentas ni guíes ninguna tarea. Explica que puede volver a correr `/bienvenida` cuando quiera. Haz los pasos 4, 7 y 8 y salta los 5 y 6.
 
 ## 4. Crea la ficha y la persona local
 
@@ -78,7 +78,7 @@ Guíala en claude.ai → Connectors a conectar con su cuenta: Gmail, Google Cale
 
 ## 6. Tareas programadas (solo con consentimiento)
 
-No puedes crearlas en silencio: la guías a crearlas con `/schedule`, una por una, según `docs/tareas-programadas.md` (repo `agencia-os`, cron UTC, minuto :07, prompt que termina con "haz commit y push directo a main"). Para su nivel:
+No puedes crearlas en silencio: la guías a crearlas con `/schedule`, una por una, según `docs/tareas-programadas.md` (repo del espacio, por defecto `agencia-os`, cron UTC, minuto :07, prompt que termina con "haz commit y push directo a main"). Para su nivel:
 
 - Tarea `recolectar-<slug>`: cron del nivel elegido y prompt `/recolectar <slug>`.
 - Si es el dueño del espacio y aún no existe: tarea `recurrentes` con `/materializar-recurrentes`.
