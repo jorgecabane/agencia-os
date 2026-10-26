@@ -6,7 +6,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from aos.esquemas import validar  # noqa: E402
 from aos.fm import leer  # noqa: E402
 
-DIRS = ("clientes", "equipo", "sesiones", "bandeja")
+DIRS = ("clientes", "equipo", "sesiones", "bandeja", "marca")
 
 
 def main(args: list[str]) -> int:
@@ -20,7 +20,7 @@ def main(args: list[str]) -> int:
         except Exception as e:  # YAML roto o archivo ilegible
             meta, errs = None, [f"no se pudo leer: {e}"]
         else:
-            errs = validar(meta)
+            errs = validar(meta) if isinstance(meta, dict) else ["frontmatter inválido"]
         for e in errs:
             print(f"{ruta}: {e}")
             hubo = True

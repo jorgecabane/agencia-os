@@ -80,3 +80,28 @@ def test_plan_cada_tipo_invalido_y_recurrentes_no_lista():
         "recurrentes[0].cada debe ser texto o lista"]
     assert validar({"tipo": "plan", "cliente": "a", "recurrentes": "x"}) == [
         "'recurrentes' debe ser lista"]
+
+
+def test_cliente_dominios_y_emails_deben_ser_lista():
+    base = {"tipo": "cliente", "nombre": "A", "slug": "a", "etapa": "activo",
+            "modalidad": "retainer", "responsable": "jorge"}
+    assert validar({**base, "dominios_email": ["a.cl"], "emails": ["x@y.cl"]}) == []
+    assert validar({**base, "dominios_email": "a.cl", "emails": "x@y.cl"}) == [
+        "'dominios_email' debe ser lista", "'emails' debe ser lista"]
+
+
+def test_cli_incluye_marca(tmp_path):
+    (tmp_path / "marca").mkdir()
+    (tmp_path / "marca" / "m.md").write_text("---\ntipo: decision\n---\n")
+    r = _cli(tmp_path)
+    assert r.returncode == 1 and "marca/m.md: falta 'cliente'" in r.stdout
+
+
+def test_cli_frontmatter_no_dict_sigue_con_los_demas(tmp_path):
+    (tmp_path / "clientes").mkdir()
+    (tmp_path / "clientes" / "a.md").write_text("---\n- a\n- b\n---\n")
+    (tmp_path / "clientes" / "b.md").write_text("---\ntipo: decision\ncliente: a\n---\n")
+    r = _cli(tmp_path)
+    assert r.returncode == 1 and "Traceback" not in r.stderr
+    assert "clientes/a.md: frontmatter inválido" in r.stdout
+    assert "clientes/b.md: falta 'fecha'" in r.stdout

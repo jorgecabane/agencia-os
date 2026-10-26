@@ -68,6 +68,9 @@ def validar(meta: dict) -> list[str]:
         v = meta.get(campo)
         if v is not None and not _es_fecha(v):
             errs.append(f"'{campo}' no es fecha (YYYY-MM-DD)")
+    if tipo == "cliente":
+        errs += [f"'{c}' debe ser lista" for c in ("dominios_email", "emails")
+                 if meta.get(c) is not None and not isinstance(meta[c], list)]
     if tipo == "plan":
         rec = meta.get("recurrentes") or []
         if not isinstance(rec, list):
