@@ -63,7 +63,7 @@ consentimiento_privacidad: <YYYY-MM-DD de hoy>   # solo si dijo sí; si rechazó
 Clientes: <lista de [[clientes/<slug>/_ficha]] o "por definir">
 ```
 
-No pongas `ultima_recoleccion`: lo agrega `recolectar` en su primera pasada. Si hay exclusiones, ponlas en las listas.
+No pongas `ultima_recoleccion` ni `briefs_reunion_hasta`: los agrega `recolectar`. Si hay exclusiones, ponlas en las listas.
 
 `.claude/settings.local.json` (está en `.gitignore`; comprueba con `git check-ignore .claude/settings.local.json`; si no responde, agrega la línea al `.gitignore`). Si el archivo ya existe, fusiona sin borrar lo que tenga:
 

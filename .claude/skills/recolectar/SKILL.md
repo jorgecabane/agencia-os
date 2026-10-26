@@ -30,8 +30,10 @@ Santiago) hasta ahora; si falta el campo, últimas 24 h. Guarda la hora de inici
 Lee `excluir_remitentes` y `excluir_calendarios` de esa ficha (si existen) y `dominio_email` de `marca/marca.md`.
 
 Conectores (regla del dueño del espacio):
-- **No configurado o no disponible** → sáltalo, avanza igual el cursor y menciónalo en el resumen.
-- **Configurado pero con error** → sigue con los demás, **no** avances `ultima_recoleccion` y repórtalo.
+- **No configurado o no disponible** (sus herramientas no aparecen en esta sesión) → sáltalo, avanza igual
+  el cursor y menciónalo en el resumen.
+- **Configurado pero con error** (las herramientas están, pero fallan: login vencido, error de
+  autenticación, timeout) → sigue con los demás, **no** avances `ultima_recoleccion` y repórtalo.
 
 ## 2. Reúne (solo lectura)
 
@@ -69,11 +71,15 @@ su bitácora y su respuesta final en el chat las cubre la única bitácora de §
 
 ## 5. Briefs (independientes de la hora del cron)
 
-Hora local de Santiago:
-- Primera pasada a las 06:00 o después, si no existe `bandeja/<hoy>-hoy-<persona>.md` → `brief-del-dia`.
-- Si la persona tiene `nivel_automatizacion: bajo`, esa misma pasada de la mañana (primera ≥06:00) también corre `brief-reunion` para las reuniones de HOY, si aún no están generados (`tipo: brief-reunion` con fecha de hoy).
-- Primera pasada a las 17:00 o después, si aún no están los briefs de mañana (`tipo: brief-reunion` con
-  fecha de mañana en `clientes/*/reuniones/` para las reuniones de mañana de la persona) → `brief-reunion` para mañana.
+Hora local de Santiago. `briefs_reunion_hasta` (en `equipo/personas/<persona>.md`) es la última fecha
+para la que ya se corrió `brief-reunion`, hubiera o no reuniones con clientes:
+- Primera pasada a las 06:00 o después, si no existe `bandeja/<hoy>-hoy-<persona>.md` → `brief-del-dia`
+  (siempre deja ese archivo, aunque sea con "Nada pendiente hoy").
+- Si la persona tiene `nivel_automatizacion: bajo`, a las 06:00 o después, si `briefs_reunion_hasta` falta o
+  es anterior a hoy → `brief-reunion` para HOY.
+- A las 17:00 o después, si `briefs_reunion_hasta` falta o es anterior a mañana → `brief-reunion` para mañana.
+- Tras cada `brief-reunion` que leyó Calendar sin error, pon `briefs_reunion_hasta: <fecha del brief>`
+  (aunque no haya escrito nada). Si Calendar falló, no lo cambies: la próxima pasada reintenta.
 
 ## 6. Cierre
 

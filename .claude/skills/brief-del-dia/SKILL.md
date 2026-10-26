@@ -15,11 +15,13 @@ Lee `clientes/*/entregables/`, `reuniones/` y `_ficha.md` de cada cliente (Glob 
 - **Entregables**: `responsable` = persona o `ia`, `estado` ni `publicado` ni `cancelado`, y `vence` ≤ hoy+7
   días (los `vence` < hoy están **atrasados**). Ordénalos por `vence`.
 - **Promesas abiertas** `- [ ]` de la persona en actas de los últimos 14 días.
-- **Reuniones de hoy**: `tipo: brief-reunion` con `fecha` de hoy en `clientes/*/reuniones/`.
-- **Señales**: más de 5 entregables de la persona en una misma semana (sobrecarga); `proximo_contacto`
-  vencido en alguna ficha; cliente `activo` sin eventos en `linea-de-tiempo.md` hace 14 días o más.
+- **Reuniones de hoy**: `tipo: brief-reunion` con `fecha` de hoy en `clientes/*/reuniones/` y la persona en `asistentes`.
+- **Señales**: más de 5 entregables de la persona en una misma semana (sobrecarga); y, solo en clientes
+  donde la persona es `responsable` o está en `equipo` de la `_ficha.md`: `proximo_contacto` vencido, o
+  cliente `activo` sin eventos en `linea-de-tiempo.md` hace 14 días o más.
 
-Si no hay nada de lo anterior, dilo en una línea y no escribas nada.
+Si no hay nada de lo anterior, dilo en una línea y escribe igual la bandeja (§ 3) solo con el título y
+`Nada pendiente hoy.`: así `recolectar` sabe que el brief de hoy ya se hizo.
 
 ## 2. Propuesta por pendiente
 
