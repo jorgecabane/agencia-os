@@ -9,3 +9,4 @@ __pycache__/
 vistas/*.local.base
 .obsidian/plugins/*/data.json
 !.obsidian/plugins/obsidian-git/data.json
+.claude/settings.local.json
