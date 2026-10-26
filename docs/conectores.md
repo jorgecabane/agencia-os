@@ -32,6 +32,7 @@ avanza el cursor `ultima_recoleccion`.
 - [ ] Autenticar cada uno con la cuenta de la persona (Granola con la cuenta donde se graban sus reuniones).
 - [ ] Crear con `/schedule` una tarea de prueba (repo del equipo, rama por defecto) cuyo prompt solo liste: últimas 3 transcripciones de Granola, eventos de Calendar de ayer y 3 hilos recientes de Gmail (solo asunto y fecha). Confirmar que cada conector responde en la nube.
 - [ ] Anotar por conector si en la nube puede escribir o solo leer, y qué permisos pidió.
+- [ ] Habilitar push a `main` (no solo a ramas `claude/`) en el entorno de tareas programadas (configuración del entorno/permisos de GitHub de `/schedule`); sin esto el push de `recolectar` falla o queda en una rama que nadie mergea.
 - [ ] Confirmar que la tarea puede hacer `git push origin HEAD:main` (orden explícita en el prompt) y que no queda solo en una rama `claude/`.
 - [ ] Confirmar la cadencia elegida y que el cron en UTC cae donde se espera en hora de Santiago.
 - [ ] Actualizar la tabla con sí/no y la fecha de verificación.
@@ -40,7 +41,9 @@ avanza el cursor `ultima_recoleccion`.
 ## Respaldo si Granola no está en la nube
 
 Granola por MCP local en el Mac de cada persona, más una tarea programada local que ejecute
-`claude -p "/recolectar <persona>"` en ese Mac (cron/launchd, cada 2 h). Sirve lo mismo para Gmail y
+`claude -p "/recolectar <persona>"` en ese Mac (cron/launchd, cada 2 h), **en un clon aparte** del repo
+(p. ej. `~/agencia-os-recoleccion`), nunca en la bóveda de Obsidian: `recolectar` corre `git switch main`
+y `git pull --rebase`, lo que pisaría la rama o el trabajo sin commitear de la persona. Sirve lo mismo para Gmail y
 Calendar. Desventajas: solo corre con el Mac encendido y despierto, y cada persona mantiene su propia
 configuración.
 
