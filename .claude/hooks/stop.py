@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 """Hook Stop: exige bitácora de sesión y frontmatter válido. Nunca falla (exit 0)."""
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
 
-from aos.esquemas import validar  # noqa: E402
-from aos.fm import leer  # noqa: E402
+try:
+    from aos.esquemas import validar
+    from aos.fm import leer
+except ImportError:  # sin deps el hook no debe romper la sesión; main() lo atrapa
+    pass
 
 CARPETAS = ("clientes", "equipo", "sesiones", "bandeja", "marca")
 MOTIVO_BITACORA = (
@@ -46,13 +50,14 @@ def _hay_bitacora(raiz: Path, session_id: str) -> bool:
 def revisar(raiz: Path, session_id: str, cambiados: list[Path], ya_bloqueado: bool) -> str | None:
     if ya_bloqueado:
         return None
+    partes = []
     errores = [e for p in cambiados for e in _errores(raiz, p)]
     if errores:
-        return "Corrige el frontmatter inválido:\n" + "\n".join(errores)
+        partes.append("Corrige el frontmatter inválido:\n" + "\n".join(errores))
     en_clientes = any(p.relative_to(raiz).parts[0] == "clientes" for p in cambiados)
     if en_clientes and not _hay_bitacora(raiz, session_id):
-        return MOTIVO_BITACORA.format(id=session_id)
-    return None
+        partes.append(MOTIVO_BITACORA.format(id=session_id))
+    return "\n\n".join(partes) or None
 
 
 def cambiados(raiz: Path) -> list[Path]:
@@ -71,11 +76,15 @@ def cambiados(raiz: Path) -> list[Path]:
 
 def main() -> None:
     datos = json.load(sys.stdin)
-    raiz = Path(datos.get("cwd") or ".").resolve()
+    cwd = datos.get("cwd") or "."
+    raiz = os.environ.get("CLAUDE_PROJECT_DIR") or subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"], cwd=cwd, capture_output=True, text=True,
+        check=True).stdout.strip()
+    raiz = Path(raiz).resolve()
     motivo = revisar(raiz, datos.get("session_id", ""), cambiados(raiz),
                      bool(datos.get("stop_hook_active")))
     if motivo:
-        print(json.dumps({"decision": "block", "reason": motivo}, ensure_ascii=False))
+        print(json.dumps({"decision": "block", "reason": motivo}))
 
 
 if __name__ == "__main__":

@@ -76,3 +76,20 @@ def test_script_bloquea_y_nunca_falla(tmp_path):
     assert json.loads(r.stdout)["decision"] == "block"
     r = subprocess.run([sys.executable, str(HOOK)], input="basura", capture_output=True, text=True)
     assert r.returncode == 0 and r.stdout == ""
+
+
+def test_errores_y_bitacora_en_un_solo_motivo(repo):
+    p = repo / "clientes/acme/entregables/e.md"
+    escribir(p, {"tipo": "entregable", "cliente": "acme"}, "")
+    motivo = revisar(repo, "s1", [p], False)
+    assert "falta '" in motivo and "bitácora" in motivo
+
+
+def test_cwd_subdirectorio(tmp_path, monkeypatch):
+    _git(tmp_path, "init", "-q")
+    (tmp_path / "clientes/acme").mkdir(parents=True)
+    (tmp_path / "clientes/acme/x.md").write_text("hola")
+    monkeypatch.delenv("CLAUDE_PROJECT_DIR", raising=False)
+    entrada = json.dumps({"session_id": "s", "cwd": str(tmp_path / "clientes/acme")})
+    r = subprocess.run([sys.executable, str(HOOK)], input=entrada, capture_output=True, text=True)
+    assert r.returncode == 0 and "bitácora" in json.loads(r.stdout)["reason"]

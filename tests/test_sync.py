@@ -62,3 +62,10 @@ def test_conflicto_no_rompe(tmp_path):
     assert r.returncode == 0 and "conflicto" in r.stderr
     assert not (a / ".git/rebase-merge").exists()
     assert "sesión: jorge" in git(a, "log", "--format=%s")
+
+
+def test_sin_remoto_silencioso(tmp_path):
+    git(tmp_path, "init", "-q")
+    (tmp_path / "f").write_text("x")
+    r = sync(tmp_path)
+    assert r.returncode == 0 and r.stderr == ""
