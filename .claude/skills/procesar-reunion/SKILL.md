@@ -16,8 +16,9 @@ Persona = `$AOS_PERSONA`. Sigue las convenciones de `CLAUDE.md` (§ Dónde anota
 3. Según lo que imprime:
    - **`ninguno`** → no escribas nada en ninguna parte (ni bandeja, ni bitácora, ni resumen en el
      chat del contenido). Responde solo: "Esta reunión no involucra a ningún cliente registrado; no la anoté." y termina.
-   - **`ambiguo: <slug1>, <slug2>`** → crea solo `bandeja/YYYY-MM-DD-reunion-por-clasificar-<persona>.md`
-     sin frontmatter, con: fecha, título, emails externos y los clientes candidatos. Nada del contenido.
+   - **`ambiguo: <slug1>, <slug2>`** → escribe solo en `bandeja/YYYY-MM-DD-reunion-por-clasificar-<persona>.md`
+     (sin frontmatter; si existe, agrega al final; no dupliques una entrada con la misma fecha + título):
+     fecha, título, emails externos y los clientes candidatos. Nada del contenido.
      Pide al usuario que diga a qué cliente corresponde y termina.
    - **Un slug** → ese es el cliente `<c>`. Sigue.
 
@@ -30,13 +31,18 @@ Lee `clientes/<c>/_ficha.md`, `contexto.md` y las promesas abiertas (`- [ ]`) de
 
 - Si viene `granola_id`, busca con Grep la regex `granola_id:.*<id>` en `clientes/<c>/reuniones/`. Si existe,
   **actualiza ese archivo** (y lo derivado) en vez de crear otro; no dupliques decisiones ni entregables.
-- Si no existe, crea `clientes/<c>/reuniones/YYYY-MM-DD-<slug>.md` (fecha de la reunión, slug del título):
+- Si no hay match por `granola_id`, busca en `clientes/<c>/reuniones/` un acta `tipo: reunion` (p. ej. una
+  creada antes desde Calendar con `fuente: notas`) con la misma fecha, hora de inicio ±15 min y al menos un
+  email de asistente en común (los títulos de Calendar y Granola pueden diferir). Si existe, **mejórala**:
+  agrega `granola_id`, cambia a `fuente: granola`, fusiona el contenido nuevo en sus secciones y actualiza lo
+  derivado, sin duplicar decisiones, entregables ni líneas de `linea-de-tiempo.md` (la línea `reunion` ya está).
+- Si no existe ninguna, crea `clientes/<c>/reuniones/YYYY-MM-DD-<slug>.md` (fecha de la reunión, slug del título):
 
 ```markdown
 ---
 tipo: reunion
 cliente: <c>
-fecha: YYYY-MM-DD           # o YYYY-MM-DDTHH:MM
+fecha: YYYY-MM-DDTHH:MM     # con hora de inicio si se conoce (la usa el dedup); si no, YYYY-MM-DD
 asistentes: [<persona>, "ana@cliente.cl"]   # internos por slug, externos por email
 fuente: granola             # granola | notas | transcripcion
 granola_id: "<id>"          # solo si viene

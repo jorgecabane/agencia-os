@@ -20,8 +20,9 @@ y termina sin escribir nada.
 2. Sin externos → ignora el evento, no lo menciones.
 3. Corre `uv run scripts/cliente.py <email> [<email>...]`:
    - `ninguno` → ignóralo; no escribas nada en ninguna parte.
-   - `ambiguo: ...` → crea solo `bandeja/YYYY-MM-DD-reunion-por-clasificar-<persona>.md` (sin frontmatter)
-     con fecha, título, emails y clientes candidatos; sin contenido. Sigue con el siguiente evento.
+   - `ambiguo: ...` → escribe solo en `bandeja/YYYY-MM-DD-reunion-por-clasificar-<persona>.md` (sin frontmatter;
+     si existe, agrega al final; no dupliques una entrada con la misma fecha + título) con fecha, título,
+     emails y clientes candidatos; sin contenido. Sigue con el siguiente evento.
    - Un slug → ese es el cliente `<c>`.
 
 ## 3. Brief
