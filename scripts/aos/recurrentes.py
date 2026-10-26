@@ -54,7 +54,8 @@ def materializar(carpeta_cliente: Path, hoy: date, semanas: int = 4) -> Cambios:
             continue
         meta = {"tipo": "entregable", "cliente": carpeta_cliente.name, "formato": r["formato"],
                 "vence": fecha, "estado": "brief", "responsable": r["responsable"],
-                "recurrente_de": nombre, "recurrencia_fecha": fecha, "origen": "[[plan-contratado]]"}
+                "recurrente_de": nombre, "recurrencia_fecha": fecha,
+                "origen": f"[[clientes/{carpeta_cliente.name}/plan-contratado]]"}
         if r.get("skill"):
             meta["skill"] = r["skill"]
         p = _ruta_libre(carpeta, fecha, nombre)

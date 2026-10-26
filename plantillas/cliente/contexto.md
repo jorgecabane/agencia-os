@@ -16,4 +16,4 @@
 
 ## Lo que aprendimos
 <!-- Una viñeta por aprendizaje, la más nueva al final:
-- YYYY-MM-DD: <aprendizaje> ([[fuente]]) -->
+- YYYY-MM-DD: <aprendizaje> ([[clientes/<c>/reuniones/<acta>]]) -->

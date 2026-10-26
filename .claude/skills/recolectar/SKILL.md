@@ -60,10 +60,10 @@ su bitácora y su respuesta final en el chat las cubre la única bitácora de §
   inicio (±15 min) y emails de asistentes en común (los títulos de Calendar y Granola pueden diferir).
 - **Correo relevante** → solo si hay un hecho (algo se acordó, aprobó, cambió una fecha):
   - Línea en `linea-de-tiempo.md` con tipo `estado` (CLAUDE.md no tiene tipo `correo`; `estado` es el más cercano):
-    `YYYY-MM-DD · estado · [[<entregable creado>]] o [[_ficha]] correo "<asunto>": <hecho> · ia (cuenta de <persona>)`.
+    `YYYY-MM-DD · estado · [[clientes/<c>/entregables/<entregable creado>]] o [[clientes/<c>/_ficha]] correo "<asunto>": <hecho> · ia (cuenta de <persona>)`.
     Antes de agregarla, comprueba que no exista una línea idéntica.
   - Pedidos con fecha → entregable `estado: brief` en `clientes/<c>/entregables/<vence>-<slug>.md`, solo si
-    no existe ya otro con mismo cliente + `vence` + slug. `origen: "[[linea-de-tiempo]]"`; fecha y asunto del correo en el cuerpo (`## Brief`).
+    no existe ya otro con mismo cliente + `vence` + slug. `origen: "[[clientes/<c>/linea-de-tiempo]]"`; fecha y asunto del correo en el cuerpo (`## Brief`).
   - Pendientes sin fecha o borradores de respuesta: nota en `bandeja/` de la persona. Nunca copies cuerpos de correo.
 - Lo que dependa de un dato que falta (fecha, cliente) va a la bandeja de la persona; no se adivina.
 

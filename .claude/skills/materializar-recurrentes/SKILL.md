@@ -13,8 +13,9 @@ Persona = `$AOS_PERSONA` (o `ia` si es una pasada automática).
 2. Valida: `uv run scripts/validar.py` (sin rutas valida todo) → corrige hasta que no imprima nada.
 3. Por cada entregable creado, agrega al final de `clientes/<c>/linea-de-tiempo.md` (créala desde
    `plantillas/cliente/linea-de-tiempo.md` si falta):
-   `<hoy> · entregable_creado · [[<archivo sin .md>]] <recurrente_de> vence <vence> · <persona>`
-   Por cada eliminado: `<hoy> · estado · [[<archivo sin .md>]] eliminado: ya no está en el plan · <persona>`.
+   `<hoy> · entregable_creado · [[<ruta sin .md>]] <recurrente_de> vence <vence> · <persona>`
+   (`<ruta>` tal como la imprime el script, p. ej. `[[clientes/acme/entregables/2026-10-27-post-feed]]`).
+   Por cada eliminado: `<hoy> · estado · [[<ruta sin .md>]] eliminado: ya no está en el plan · <persona>`.
 4. Bitácora de sesión según `CLAUDE.md` § Antes de terminar, con los clientes que cambiaron.
 5. Reporta por cliente: cuántos creados/eliminados, qué vence esta semana y quién lo hace. Como jefe
    de proyecto, avisa si alguien queda con más de 5 entregables en una semana y propone redistribuir o mover fechas.

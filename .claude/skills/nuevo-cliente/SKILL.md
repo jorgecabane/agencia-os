@@ -31,7 +31,7 @@ Si te pasan documentos (propuesta, brief, brandbook, links), léelos y úsalos p
 - `brandbook.md`: resumen del brandbook y link al real; si no hay, deja la nota "pendiente".
 - `material.md` y `linea-de-tiempo.md`: déjalos con su plantilla.
 
-Agrega a `linea-de-tiempo.md` una línea: `YYYY-MM-DD · estado · [[_ficha]] cliente creado (etapa <etapa>) · <persona>`.
+Agrega a `linea-de-tiempo.md` una línea: `YYYY-MM-DD · estado · [[clientes/<slug>/_ficha]] cliente creado (etapa <etapa>) · <persona>`.
 
 ## 3. Indexa el material
 

@@ -37,18 +37,18 @@ o redistribuir, y dilo.
 # Hoy, <fecha> · <persona>
 
 ## Reuniones de hoy
-- <hora> · [[<brief>]] <cliente>
+- <hora> · [[clientes/<c>/reuniones/<brief>]] <cliente>
 
 ## Atrasado
-- [[<entregable>]] · <cliente> · vencía <fecha>
+- [[clientes/<c>/entregables/<entregable>]] · <cliente> · vencía <fecha>
   Propuesta: <paso concreto o borrador>
 
 ## Esta semana
-- [[<entregable>]] · <cliente> · vence <fecha> · <estado>
+- [[clientes/<c>/entregables/<entregable>]] · <cliente> · vence <fecha> · <estado>
   Propuesta: <paso concreto o borrador>
 
 ## Promesas abiertas
-- <promesa> ([[<acta>]])
+- <promesa> ([[clientes/<c>/reuniones/<acta>]])
   Propuesta: <...>
 
 ## Alertas de jefe de proyecto

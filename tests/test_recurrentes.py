@@ -35,6 +35,7 @@ def test_crea_slots_de_4_semanas(tmp_path):
     meta, _ = leer(cli / "entregables/2026-10-27-post-feed.md")
     assert meta["estado"] == "brief" and meta["recurrencia_fecha"] == date(2026, 10, 27)
     assert meta["cliente"] == "acme" and meta["recurrente_de"] == "Post feed"
+    assert meta["origen"] == "[[clientes/acme/plan-contratado]]"  # bare-name es ambiguo entre clientes
     assert all(validar(leer(p)[0]) == [] for p in c.creados)
 
 

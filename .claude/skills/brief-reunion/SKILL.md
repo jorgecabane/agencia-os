@@ -58,7 +58,7 @@ fuente: calendar
 
 1. `uv run scripts/validar.py <archivos .md>` → corrige hasta que no imprima nada.
 2. Una línea en `linea-de-tiempo.md` solo si creaste el brief (no al actualizarlo):
-   `YYYY-MM-DD · reunion · [[<brief>]] brief de reunión · <persona>`.
+   `YYYY-MM-DD · reunion · [[clientes/<c>/reuniones/<brief>]] brief de reunión · <persona>`.
 3. Bitácora según `CLAUDE.md` § Antes de terminar (`clientes: [<slugs>]`).
 4. Responde como jefe de proyecto: reuniones preparadas (hora, cliente), lo más urgente de cada una
    y quién hace qué antes de entrar.

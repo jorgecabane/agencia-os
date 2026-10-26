@@ -46,7 +46,7 @@ granola_id: "<id>"          # solo si viene
 <3-6 líneas: para qué fue y qué salió>
 
 ## Decisiones
-- [[YYYY-MM-DD-<slug-decision>]] <una línea>
+- [[clientes/<c>/decisiones/YYYY-MM-DD-<slug-decision>]] <una línea>
 
 ## Promesas
 - [ ] <persona>: <qué> (<YYYY-MM-DD>)
@@ -62,22 +62,22 @@ Fecha: la dicha en la reunión convertida a `YYYY-MM-DD`; si no se dijo, `(sin f
 ## 4. Derivados
 
 - **Cada decisión** → `clientes/<c>/decisiones/YYYY-MM-DD-<slug>.md` con `tipo: decision`, `cliente`,
-  `fecha`, `origen: "[[<archivo del acta sin .md>]]"`; cuerpo: qué se decidió, por qué, alternativas descartadas.
+  `fecha`, `origen: "[[clientes/<c>/reuniones/<acta sin .md>]]"`; cuerpo: qué se decidió, por qué, alternativas descartadas.
 - **Cada promesa nuestra con fecha** → `clientes/<c>/entregables/<vence>-<slug>.md` con `tipo: entregable`,
   `cliente`, `formato` (slug corto: `propuesta`, `post-instagram`, `reporte`…), `vence`, `estado: brief`,
-  `responsable` (quien prometió), `origen: "[[<acta>]]"`; cuerpo `## Brief` con lo pedido y `## Versiones` vacío.
+  `responsable` (quien prometió), `origen: "[[clientes/<c>/reuniones/<acta>]]"`; cuerpo `## Brief` con lo pedido y `## Versiones` vacío.
   Las promesas del cliente y las nuestras sin fecha quedan solo en el acta (señálalas al cerrar).
 - **Cada aprendizaje** → viñeta al final de `contexto.md › ## Lo que aprendimos`:
-  `- YYYY-MM-DD: <aprendizaje> ([[<acta>]])`. Si `contexto.md` no existe, créalo desde `plantillas/cliente/contexto.md`.
+  `- YYYY-MM-DD: <aprendizaje> ([[clientes/<c>/reuniones/<acta>]])`. Si `contexto.md` no existe, créalo desde `plantillas/cliente/contexto.md`.
 - **Promesas previas cumplidas**: si en esta reunión se entregó o mostró algo prometido antes, marca
   `- [x]` en el acta anterior y, si tiene entregable, actualiza su `estado` (p. ej. `revision` o `aprobado`).
 - **Línea de tiempo** (`clientes/<c>/linea-de-tiempo.md`, créala desde la plantilla si falta), una línea por evento al final:
   ```
-  YYYY-MM-DD · reunion · [[<acta>]] <título> · <persona>
-  YYYY-MM-DD · decision · [[<decision>]] <resumen> · <persona>
-  YYYY-MM-DD · entregable_creado · [[<entregable>]] vence YYYY-MM-DD · <persona>
-  YYYY-MM-DD · estado · [[<entregable>]] brief→revision · <persona>
-  YYYY-MM-DD · aprendizaje · [[<acta>]] <resumen> · <persona>
+  YYYY-MM-DD · reunion · [[clientes/<c>/reuniones/<acta>]] <título> · <persona>
+  YYYY-MM-DD · decision · [[clientes/<c>/decisiones/<decision>]] <resumen> · <persona>
+  YYYY-MM-DD · entregable_creado · [[clientes/<c>/entregables/<entregable>]] vence YYYY-MM-DD · <persona>
+  YYYY-MM-DD · estado · [[clientes/<c>/entregables/<entregable>]] brief→revision · <persona>
+  YYYY-MM-DD · aprendizaje · [[clientes/<c>/reuniones/<acta>]] <resumen> · <persona>
   ```
   La fecha de cada línea es la de la reunión.
 

@@ -38,7 +38,9 @@ Actúas como **jefe de proyecto** de la compañía, no como asistente que espera
 | Personas del equipo | `equipo/personas/<slug>.md` |
 
 Nombres de archivo: `YYYY-MM-DD-<slug>.md`, slug en minúsculas, sin tildes, con guiones. Las relaciones
-son `[[wikilinks]]` al nombre del archivo sin `.md`. Para una carpeta de cliente nueva, copia `plantillas/cliente/`.
+son `[[wikilinks]]` con la ruta completa desde la raíz y sin `.md` (`[[clientes/<c>/plan-contratado]]`,
+`[[clientes/<c>/entregables/2026-01-20-carrusel-lanzamiento]]`): `_ficha`, `plan-contratado` y los
+nombres con fecha se repiten entre clientes, así que nunca uses solo el nombre. Para una carpeta de cliente nueva, copia `plantillas/cliente/`.
 
 ### Frontmatter mínimo por tipo
 
@@ -48,7 +50,7 @@ El esquema exacto está en `scripts/aos/esquemas.py`; esto es lo obligatorio:
 |---|---|---|
 | `cliente` | `nombre, slug, etapa, modalidad, responsable` | `etapa`: prospecto, propuesta, activo, pausado, cerrado · `modalidad`: retainer, proyecto, mixto · opcionales `dominios_email`, `emails`, `proximo_contacto`, `drive`, `conectores`, `fuentes_metricas` |
 | `plan` | `cliente` | `recurrentes`: lista de `{nombre, formato, cada, responsable}`; `cada` con días lun mar mie jue vie sab dom |
-| `entregable` | `cliente, formato, vence, estado, responsable` | `estado`: brief, en_curso, revision, aprobado, publicado, cancelado · `responsable` = slug de persona o `ia` · `origen` = `"[[...]]"` de la reunión, plan o decisión que lo generó |
+| `entregable` | `cliente, formato, vence, estado, responsable` | `estado`: brief, en_curso, revision, aprobado, publicado, cancelado · `responsable` = slug de persona o `ia` · `origen` = `"[[clientes/<c>/...]]"` de la reunión, plan o decisión que lo generó |
 | `reunion` / `brief-reunion` | `cliente, fecha` | opcionales `asistentes`, `fuente`, `granola_id` |
 | `decision` | `cliente, fecha` | `origen`; cuerpo: qué se decidió, por qué, alternativas descartadas |
 | `sesion` | `persona, fecha, session_id, clientes` | `clientes`: lista de slugs tocados (puede ser `[]`) |
@@ -65,18 +67,18 @@ Fechas en formato `YYYY-MM-DD` (o `YYYY-MM-DDTHH:MM`). `contexto.md`, `brandbook
    - entregables creados o actualizados (`entregables/`, con `estado` al día);
    - decisiones (`decisiones/`);
    - eventos en `linea-de-tiempo.md`;
-   - aprendizajes en `contexto.md › Lo que aprendimos` (una viñeta con fecha y fuente: `- YYYY-MM-DD: <aprendizaje> ([[fuente]])`).
+   - aprendizajes en `contexto.md › Lo que aprendimos` (una viñeta con fecha y fuente: `- YYYY-MM-DD: <aprendizaje> ([[clientes/<c>/reuniones/<acta>]])`).
 
 ## Línea de tiempo
 
 Una línea por evento, solo se agrega al final, nunca se edita ni se borra:
 
 ```
-YYYY-MM-DD · <tipo> · <[[link]]> <detalle> · <persona>
+YYYY-MM-DD · <tipo> · <[[clientes/<c>/...]]> <detalle> · <persona>
 ```
 
 Tipos: `reunion`, `decision`, `entregable_creado`, `estado`, `reprogramado`, `publicado`, `metrica`,
-`aprendizaje`, `conector`. Ejemplo: `2026-01-15 · reprogramado · [[2026-01-20-carrusel-lanzamiento]] 17→20 · ia`.
+`aprendizaje`, `conector`. Ejemplo: `2026-01-15 · reprogramado · [[clientes/acme/entregables/2026-01-20-carrusel-lanzamiento]] 17→20 · ia`.
 `<persona>` es `$AOS_PERSONA`, o `ia` en pasadas automáticas.
 
 ## Autonomía

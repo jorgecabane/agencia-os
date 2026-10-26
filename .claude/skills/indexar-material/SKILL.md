@@ -37,6 +37,6 @@ Cuerpo: conserva la tabla de la plantilla (`Pieza | Tipo | Campaña / evento | D
 ## 4. Cierra
 
 1. `uv run scripts/validar.py clientes/<slug>/material.md`: corrige hasta que no imprima nada.
-2. Agrega a `clientes/<slug>/linea-de-tiempo.md`: `YYYY-MM-DD · estado · [[material]] indexadas N piezas (quedan M) · <persona>`.
+2. Agrega a `clientes/<slug>/linea-de-tiempo.md`: `YYYY-MM-DD · estado · [[clientes/<slug>/material]] indexadas N piezas (quedan M) · <persona>`.
 3. Bitácora `sesiones/YYYY-MM-DD-<persona>-indexar-material-<slug>.md` según CLAUDE.md (§ Antes de terminar), si no la estás escribiendo ya en otra skill (ej. `nuevo-cliente`).
 4. Resume: piezas agregadas, grupos, cuántas quedan por el tope y cuáles quedaron `(sin vista previa)`.

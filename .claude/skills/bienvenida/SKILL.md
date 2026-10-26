@@ -59,7 +59,7 @@ consentimiento_privacidad: <YYYY-MM-DD de hoy>   # solo si dijo sí; si rechazó
 
 # <nombre>
 
-Clientes: <lista de [[wikilinks]] o "por definir">
+Clientes: <lista de [[clientes/<slug>/_ficha]] o "por definir">
 ```
 
 No pongas `ultima_recoleccion`: lo agrega `recolectar` en su primera pasada. Si hay exclusiones, ponlas en las listas.
