@@ -1,0 +1,15 @@
+filters:
+  and:
+    - tipo == "entregable"
+properties:
+  vence:
+    displayName: Vence
+views:
+  - type: kanban-view
+    name: Por estado
+    groupByProperty: note.estado
+    order:
+      - file.name
+      - cliente
+      - vence
+      - responsable

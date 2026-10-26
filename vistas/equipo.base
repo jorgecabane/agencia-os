@@ -1,0 +1,12 @@
+filters:
+  and:
+    - tipo == "entregable"
+views:
+  - type: kanban-view
+    name: Equipo
+    groupByProperty: note.estado
+    swimlaneByProperty: note.responsable
+    order:
+      - file.name
+      - cliente
+      - vence

@@ -47,3 +47,39 @@ configuración.
 Desviación del anti-objetivo 5 (nada depende de la máquina de una persona): este respaldo la incumple.
 Decisión pendiente del dueño del espacio: aceptarla solo para Granola, o esperar a que exista el conector
 en la nube y mientras tanto procesar las reuniones a mano con `procesar-reunion`.
+
+## Obsidian
+
+Obsidian abre el repo como bóveda; es solo la capa visual (calendario, kanban, tablas con el plugin
+núcleo Bases). Los archivos de cada plugin están commiteados en `.obsidian/plugins/` para que nadie
+instale nada: al abrir la bóveda, aceptar "Activar plugins de la comunidad". Obsidian mínimo: 1.11.4.
+
+| Plugin | Repo | Versión | Por qué |
+|---|---|---|---|
+| Obsidian Git (`obsidian-git`) | https://github.com/Vinzent03/obsidian-git | 2.42.0 | Pull, commit y push automáticos cada 5 min (mensaje `obsidian: {{date}}`, pull al abrir); evita que el equipo use git a mano. |
+| Kanban Bases View (`kanban-bases-view`) | https://github.com/xiwcx/obsidian-bases-kanban | 0.10.6 | Vista `kanban-view` con columnas por propiedad (`groupByProperty`) y carriles (`swimlaneByProperty`); arrastrar una tarjeta reescribe esa propiedad. |
+| Yabacavi (`yabacavi`) | https://github.com/xupisco/obsidian-yabacavi | 0.7.2 | Vista `calendar-cards`. Su README dice que arrastrar una tarjeta reescribe la propiedad de fecha elegida (conserva hora; fecha sola sigue siendo fecha sola), así que solo cambia `vence`, nunca `recurrencia_fecha`. No hizo falta el respaldo Calendar Bases. |
+| Agent Sidebar (`agent-sidebar`) | https://github.com/vsaraikin/obsidian-claude-plugin | 0.1.5 | Según su README lanza el binario `claude` ya instalado vía Claude Agent SDK con la bóveda como directorio, "so your CLAUDE.md, settings, skills and MCP servers apply as they do in a terminal"; el bundle pasa `settingSources`, por lo que los hooks del repo (`.claude/settings.json`) aplican. Por verificar en uso real. No hizo falta GuKi Chat. |
+
+Instalados desde el último release de cada repo oficial (tomado de `community-plugins.json` de
+obsidian-releases); sin ejecutar nada al bajarlos. Agent Sidebar aún no está revisado por Obsidian y
+pide `claude` con sesión iniciada; Anthropic pide API key para herramientas de terceros sobre el SDK.
+
+### Vistas (`vistas/*.base`)
+
+`hoy`, `calendario`, `entregables`, `equipo`, `lo-mio`, `pipeline`, `clientes`.
+
+- **calendario**: Yabacavi solo admite una propiedad de fecha por vista, así que hay dos vistas en el
+  mismo archivo: `Entregables` (por `vence`, arrastrable) y `Reuniones` (por `fecha`).
+- **lo-mio**: Bases no tiene variable de usuario. El filtro compara `responsable` con la fórmula
+  `yo`, que viene con el valor de relleno `TU-SLUG`. Cada persona duplica el archivo como
+  `vistas/lo-mio.local.base` (git lo ignora), pone su slug en `formulas.yo` y usa esa copia.
+- Obsidian reescribe los `.base` al editarlos desde la interfaz y borra los comentarios YAML.
+
+### Verificación pendiente (dueño del espacio, en la app)
+
+- [ ] Instalar Obsidian (`brew install --cask obsidian`) y abrir el repo como bóveda; activar plugins.
+- [ ] Con datos de prueba en `clientes/acme` (temporal): arrastrar un post en `calendario` cambia `vence` (`git diff`) y no toca `recurrencia_fecha`.
+- [ ] `uv run scripts/validar.py` sigue en 0 tras editar en Obsidian.
+- [ ] Arrastrar en `equipo` cambia `estado` o `responsable`.
+- [ ] Agent Sidebar: confirmar que lee CLAUDE.md y dispara los hooks. Borrar `clientes/acme`.

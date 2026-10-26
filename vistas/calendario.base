@@ -1,0 +1,37 @@
+# Un calendario Yabacavi usa UNA propiedad de fecha: entregables por `vence` (arrastrar reagenda
+# `vence`) y reuniones por `fecha`, cada uno en su vista.
+properties:
+  file.name:
+    displayName: Título
+  cliente:
+    displayName: Cliente
+  estado:
+    displayName: Estado
+  responsable:
+    displayName: Responsable
+views:
+  - type: calendar-cards
+    name: Entregables
+    filters:
+      and:
+        - tipo == "entregable"
+    dateProperty: note.vence
+    range: month
+    weekStart: monday
+    order:
+      - file.name
+      - cliente
+      - estado
+      - responsable
+  - type: calendar-cards
+    name: Reuniones
+    filters:
+      or:
+        - tipo == "reunion"
+        - tipo == "brief-reunion"
+    dateProperty: note.fecha
+    range: month
+    weekStart: monday
+    order:
+      - file.name
+      - cliente

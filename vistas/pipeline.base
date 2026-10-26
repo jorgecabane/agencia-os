@@ -1,0 +1,15 @@
+filters:
+  and:
+    - tipo == "cliente"
+properties:
+  proximo_contacto:
+    displayName: Próximo contacto
+views:
+  - type: kanban-view
+    name: Pipeline
+    groupByProperty: note.etapa
+    order:
+      - nombre
+      - modalidad
+      - responsable
+      - proximo_contacto

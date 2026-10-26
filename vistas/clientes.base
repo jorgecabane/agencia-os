@@ -1,0 +1,26 @@
+filters:
+  and:
+    - tipo == "cliente"
+properties:
+  nombre:
+    displayName: Nombre
+  etapa:
+    displayName: Etapa
+  modalidad:
+    displayName: Modalidad
+  responsable:
+    displayName: Responsable
+  proximo_contacto:
+    displayName: Próximo contacto
+views:
+  - type: table
+    name: Clientes
+    order:
+      - nombre
+      - etapa
+      - modalidad
+      - responsable
+      - proximo_contacto
+    sort:
+      - property: proximo_contacto
+        direction: ASC
