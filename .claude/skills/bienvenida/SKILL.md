@@ -32,7 +32,8 @@ Dile, en palabras simples, lo que dice la spec §9.1, y pide un "sí" claro ante
 > Para recolectar, leeré tu correo, tu calendario y tus reuniones de Granola. Las reglas:
 > - Solo guardo reuniones, transcripciones y correos donde participe alguien registrado en la ficha de un cliente o prospecto (por su dominio o email exacto).
 > - Todo lo demás lo ignoro y no lo escribo en ninguna parte, ni siquiera en la bandeja. Nunca guardo 1:1 internas, temas personales, sueldos ni precios internos.
-> - Si algo calza solo en parte (por ejemplo un email nuevo con el dominio de un cliente), lo dejo en tu bandeja personal con lo mínimo para que decidas, sin contenido.
+> - Cualquier dirección de un dominio registrado de un cliente cuenta como ese cliente (aunque sea un contacto nuevo).
+> - Si algo calza con dos o más clientes a la vez, lo dejo en tu bandeja personal con lo mínimo para que decidas (fecha, título, emails y clientes candidatos), sin contenido.
 > - Puedes excluir remitentes, etiquetas o calendarios cuando quieras; solo avísame.
 >
 > ¿Aceptas que lo haga así con tus cuentas? (sí/no)

@@ -99,13 +99,14 @@ Todo cambio queda en git y se puede revertir.
 
 El filtro va **antes** de escribir nada al repo (un push no se des-ve):
 - Solo se procesan reuniones, transcripciones y correos donde participe alguien registrado en la ficha
-  de un cliente o prospecto (`dominios_email` o `emails` exactos).
+  de un cliente o prospecto (`dominios_email` o `emails` exactos). Cualquier dirección de un dominio
+  registrado cuenta como ese cliente, aunque sea un contacto nuevo.
 - Antes de escribir cualquier cosa sacada de correo o reuniones, extrae los emails *pelados*
   (`ana@cliente.cl`, no `Ana <ana@cliente.cl>`) y corre `uv run scripts/cliente.py <email> [<email>...]`.
   Imprime el slug del cliente, `ninguno`, o `ambiguo: <slug1>, <slug2>` si calzan dos o más.
 - `ninguno` → se ignora y **no se escribe en ninguna parte**, ni en la bandeja, ni en la bitácora.
   Nunca: 1:1 internas, temas personales, sueldos, precios internos.
-- Lo que sale `ambiguo:` (o calza solo parcialmente) va a la bandeja de **su propio dueño** (`bandeja/YYYY-MM-DD-<slug>-<persona>.md`)
+- Lo que sale `ambiguo:` (el único caso de bandeja) va a la bandeja de **su propio dueño** (`bandeja/YYYY-MM-DD-<slug>-<persona>.md`)
   con lo mínimo para decidir: fecha, título, emails y clientes candidatos; sin contenido.
 
 ## Skills en vivo
