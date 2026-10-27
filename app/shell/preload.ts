@@ -37,6 +37,12 @@ const puente: Puente = {
       return () => ipcRenderer.send("sync:reanudar", id);
     },
   },
+  persona: () => ipcRenderer.invoke("persona:leer"),
+  guardarPersona: (slug) => ipcRenderer.invoke("persona:guardar", slug),
+  config: {
+    leer: () => ipcRenderer.invoke("config:leer"),
+    guardar: (parcial) => ipcRenderer.invoke("config:guardar", parcial),
+  },
   git: {
     log: (opts) => ipcRenderer.invoke("git:log", opts),
     show: (hash, ruta) => ipcRenderer.invoke("git:show", hash, ruta),

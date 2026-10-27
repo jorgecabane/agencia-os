@@ -3,10 +3,10 @@ import { existsSync, watch } from "node:fs";
 import { join } from "node:path";
 import { SHELL_VERSION } from "../shared/puente";
 import { elegirUI } from "./cargar-ui";
-import { guardarConfig, leerConfig } from "./config";
+import { type Config, guardarConfig, leerConfig } from "./config";
 import * as git from "./git";
 import { crearRepo } from "./repo";
-import { correrSyncSh, crearPausas, crearSync, leerPersona } from "./sync";
+import { correrSyncSh, crearPausas, crearSync, guardarPersona, leerPersona, personaGuardada } from "./sync";
 
 const ESPERA_RECARGA_MS = 300;
 
@@ -86,6 +86,14 @@ function cablearRepo(ventana: BrowserWindow, raiz: string): void {
   ventana.on("closed", parar);
 }
 
+function cablearLocal(raiz: string): void {
+  ipcMain.handle("persona:leer", () => personaGuardada(raiz));
+  ipcMain.handle("persona:guardar", (_e, slug: string) => guardarPersona(raiz, slug));
+  ipcMain.handle("config:leer", () => leerConfig());
+  // La UI no cambia la carpeta del repo (eso lo pide el shell al abrir).
+  ipcMain.handle("config:guardar", (_e, { repo: _repo, ...parcial }: Partial<Config>) => guardarConfig(parcial));
+}
+
 function crearVentana(repo: string): void {
   const ventana = new BrowserWindow({
     width: 1280,
@@ -106,6 +114,7 @@ function crearVentana(repo: string): void {
   });
   ventana.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
   cablearRepo(ventana, repo);
+  cablearLocal(repo);
   cargar(ventana, repo);
   vigilarUI(ventana, repo);
 }

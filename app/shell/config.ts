@@ -1,13 +1,9 @@
 import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
+import type { Config } from "../shared/puente";
 
-export interface Config {
-  repo: string | null;
-  ultimoVisto: string | null;
-  sesiones: Record<string, string>;
-  avisos: { reuniones: boolean; actas: boolean; dia: boolean };
-}
+export type { Config };
 
 const RUTA_CONFIG = join(homedir(), "Library", "Application Support", "agencia-os", "config.json");
 

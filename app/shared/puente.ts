@@ -12,6 +12,13 @@ export interface Commit {
   rutas: string[];
 }
 
+export interface Config {
+  repo: string | null;
+  ultimoVisto: string | null;
+  sesiones: Record<string, string>;
+  avisos: { reuniones: boolean; actas: boolean; dia: boolean };
+}
+
 /** Lo que el shell expone a la UI como `window.aos`. Las tareas siguientes lo completan. */
 export interface Puente {
   shellVersion: number;
@@ -33,6 +40,15 @@ export interface Puente {
     pausar(): () => void;
     /** Resuelve cuando no hay un sync en curso: `pausar()` y luego `await enCurso()` antes de un turno de chat. */
     enCurso(): Promise<void>;
+  };
+  /** Slug de `env.AOS_PERSONA` en `.claude/settings.local.json`, o null si nadie la eligió. */
+  persona(): Promise<string | null>;
+  /** Guarda `env.AOS_PERSONA` en `.claude/settings.local.json` (conserva el resto del archivo). */
+  guardarPersona(slug: string): Promise<void>;
+  /** Config local (`~/Library/Application Support/agencia-os/config.json`). */
+  config: {
+    leer(): Promise<Config>;
+    guardar(parcial: Partial<Config>): Promise<void>;
   };
   git: {
     log(opts: { desde?: string; ruta?: string; max?: number }): Promise<Commit[]>;

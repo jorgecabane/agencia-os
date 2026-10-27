@@ -1,6 +1,6 @@
 import { execFile } from "node:child_process";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 import type { Estado } from "../shared/puente";
 import { yo } from "./git";
 
@@ -139,13 +139,42 @@ export function correrSyncSh(raiz: string): (mensaje: string) => Promise<number>
     });
 }
 
+const AJUSTES = ".claude/settings.local.json";
+const SLUG = /^[a-z0-9][a-z0-9-]*$/;
+
+/** Lee `.claude/settings.local.json`; `{}` si no existe. Lanza si existe pero está roto (no hay que pisarlo). */
+function leerAjustes(raiz: string): Record<string, unknown> {
+  let texto: string;
+  try {
+    texto = readFileSync(join(raiz, AJUSTES), "utf8");
+  } catch {
+    return {};
+  }
+  return JSON.parse(texto);
+}
+
+/** `env.AOS_PERSONA` de `.claude/settings.local.json`, o null si no hay. */
+export function personaGuardada(raiz: string): string | null {
+  try {
+    const env = leerAjustes(raiz).env as Record<string, unknown> | undefined;
+    return env?.AOS_PERSONA ? String(env.AOS_PERSONA) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Escribe `env.AOS_PERSONA` conservando el resto del archivo. */
+export function guardarPersona(raiz: string, slug: string): void {
+  if (!SLUG.test(slug)) throw new Error("persona inválida");
+  const ajustes = leerAjustes(raiz);
+  const env = { ...(ajustes.env as Record<string, unknown> | undefined), AOS_PERSONA: slug };
+  const ruta = join(raiz, AJUSTES);
+  mkdirSync(dirname(ruta), { recursive: true });
+  writeFileSync(`${ruta}.tmp`, `${JSON.stringify({ ...ajustes, env }, null, 2)}\n`);
+  renameSync(`${ruta}.tmp`, ruta);
+}
+
 /** Persona de `.claude/settings.local.json` (env.AOS_PERSONA); si falta, `git config user.name`. */
 export async function leerPersona(raiz: string): Promise<string> {
-  try {
-    const cfg = JSON.parse(readFileSync(join(raiz, ".claude/settings.local.json"), "utf8"));
-    if (cfg?.env?.AOS_PERSONA) return String(cfg.env.AOS_PERSONA);
-  } catch {
-    // sin archivo o inválido: se usa git
-  }
-  return (await yo(raiz)).nombre || "sin-nombre";
+  return personaGuardada(raiz) ?? ((await yo(raiz)).nombre || "sin-nombre");
 }
