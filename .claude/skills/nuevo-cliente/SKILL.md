@@ -1,7 +1,6 @@
 ---
 name: nuevo-cliente
-description: Alta de un cliente o prospecto - entrevista, crea clientes/<slug>/ desde la plantilla, llena ficha, contexto, plan contratado y brandbook, indexa el material de Drive, materializa los recurrentes y valida. Corre solo con "/nuevo-cliente".
-disable-model-invocation: true
+description: Alta de un cliente o prospecto - entrevista, crea clientes/<slug>/ desde la plantilla, llena ficha, contexto, plan contratado y brandbook, indexa el material de Drive, materializa los recurrentes y valida. Úsala cuando digan "registra a X", "tenemos un cliente/prospecto nuevo", con "/nuevo-cliente", o cuando alguien confirme que una reunión sin cliente registrado era con un prospecto.
 ---
 
 # nuevo-cliente
@@ -9,6 +8,10 @@ disable-model-invocation: true
 Habla en español de Chile (tú). Sigue `CLAUDE.md` (§ Dónde anotar qué, § Privacidad). Persona = `$AOS_PERSONA`.
 
 ## 1. Entrevista (una cosa a la vez; acepta "no sé" y deja el campo vacío)
+
+Si vienes de una reunión, prellena nombre, dominio y contactos desde ella y propón `etapa: prospecto`;
+pregunta solo lo que falte. Al terminar, procesa esa reunión con `procesar-reunion`.
+
 
 1. Nombre comercial. Slug = minúsculas, sin tildes, con guiones; confirma que `clientes/<slug>/` no exista.
 2. Etapa: `prospecto`, `propuesta`, `activo`, `pausado` o `cerrado`.

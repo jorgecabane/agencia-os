@@ -13,7 +13,7 @@ en este flujo: solo su ficha.
 
 Explica en dos líneas qué vas a hacer. Pregunta:
 1. Nombre completo y rol.
-2. Con qué clientes trabaja (puede ser "aún no sé"; los clientes se crean con `/nuevo-cliente`).
+2. Con qué clientes trabaja (puede ser "aún no sé"; los clientes se crean pidiéndolo, ej. "registra a Donna's", o con `/nuevo-cliente`).
 3. Nivel de automatización: `alto` (recolección cada 2 h en horario laboral), `medio` (2 veces al día) o `bajo` (1 vez al día). Propón `alto`.
 
 Slug = nombre en minúsculas, sin tildes, con guiones (usa `uv run python -c "import sys; sys.path.insert(0,'scripts'); from aos.slug import slug; print(slug(sys.argv[1]))" "<nombre>"`).

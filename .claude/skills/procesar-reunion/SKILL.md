@@ -15,7 +15,10 @@ Persona = `$AOS_PERSONA`. Sigue las convenciones de `CLAUDE.md` (§ Dónde anota
 2. Corre `uv run scripts/cliente.py <email> [<email>...]` con todos los emails.
 3. Según lo que imprime:
    - **`ninguno`** → no escribas nada en ninguna parte (ni bandeja, ni bitácora, ni resumen en el
-     chat del contenido). Responde solo: "Esta reunión no involucra a ningún cliente registrado; no la anoté." y termina.
+     chat del contenido). Responde solo: "Esta reunión no involucra a ningún cliente registrado; no la anoté." Si algún
+     asistente externo tiene un dominio no genérico (no gmail.com y similares, no el de la agencia), agrega:
+     "¿<dominio> es un cliente o prospecto nuevo? Si me dices que sí, lo registro y anoto la reunión."
+     Con un sí, usa `nuevo-cliente` (prellenado desde la reunión) y vuelve al paso 1. Sin respuesta, termina.
    - **`ambiguo: <slug1>, <slug2>`** → escribe solo en `bandeja/YYYY-MM-DD-reunion-por-clasificar-<persona>.md`
      (sin frontmatter; si existe, agrega al final; no dupliques una entrada con la misma fecha + título):
      fecha, título, emails externos y los clientes candidatos. Nada del contenido.

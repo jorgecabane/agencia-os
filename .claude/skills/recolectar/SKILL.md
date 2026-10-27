@@ -45,7 +45,9 @@ Conectores (regla del dueño del espacio):
 
 Por cada reunión, evento o hilo: emails pelados de los participantes que no son del `dominio_email` de la
 agencia, y `uv run scripts/cliente.py <email> [<email>...]`.
-- Sin externos o `ninguno` → descártalo sin escribir ni mencionarlo en ninguna parte.
+- Sin externos o `ninguno` → descártalo sin escribir nada en el repo. Única excepción: si es una **reunión**
+  con un externo de dominio no genérico (no gmail.com y similares), anótala solo en el resumen final de
+  esta pasada (que ve únicamente la persona), en "Posibles prospectos": fecha, título y dominio, sin contenido.
 - `ambiguo: ...` → solo `bandeja/YYYY-MM-DD-reunion-por-clasificar-<persona>.md` (mismo nombre que usan
   `procesar-reunion` y `brief-reunion`; sin frontmatter; si existe, agrega al final) con fecha, título,
   emails y clientes candidatos; sin contenido. Antes de agregar, comprueba que no haya ya una entrada con la misma fecha + título.
@@ -95,4 +97,5 @@ para la que ya se corrió `brief-reunion`, hubiera o no reuniones con clientes:
    puedes mezclarlo con seguridad, `git rebase --abort`, no empujes y repórtalo en el resumen final.
 
 Resume en 3-5 líneas qué documentaste, qué quedó en la bandeja, conectores saltados o con error, y los
-próximos pasos con responsable.
+próximos pasos con responsable. Si hubo "Posibles prospectos", lístalos y di cómo registrarlos: en una
+sesión, "registra <dominio> como prospecto y procesa la reunión <título>".
