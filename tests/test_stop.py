@@ -123,7 +123,7 @@ def test_cambio_ya_commiteado_igual_bloquea(tmp_path):
     _inicio(tmp_path, "s1")
     (tmp_path / "clientes/acme").mkdir(parents=True)
     (tmp_path / "clientes/acme/x.md").write_text("hola")
-    _commit(tmp_path, "auto-commit de Obsidian Git")
+    _commit(tmp_path, "commit del sync anterior")
     assert "bitácora" in _stop(tmp_path, "s1")
 
 

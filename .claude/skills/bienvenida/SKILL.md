@@ -23,7 +23,7 @@ Slug = nombre en minúsculas, sin tildes, con guiones (usa `uv run python -c "im
 Verifica cada una; si falta, ofrece instalarla y espera su "sí":
 - `uv --version` (si falta: `curl -LsSf https://astral.sh/uv/install.sh | sh`).
 - `gh auth status` (si no hay sesión: que corra `gh auth login`).
-- Obsidian: `ls /Applications/Obsidian.app`; si falta, `brew install --cask obsidian`. Luego que abra la carpeta del repo como bóveda y acepte "Activar plugins de la comunidad" (ver `docs/conectores.md`, § Obsidian).
+- App de escritorio de Claude (`ls /Applications/Claude.app`): quien no use la terminal trabaja en su pestaña **Code**, abriendo la carpeta del repo; ahí aplican este CLAUDE.md, las skills y los hooks.
 
 ## 3. Consentimiento de privacidad (explícito)
 
@@ -76,7 +76,7 @@ Dile que reinicie Claude Code en esta carpeta para que tome la persona. Valida: 
 
 ## 5. Conectores (solo con consentimiento)
 
-Guíala en claude.ai → Connectors a conectar con su cuenta: Gmail, Google Calendar, Granola (y Google Drive si los clientes comparten ahí). Cada persona conecta lo suyo. Cuando diga que listo, comprueba que aparezcan en `/mcp`; lo que no esté se anota para decírselo al final (recolectar los salta si no están).
+Guíala en claude.ai → Connectors a conectar con su cuenta: Gmail, Google Calendar, Granola (y Google Drive si los clientes comparten ahí). Cada persona conecta lo suyo. Siempre en claude.ai, nunca con `claude mcp add`: así sirve en la terminal, en la app y en las tareas en la nube. Granola: entra con su gmail; avísale que el plan gratis solo entrega notas de 30 días, sin transcripción. Cuando diga que listo, comprueba que aparezcan en `/mcp`; lo que no esté se anota para decírselo al final (recolectar los salta si no están).
 
 ## 6. Tareas programadas (solo con consentimiento)
 
@@ -90,7 +90,7 @@ Antes de cada una muéstrale el nombre, el cron y el prompt exactos, y que **con
 
 ## 7. Cómo operamos
 
-Explica en 5 líneas, sin jerga: (1) el repo es la única fuente de verdad y yo, el agente, dejo todo documentado en el cliente correcto; (2) actúo como jefe de proyecto: cierro con próximos pasos y aviso lo que vence; (3) hacia afuera (correos, publicar, DMs, ads) solo dejo borradores para que tú apruebes; (4) todo cambio es un commit y se puede revertir; (5) en Obsidian ves las vistas `hoy`, `lo-mio`, `calendario`, `entregables`, `pipeline`, `equipo` y `clientes`. Para `lo-mio`, que duplique `vistas/lo-mio.base` como `vistas/lo-mio.local.base` y ponga su slug en `formulas.yo`.
+Explica en 5 líneas, sin jerga: (1) el repo es la única fuente de verdad y yo, el agente, dejo todo documentado en el cliente correcto; (2) actúo como jefe de proyecto: cierro con próximos pasos y aviso lo que vence; (3) hacia afuera (correos, publicar, DMs, ads) solo dejo borradores para que tú apruebes; (4) todo cambio es un commit y se puede revertir; (5) las reuniones se procesan solas: su tarea `recolectar` trae Granola, Calendar y Gmail cada par de horas y deja actas, entregables y briefs sin que nadie llame una skill.
 
 ## 8. Prueba y commit
 

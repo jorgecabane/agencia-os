@@ -1,12 +1,7 @@
 .superpowers/
-.obsidian/workspace*.json
 .DS_Store
 .venv/
 __pycache__/
 .pytest_cache/
 .env*
-.obsidian/cache
-vistas/*.local.base
-.obsidian/plugins/*/data.json
-!.obsidian/plugins/obsidian-git/data.json
 .claude/settings.local.json

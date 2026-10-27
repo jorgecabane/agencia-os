@@ -85,7 +85,7 @@ def _sucios(raiz: Path) -> list[str]:
 
 
 def _commiteados(raiz: Path, session_id: str) -> list[str]:
-    """Lo commiteado desde el inicio de la sesión (Obsidian Git auto-commitea cada 5 min)."""
+    """Lo commiteado desde el inicio de la sesión (el sync tras cada respuesta ya lo commiteó)."""
     archivo = Path(_git(raiz, "rev-parse", "--absolute-git-dir").strip()) / f"aos-sesion-{session_id}"
     try:
         base = archivo.read_text().strip()

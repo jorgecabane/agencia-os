@@ -2,7 +2,7 @@
 
 Sistema operativo de la agencia. Este repo (markdown + frontmatter YAML, sincronizado por git) es la
 **única fuente de verdad** de clientes, prospectos, reuniones, decisiones, promesas, entregables y
-aprendizajes. Obsidian, ClickUp y cualquier otra herramienta leen o se sincronizan desde acá; nunca al revés.
+aprendizajes. La app, ClickUp y cualquier otra herramienta leen o se sincronizan desde acá; nunca al revés.
 El equipo trabaja conversando contigo y, como subproducto, tú dejas todo documentado en el cliente correcto.
 
 Persona actual = `$AOS_PERSONA` (léela con `printenv AOS_PERSONA`). Si está vacía en una sesión con
