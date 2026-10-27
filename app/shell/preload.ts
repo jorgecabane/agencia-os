@@ -45,7 +45,7 @@ const puente: Puente = {
     guardar: (parcial) => ipcRenderer.invoke("config:guardar", parcial),
   },
   claude: {
-    enviar: (id, mensaje, contexto, envio) => ipcRenderer.invoke("claude:enviar", id, mensaje, contexto, envio),
+    enviar: (id, mensaje, contexto) => ipcRenderer.invoke("claude:enviar", id, mensaje, contexto),
     onEvento: (cb) => {
       const escucha = (_e: unknown, id: string, ev: EventoChat) => cb(id, ev);
       ipcRenderer.on("claude:evento", escucha);
@@ -77,6 +77,8 @@ const puente: Puente = {
       return () => ipcRenderer.removeListener("barra:captura", escucha);
     },
     alto: (px) => ipcRenderer.send("sistema:alto", px),
+    conectores: () => ipcRenderer.invoke("sistema:conectores"),
+    cambiarRepo: () => ipcRenderer.invoke("sistema:cambiar-repo"),
   },
 };
 contextBridge.exposeInMainWorld("aos", puente);

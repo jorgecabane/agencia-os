@@ -55,11 +55,11 @@ export const olvidarOmitidos = () => { omitidos = []; avisar(); };
 const algunoEnCurso = () => [...conversaciones.values()].some((ts) => ts.at(-1)?.enCurso);
 export const useAlgunoEnCurso = (): boolean => useSyncExternalStore(suscribir, algunoEnCurso);
 
-export function enviar(id: string, mensaje: string, contexto: string, envio?: string[]): void {
+export function enviar(id: string, mensaje: string, contexto: string): void {
   quitar ??= window.aos.claude.onEvento(alEvento);
   conversaciones.set(id, [...(conversaciones.get(id) ?? []), { mensaje, eventos: [], enCurso: true }]);
   avisar();
-  window.aos.claude.enviar(id, mensaje, contexto, envio).catch((e: unknown) => {
+  window.aos.claude.enviar(id, mensaje, contexto).catch((e: unknown) => {
     alEvento(id, { tipo: "error", texto: `No pude hablar con Claude: ${e instanceof Error ? e.message : String(e)}` });
     alEvento(id, { tipo: "fin" });
   });

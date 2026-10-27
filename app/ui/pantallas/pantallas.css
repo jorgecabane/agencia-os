@@ -1,0 +1,93 @@
+/* Calendario, Aprobaciones y Configuración (sin boceto: mismo norte que tablero-v2). */
+
+/* — Calendario — */
+.cal { min-width: 0; }
+.cal-nav { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+.cal-rotulo { font-family: var(--fuente-titulo); font-weight: 400; font-size: 20px; margin: 0 6px; min-width: 9ch; text-align: center; }
+.cal-ayuda { color: var(--tenue); font-size: 12.5px; }
+.cal-grilla { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1px; background: var(--linea-suave); border: 1px solid var(--linea-suave); border-radius: 10px; overflow: hidden; }
+.cal-dow { background: var(--fondo); color: var(--tenue); font-size: 12px; padding: 6px 8px; }
+.cal-dia { background: var(--fondo); min-height: 112px; padding: 6px 6px 8px; display: flex; flex-direction: column; gap: 3px; transition: background-color 150ms ease; }
+.semana .cal-dia { min-height: 420px; }
+.cal-dia.fuera { background: var(--lateral); }
+.cal-dia.fuera .cal-num { color: var(--tenue); }
+.cal-dia.sobre { background: var(--superficie); box-shadow: inset 0 0 0 1px var(--foco); }
+.cal-num { font-size: 12.5px; color: var(--apagado); padding: 1px 4px; align-self: flex-start; border-radius: 6px; }
+.cal-dia.hoy .cal-num { background: var(--foco); color: var(--sobre-foco); font-weight: 600; }
+.cal-item {
+  all: unset; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; gap: 5px; width: 100%;
+  padding: 3px 6px; border-radius: 6px; font-size: 14px; line-height: 1.3; cursor: pointer;
+  background: var(--superficie); border: 1px solid var(--linea-suave);
+  transition: border-color 150ms ease, transform 160ms var(--ease-out);
+}
+.cal-item[draggable="true"] { cursor: grab; }
+.cal-item:active { transform: scale(0.98); }
+.cal-item:focus-visible, .cal-mas:focus-visible { outline: 2px solid var(--foco); outline-offset: 1px; }
+.cal-item[aria-pressed="true"] { border-color: var(--foco); background: var(--elevado); }
+.cal-item.reunion { background: transparent; border-style: dashed; color: var(--apagado); }
+.cal-item.cerrado { opacity: 0.55; }
+.cal-t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.semana .cal-t { white-space: normal; flex-basis: 100%; }
+.cal-sub { flex-basis: 100%; color: var(--tenue); font-size: 12.5px; }
+.cal-hora { color: var(--texto); font-variant-numeric: tabular-nums; }
+.cal-ic { color: var(--tenue); }
+.cal-tarde { color: var(--atraso); font-size: 11px; }
+.cal-ok { color: var(--avance); font-size: 12px; }
+.cal-mas { all: unset; cursor: pointer; color: var(--apagado); font-size: 14px; padding: 1px 6px; border-radius: 6px; }
+.cal-mas:hover { background: var(--superficie); color: var(--texto); }
+@media (hover: hover) and (pointer: fine) { .cal-item:hover { border-color: var(--linea); } }
+
+/* — Aprobaciones — */
+.aprob-cuerpo { display: grid; grid-template-columns: minmax(240px, 320px) minmax(0, 1fr); gap: 28px; align-items: start; }
+.aprob-lista .seccion:first-child { margin-top: 0; }
+.aprob-lista .fila { width: 100%; }
+.fila.aprob-fila { grid-template-columns: 3px minmax(0, 1fr); text-align: left; }
+.aprob-detalle { display: flex; flex-direction: column; gap: 14px; max-width: 680px; min-width: 0; }
+.aprob-detalle h2 { font-family: var(--fuente-titulo); font-weight: 400; font-size: 26px; line-height: 1.2; margin: 0; }
+.borrador {
+  white-space: pre-wrap; font-size: 14px; line-height: 1.6; padding: 16px 18px; border-radius: 10px;
+  background: var(--aprobacion-fondo); border: 1px solid var(--aprobacion-linea); max-height: 46vh; overflow: auto;
+}
+.chip.estado-aprobado, .chip.estado-ejecutado { color: var(--avance); }
+.chip.estado-descartado { color: var(--tenue); }
+.aprob-detalle .chat { border-top: 1px solid var(--linea-suave); padding-top: 12px; }
+
+/* — Configuración — */
+.conf { max-width: 760px; }
+.conf-seccion { margin-top: 30px; }
+.conf-seccion h2 { font-family: var(--fuente-titulo); font-weight: 400; font-size: 22px; margin: 0; }
+.conf-seccion .bajada { margin-bottom: 12px; }
+.conf-seccion .subtitulo { margin: 16px 0 6px; }
+.conf-seccion .subtitulo .c { color: var(--tenue); font-weight: 400; }
+.conf-fila { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--linea-suave); font-size: 14px; }
+.conf-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.conf-t .sub { color: var(--apagado); font-size: 14px; }
+.conf-t .ruta { word-break: break-all; color: var(--tenue); }
+.interruptor { cursor: pointer; }
+.interruptor .estado-txt { color: var(--apagado); font-size: 14px; }
+.interruptor input {
+  appearance: none; margin: 0; width: 34px; height: 20px; border-radius: 10px; background: var(--elevado);
+  border: 1px solid var(--linea); position: relative; cursor: pointer; transition: background-color 150ms ease;
+}
+.interruptor input::after {
+  content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%;
+  background: var(--apagado); transition: transform 160ms var(--ease-out), background-color 150ms ease;
+}
+.interruptor input:checked { background: var(--avance); border-color: var(--avance); }
+.interruptor input:checked::after { transform: translateX(14px); background: var(--sobre-foco); }
+.interruptor input:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+.conf-buscar {
+  width: 100%; font: 14px var(--fuente-ui); color: var(--texto); background: var(--superficie);
+  border: 1px solid var(--linea); border-radius: 7px; padding: 6px 10px;
+}
+.conf-buscar:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+.skills { list-style: none; margin: 0; padding: 0; max-height: 320px; overflow: auto; }
+.skill { display: flex; align-items: center; gap: 12px; padding: 8px 2px; border-bottom: 1px solid var(--linea-suave); }
+.skill-nombre { font-size: 14px; font-weight: 550; }
+.skill-nombre .ok { color: var(--avance); font-size: 10px; }
+.skill-desc { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.conf-salida {
+  margin: 12px 0 0; padding: 12px 14px; border-radius: 8px; background: var(--superficie); border: 1px solid var(--linea-suave);
+  font: 12.5px/1.5 ui-monospace, Menlo, monospace; color: var(--apagado); white-space: pre-wrap; word-break: break-word;
+}
+.conf-salida:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }

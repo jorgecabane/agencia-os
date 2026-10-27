@@ -34,7 +34,7 @@ export function useVistas(): [Vista[] | null, (vs: Vista[]) => Promise<void>] {
 }
 
 /** Cambios recién hechos en el tablero, encima del índice hasta que el índice los refleje. */
-function useMovidos(onError: (msg: string) => void) {
+export function useMovidos(onError: (msg: string) => void) {
   const { indice } = useSesion();
   const [movidos, setMovidos] = useState<Record<string, Partial<Entregable>>>({});
   useEffect(() => setMovidos((m) => {

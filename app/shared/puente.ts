@@ -74,10 +74,11 @@ export interface Puente {
   claude: {
     /**
      * Manda `mensaje` en la conversación `contextoId` (una por tarea, cliente o "global"), con el prefijo
-     * "Estás viendo <contexto>". `envio` agrega herramientas de envío y solo vale para "Ejecuta la aprobación…".
+     * "Estás viendo <contexto>". Solo "Ejecuta la aprobación bandeja/<x>.md" suma herramientas de envío: el shell
+     * lee ese archivo, exige `tipo: aprobacion` y `estado: aprobado` y da solo las del conector de su `canal`.
      * Resuelve cuando termina el turno; lo que pasa llega por `onEvento`.
      */
-    enviar(contextoId: string, mensaje: string, contexto: string, envio?: string[]): Promise<void>;
+    enviar(contextoId: string, mensaje: string, contexto: string): Promise<void>;
     onEvento(cb: (contextoId: string, e: EventoChat) => void): () => void;
     cancelar(contextoId: string): void;
   };
@@ -106,6 +107,10 @@ export interface Puente {
     onCaptura(cb: () => void): () => void;
     /** Ventana de la barra: alto de su contenido. */
     alto(px: number): void;
+    /** Salida de `claude mcp list` (los conectores de Claude Code); rechaza con un texto para mostrar. */
+    conectores(): Promise<string>;
+    /** Pide otra carpeta del repo y reinicia la app con ella; false si se canceló. */
+    cambiarRepo(): Promise<boolean>;
   };
 }
 

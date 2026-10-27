@@ -7,6 +7,7 @@ import { crearBarra } from "./bandeja-menu";
 import { elegirUI } from "./cargar-ui";
 import { crearClaude } from "./claude";
 import { type Config, guardarConfig, leerConfig } from "./config";
+import { conectores } from "./sistema";
 import * as git from "./git";
 import { crearRepo } from "./repo";
 import { correrSyncSh, crearPausas, crearSync, guardarPersona, leerPersona, personaGuardada } from "./sync";
@@ -137,9 +138,9 @@ function cablearClaude(raiz: string, sync: Sync): Claude {
     },
     sync,
   });
-  ipcMain.handle("claude:enviar", (e, id: string, mensaje: string, contexto: string, envio?: string[]) => {
+  ipcMain.handle("claude:enviar", (e, id: string, mensaje: string, contexto: string) => {
     const wc = e.sender;
-    return claude.enviar(id, mensaje, contexto, (ev) => !wc.isDestroyed() && wc.send("claude:evento", id, ev), envio);
+    return claude.enviar(id, mensaje, contexto, (ev) => !wc.isDestroyed() && wc.send("claude:evento", id, ev));
   });
   ipcMain.on("claude:cancelar", (_e, id: string) => claude.cancelar(id));
   app.on("before-quit", claude.cancelarTodo);
@@ -166,7 +167,7 @@ function notificar(a: unknown, pedir: (p: PedidoApp) => void): void {
   aviso.show();
 }
 
-function cablearSistema(barra: Barra, claude: Claude, mostrar: () => BrowserWindow): void {
+function cablearSistema(raiz: string, barra: Barra, claude: Claude, mostrar: () => BrowserWindow): void {
   const pedir = (p: PedidoApp) => {
     pedidos.push(p);
     barra.ocultar();
@@ -187,6 +188,15 @@ function cablearSistema(barra: Barra, claude: Claude, mostrar: () => BrowserWind
   ipcMain.handle("sistema:capturar", (_e, texto: unknown) => {
     if (typeof texto !== "string" || !texto.trim() || claude.ocupado()) return false;
     pedir({ captura: texto.trim() });
+    return true;
+  });
+  ipcMain.handle("sistema:conectores", () => conectores(raiz));
+  ipcMain.handle("sistema:cambiar-repo", async () => {
+    const repo = await pedirRepo();
+    if (!repo) return false;
+    guardarConfig({ repo });
+    app.relaunch();
+    app.exit(0);
     return true;
   });
   ipcMain.on("sistema:alto", (e, px: unknown) => {
@@ -232,7 +242,7 @@ function arrancar(raiz: string): void {
   soltarPausas(barra.ventana, pausas);
   cargar(barra.ventana, raiz, "barra");
   vigilarUI(barra.ventana, raiz, "barra");
-  cablearSistema(barra, claude, mostrar);
+  cablearSistema(raiz, barra, claude, mostrar);
   Menu.setApplicationMenu(menu(mostrar));
   app.on("activate", () => mostrar());
   mostrar();

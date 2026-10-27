@@ -5,8 +5,12 @@ import { Editor } from "./componentes/Editor";
 import { ElegirPersona } from "./componentes/ElegirPersona";
 import { Lateral, type Pantalla } from "./componentes/Lateral";
 import { clienteDeRuta, colorPara, fechaLocal, titulo } from "./datos/hoy";
+import { APROBACION } from "./datos/pasos";
 import { SesionCtx, useIndice } from "./datos/sesion";
+import { Aprobaciones } from "./pantallas/Aprobaciones";
+import { Calendario } from "./pantallas/Calendario";
 import { Cliente } from "./pantallas/Cliente";
+import { Config } from "./pantallas/Config";
 import { Hoy } from "./pantallas/Hoy";
 import { Tablero } from "./pantallas/Tablero";
 
@@ -14,6 +18,7 @@ const aviso = new URLSearchParams(location.search).get("aviso");
 // La ventana de la barra de menú carga la misma UI con #barra.
 const BARRA = location.hash === "#barra";
 const GLOBAL = { contextoId: "global", contexto: "Todo el espacio" };
+const NOMBRES: Record<string, string> = { hoy: "Hoy", tablero: "Tablero", calendario: "Calendario", aprobaciones: "Aprobaciones", config: "Configuración" };
 
 type Cajon = { contextoId: string; contexto: string; pedido?: Pedido };
 
@@ -66,6 +71,7 @@ export function App() {
     if (BARRA) return;
     return window.aos.sistema.onPedido((p) => {
       if ("captura" in p) return capturar(p.captura);
+      if (APROBACION.test(p.ruta)) return ir({ nombre: "aprobaciones", ruta: p.ruta });
       ir((actual) => ({ nombre: "editar", ruta: p.ruta, desde: actual.nombre === "editar" ? actual.desde : actual }));
     });
   }, []);
@@ -97,8 +103,10 @@ export function App() {
   const fecha = fechaLocal();
   const desde = pantalla.nombre === "editar" ? pantalla.desde : pantalla;
   const editar = (ruta: string) => ir({ nombre: "editar", ruta, desde });
+  // Los borradores para aprobar se revisan en Aprobaciones, no en el editor.
+  const abrirArchivo = (ruta: string) => (APROBACION.test(ruta) ? ir({ nombre: "aprobaciones", ruta }) : editar(ruta));
   const nombreCliente = (slug: string) => indice.clientes.find((c) => c.slug === slug)?.nombre ?? slug;
-  const nombreDe = (p: typeof desde) => (p.nombre === "hoy" ? "Hoy" : p.nombre === "tablero" ? "Tablero" : nombreCliente(p.slug));
+  const nombreDe = (p: typeof desde) => (p.nombre === "cliente" ? nombreCliente(p.slug) : NOMBRES[p.nombre]);
   const etiquetaDe = (contexto: string) => {
     if (contexto.endsWith(".md")) return titulo(contexto);
     const c = clienteDeRuta(`${contexto}/`);
@@ -118,6 +126,9 @@ export function App() {
         <Lateral pantalla={pantalla} ir={ir} fecha={fecha} onCambiarPersona={() => setEligiendo(true)} />
         {pantalla.nombre === "hoy" && <Hoy fecha={fecha} onEditar={editar} />}
         {pantalla.nombre === "tablero" && <Tablero fecha={fecha} onEditar={editar} />}
+        {pantalla.nombre === "calendario" && <Calendario fecha={fecha} onEditar={editar} />}
+        {pantalla.nombre === "aprobaciones" && <Aprobaciones key={pantalla.ruta} inicial={pantalla.ruta} onEditar={editar} />}
+        {pantalla.nombre === "config" && <Config onEditar={editar} onCambiarPersona={() => setEligiendo(true)} />}
         {pantalla.nombre === "cliente" && <Cliente key={pantalla.slug} slug={pantalla.slug} fecha={fecha} onErrorFuera={setErrorGuardar} onPedirClaude={pedir} />}
         {pantalla.nombre === "editar" && (
           <main className="principal editar">
@@ -126,7 +137,7 @@ export function App() {
           </main>
         )}
         {cajon && (
-          <Chat key={cajon.contextoId} {...cajon} etiqueta={etiquetaDe(cajon.contexto)} onAbrir={editar} onCerrar={cerrar}
+          <Chat key={cajon.contextoId} {...cajon} etiqueta={etiquetaDe(cajon.contexto)} onAbrir={abrirArchivo} onCerrar={cerrar}
             color={clienteDeRuta(`${cajon.contexto}/`) ? colorPara(clienteDeRuta(`${cajon.contexto}/`)!) : undefined} />
         )}
       </div>

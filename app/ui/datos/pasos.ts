@@ -11,7 +11,7 @@ type Contenido = { type?: string; id?: string; name?: string; input?: Record<str
 const CMD_MAX = 60;
 const EDITAN = new Set(["Edit", "Write", "MultiEdit"]);
 const RECHAZO = /requires approval|requested permissions|haven't granted/i;
-const APROBACION = /^bandeja\/[^/]*aprobacion[^/]*\.md$/;
+export const APROBACION = /^bandeja\/[^/]*aprobacion[^/]*\.md$/;
 const DOCS: Record<string, string> = {
   brandbook: "el brandbook", contexto: "el contexto", "plan-contratado": "el plan contratado", material: "el material",
   _ficha: "la ficha", "linea-de-tiempo": "la línea de tiempo",

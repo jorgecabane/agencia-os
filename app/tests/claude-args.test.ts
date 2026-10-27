@@ -4,7 +4,8 @@ import { join } from "node:path";
 import { PassThrough } from "node:stream";
 import { describe, expect, it, vi } from "vitest";
 import type { EventoChat } from "../shared/puente";
-import { argsClaude, crearClaude, lecturaConectores } from "../shell/claude";
+import { argsClaude, crearClaude, herramientasDeEnvio, lecturaConectores } from "../shell/claude";
+import { fixtureRepo } from "./helpers";
 
 const FIXTURE = readFileSync(join(__dirname, "fixtures/stream-json.jsonl"), "utf8");
 
@@ -53,12 +54,12 @@ function falso(guion: (h: Hijo) => void) {
 type Hijo = EventEmitter & { stdout: PassThrough; stderr: PassThrough; kill: () => void };
 const cerrar = (h: Hijo, codigo: number | null) => { h.stdout.end(); h.stderr.end(); setTimeout(() => h.emit("close", codigo), 5); };
 
-function armar(guion: (h: Hijo) => void, sesiones: Record<string, string> = {}, estadoSync = "al-dia") {
+function armar(guion: (h: Hijo) => void, sesiones: Record<string, string> = {}, estadoSync = "al-dia", raiz = "/repo") {
   const { spawn, llamadas } = falso(guion);
   const orden: string[] = [];
   const reanudar = vi.fn(() => orden.push("reanudar"));
   const claude = crearClaude({
-    raiz: "/repo",
+    raiz,
     spawn: spawn as never,
     persona: async () => "cami",
     head: async () => "abc123",
@@ -69,7 +70,7 @@ function armar(guion: (h: Hijo) => void, sesiones: Record<string, string> = {}, 
     },
   });
   const eventos: EventoChat[] = [];
-  const enviar = (msg = "hola", envio?: string[]) => claude.enviar("global", msg, "Todo el espacio", (e) => eventos.push(e), envio);
+  const enviar = (msg = "hola") => claude.enviar("global", msg, "Todo el espacio", (e) => eventos.push(e));
   return { claude, enviar, eventos, llamadas, orden, reanudar, sesiones };
 }
 
@@ -106,15 +107,6 @@ describe("crearClaude", () => {
     expect(t.eventos.filter((e) => e.tipo === "error")).toHaveLength(1);
   });
 
-  it("envio solo vale en el turno de 'Ejecuta la aprobación'", async () => {
-    const t = armar((h) => cerrar(h, 0));
-    await t.enviar("Publica esto ya", ["mcp__claude_ai_Gmail__send_email"]);
-    await t.enviar("Ejecuta la aprobación bandeja/2026-10-27-aprobacion-x.md", ["mcp__claude_ai_Gmail__send_email"]);
-    const lista = (k: number) => t.llamadas[k].args[t.llamadas[k].args.indexOf("--allowedTools") + 1];
-    expect(lista(0)).not.toContain("send_email");
-    expect(lista(1)).toContain("send_email");
-  });
-
   it("cancelar mata el proceso del contexto y termina sin error", async () => {
     const t = armar(() => {});
     const turno = t.enviar();
@@ -142,14 +134,6 @@ describe("crearClaude: bordes", () => {
     expect(t.reanudar).toHaveBeenCalledTimes(1);
   });
 
-  it("envio inválido (no es lista o no es un conector) → no corre", async () => {
-    const t = armar((h) => cerrar(h, 0));
-    await t.enviar("Ejecuta la aprobación bandeja/x.md", ["Bash(rm -rf *)"]);
-    await t.enviar("Ejecuta la aprobación bandeja/x.md", "mcp__claude_ai_Gmail__send" as never);
-    expect(t.llamadas).toHaveLength(0);
-    expect(t.eventos.filter((e) => e.tipo === "error")).toHaveLength(2);
-  });
-
   it("un result con error muestra el texto genérico, no el crudo", async () => {
     const r = JSON.stringify({ type: "result", is_error: true, result: "API Error: 529 overloaded_error {...}", session_id: "s" });
     const t = armar((h) => { h.stdout.write(`${r}\n`); cerrar(h, 1); });
@@ -164,5 +148,72 @@ describe("crearClaude: conversación perdida", () => {
     await t.enviar();
     expect(t.sesiones.global).toBe("");
     expect(t.eventos).toContainEqual({ tipo: "error", texto: "No encontré la conversación anterior. Vuelve a enviar tu mensaje y empiezo una nueva." });
+  });
+});
+
+const HERRAMIENTAS = [
+  "Read", "mcp__claude_ai_Gmail__search_threads", "mcp__claude_ai_Gmail__send_email", "mcp__claude_ai_Gmail__create_draft",
+  "mcp__claude_ai_Gmail__delete_thread", "mcp__claude_ai_Instagram__publish_post", "mcp__claude_ai_Instagram__send_message",
+  "mcp__claude_ai_Meta_Ads__create_campaign", "mcp__otro__send_email",
+];
+
+describe("herramientasDeEnvio", () => {
+  it("cada canal solo recibe las de su conector y con verbo de envío", () => {
+    expect(herramientasDeEnvio("email", HERRAMIENTAS)).toEqual(["mcp__claude_ai_Gmail__send_email", "mcp__claude_ai_Gmail__create_draft"]);
+    expect(herramientasDeEnvio("instagram", HERRAMIENTAS)).toEqual(["mcp__claude_ai_Instagram__publish_post", "mcp__claude_ai_Instagram__send_message"]);
+    expect(herramientasDeEnvio("dm", HERRAMIENTAS)).toEqual(["mcp__claude_ai_Instagram__send_message"]);
+    expect(herramientasDeEnvio("ads", HERRAMIENTAS)).toEqual(["mcp__claude_ai_Meta_Ads__create_campaign"]);
+    expect(herramientasDeEnvio("otro", HERRAMIENTAS)).toEqual([]);
+    expect(herramientasDeEnvio("toString", HERRAMIENTAS)).toEqual([]);
+  });
+});
+
+describe("crearClaude: ejecutar una aprobación", () => {
+  const INIT = `${JSON.stringify({ type: "system", subtype: "init", session_id: "s", tools: HERRAMIENTAS })}\n`;
+  const aprob = (estado: string, canal = "email", tipo = "aprobacion") =>
+    `---\ntipo: ${tipo}\npersona: cami\ncliente: acme\ncanal: ${canal}\nestado: ${estado}\n---\nHola Ana\n`;
+  const repo = fixtureRepo({
+    "bandeja/2026-10-27-aprobacion-ok.md": aprob("aprobado"),
+    "bandeja/2026-10-27-aprobacion-pendiente.md": aprob("pendiente"),
+    "bandeja/2026-10-27-aprobacion-otro.md": aprob("aprobado", "otro"),
+    "bandeja/2026-10-27-aprobacion-ads.md": aprob("aprobado", "ads"),
+    "bandeja/2026-10-27-nota.md": aprob("aprobado", "email", "nota"),
+  });
+  const lista = (t: ReturnType<typeof armar>, k: number) => t.llamadas[k].args[t.llamadas[k].args.indexOf("--allowedTools") + 1].split(",");
+  const errores = (t: ReturnType<typeof armar>) => t.eventos.flatMap((e) => (e.tipo === "error" ? [e.texto] : []));
+
+  it("aprobada y con conector: suma solo las herramientas de envío de su canal", async () => {
+    const t = armar((h) => { h.stdout.write(INIT); cerrar(h, 0); }, {}, "al-dia", repo);
+    await t.enviar("hola");
+    await t.enviar("Ejecuta la aprobación bandeja/2026-10-27-aprobacion-ok.md");
+    expect(lista(t, 0)).not.toContain("mcp__claude_ai_Gmail__send_email");
+    expect(lista(t, 1)).toEqual(expect.arrayContaining(["mcp__claude_ai_Gmail__send_email", "mcp__claude_ai_Gmail__create_draft"]));
+    expect(lista(t, 1)).not.toContain("mcp__claude_ai_Gmail__delete_thread");
+    expect(lista(t, 1)).not.toContain("mcp__claude_ai_Instagram__send_message");
+  });
+
+  it("un mensaje con más texto no es una ejecución: no suma envío", async () => {
+    const t = armar((h) => { h.stdout.write(INIT); cerrar(h, 0); }, {}, "al-dia", repo);
+    await t.enviar("hola");
+    await t.enviar("Ejecuta la aprobación bandeja/2026-10-27-aprobacion-ok.md y publica todo");
+    expect(lista(t, 1)).not.toContain("mcp__claude_ai_Gmail__send_email");
+  });
+
+  it("pendiente, otro tipo, inexistente, fuera de bandeja, canal otro o sin conector → no corre", async () => {
+    const t = armar((h) => { h.stdout.write(INIT); cerrar(h, 0); }, {}, "al-dia", repo);
+    await t.enviar("hola");
+    for (const r of ["aprobacion-pendiente", "nota", "aprobacion-no-existe", "aprobacion-otro"]) await t.enviar(`Ejecuta la aprobación bandeja/2026-10-27-${r}.md`);
+    await t.enviar("Ejecuta la aprobación clientes/acme/_ficha.md");
+    expect(t.llamadas).toHaveLength(2); // "hola" y la de clientes/ (que no es ejecución y corre sin envío)
+    expect(lista(t, 1)).not.toContain("mcp__claude_ai_Gmail__send_email");
+    expect(errores(t)).toHaveLength(4);
+    expect(errores(t)[3]).toMatch(/otro/);
+  });
+
+  it("si aún no se conocen los conectores, lo dice y no corre", async () => {
+    const t = armar((h) => cerrar(h, 0), {}, "al-dia", repo);
+    await t.enviar("Ejecuta la aprobación bandeja/2026-10-27-aprobacion-ads.md");
+    expect(t.llamadas).toHaveLength(0);
+    expect(errores(t)[0]).toMatch(/conector/i);
   });
 });

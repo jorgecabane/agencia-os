@@ -2,10 +2,12 @@ import { colorPara, hoy } from "../datos/hoy";
 import { useSesion } from "../datos/sesion";
 import { IndicadorSync } from "./IndicadorSync";
 
-type Principal = { nombre: "hoy" } | { nombre: "tablero" } | { nombre: "cliente"; slug: string };
+type Principal =
+  | { nombre: "hoy" } | { nombre: "tablero" } | { nombre: "cliente"; slug: string } | { nombre: "calendario" }
+  | { nombre: "aprobaciones"; ruta?: string } | { nombre: "config" };
 export type Pantalla = Principal | { nombre: "editar"; ruta: string; desde: Principal };
 
-/** Barra lateral común. Las demás pantallas se suman aquí cuando existan. */
+/** Barra lateral común. */
 export function Lateral({ pantalla, ir, fecha, onCambiarPersona }: {
   pantalla: Pantalla; ir: (p: Pantalla) => void; fecha: string; onCambiarPersona: () => void;
 }) {
@@ -13,6 +15,8 @@ export function Lateral({ pantalla, ir, fecha, onCambiarPersona }: {
   const h = hoy(indice, persona, fecha);
   const yo = indice.personas.find((p) => p.slug === persona);
   const { rotos } = indice;
+  const porAprobar = indice.aprobaciones.filter((a) => a.persona === persona && a.estado === "pendiente").length;
+  const actual = (nombre: Pantalla["nombre"]) => (pantalla.nombre === nombre ? "page" : undefined);
   return (
     <nav className="lateral" aria-label="Secciones">
       <button className="nav-it" aria-current={pantalla.nombre === "hoy" ? "page" : undefined} onClick={() => ir({ nombre: "hoy" })}>
@@ -20,6 +24,13 @@ export function Lateral({ pantalla, ir, fecha, onCambiarPersona }: {
       </button>
       <button className="nav-it" aria-current={pantalla.nombre === "tablero" ? "page" : undefined} onClick={() => ir({ nombre: "tablero" })}>
         <span aria-hidden>▦</span>Tablero
+      </button>
+      <button className="nav-it" aria-current={actual("calendario")} onClick={() => ir({ nombre: "calendario" })}>
+        <span aria-hidden>▤</span>Calendario
+      </button>
+      <button className="nav-it" aria-current={actual("aprobaciones")} onClick={() => ir({ nombre: "aprobaciones" })}>
+        <span aria-hidden>✓</span>Aprobaciones
+        {porAprobar > 0 && <span className="n" aria-label={`${porAprobar} tuyas por revisar`}>{porAprobar}</span>}
       </button>
       <div className="grupo">Clientes</div>
       {indice.clientes.map((c) => (
@@ -38,6 +49,9 @@ export function Lateral({ pantalla, ir, fecha, onCambiarPersona }: {
           </details>
         )}
         <IndicadorSync />
+        <button className="nav-it" aria-current={actual("config")} onClick={() => ir({ nombre: "config" })}>
+          <span aria-hidden>⚙</span>Configuración
+        </button>
         <button className="nav-it" onClick={onCambiarPersona} title="Cambiar de persona">
           <span className="av" style={{ background: colorPara(persona) }} aria-hidden>{(yo?.nombre ?? persona)[0]}</span>
           {yo?.nombre ?? persona}<span className="n">cambiar</span>

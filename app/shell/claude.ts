@@ -1,19 +1,32 @@
 import { type ChildProcess, spawn as spawnNode } from "node:child_process";
 import { homedir } from "node:os";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { createInterface } from "node:readline";
+import { parse } from "yaml";
 import type { EventoChat } from "../shared/puente";
 
 const BASE = ["Read", "Edit", "Write", "Glob", "Grep", "Skill", "Bash(uv run *)", "Bash(git *)", "Bash(pnpm --dir app *)"];
 // Conectores de claude.ai: solo los que leen. El verbo va primero, o tras el nombre del propio servidor ("notion-fetch").
 const CONECTOR = /^mcp__claude_ai_(.+?)__(.+)$/;
 const LECTURA = /^(list|get|search|read|fetch)(?:[-_]|$)/i;
-const ENVIO = /^mcp__claude_ai_[A-Za-z0-9_-]+$/;
-const APROBACION = /^Ejecuta la aprobación /;
+// Solo el mensaje exacto que manda Aprobaciones; la ruta no puede salir de bandeja/.
+const EJECUTA = /^Ejecuta la aprobación (bandeja\/[^/\s]+\.md)$/;
+const FRONTMATTER = /^---\r?\n([\s\S]*?)\r?\n---/;
+const SIN_ADS = "^(?!.*ads)"; // un post o un DM nunca gasta en anuncios
+const verbos = (...v: string[]) => new RegExp(`^(${v.join("|")})(?:[-_]|$)`, "i");
+/** Qué conector y qué verbos puede usar cada canal de una aprobación. `otro` no tiene: se envía a mano. */
+const CANALES: Record<string, { servidor: RegExp; verbo: RegExp }> = {
+  email: { servidor: /gmail/i, verbo: verbos("send", "reply", "draft", "create[-_]draft") },
+  instagram: { servidor: new RegExp(`${SIN_ADS}.*(instagram|meta|facebook)`, "i"), verbo: verbos("publish", "post", "create", "schedule", "upload", "send", "reply") },
+  dm: { servidor: new RegExp(`${SIN_ADS}.*(instagram|meta|facebook|messenger|whatsapp)`, "i"), verbo: verbos("send", "reply") },
+  ads: { servidor: /meta|facebook|google[-_]?ads/i, verbo: verbos("create", "update", "publish", "launch") },
+};
 const SIN_SESION = /not logged in|please run \/login|invalid api key/i;
 const SESION_PERDIDA = /no conversation found/i;
 const RESULTADO_MAX = 300; // los tool_result (archivos leídos) pueden pesar megas: la UI solo mira el comienzo
 // Abierta desde Finder, la app no hereda el PATH de la terminal: ahí suele vivir `claude` (y `uv` para los hooks).
-const RUTAS = [`${homedir()}/.local/bin`, "/opt/homebrew/bin", "/usr/local/bin"];
+export const RUTAS = [`${homedir()}/.local/bin`, "/opt/homebrew/bin", "/usr/local/bin"];
 
 export const TEXTOS = {
   instalar: "Instala Claude Code para conversar aquí",
@@ -22,18 +35,50 @@ export const TEXTOS = {
   nueva: "No encontré la conversación anterior. Vuelve a enviar tu mensaje y empiezo una nueva.",
   fallo: "Claude no pudo terminar la respuesta. Inténtalo de nuevo.",
   conflicto: "Hay un conflicto con cambios del equipo. Resuélvelo antes de pedirle algo a Claude.",
-  envio: "No puedo usar esas herramientas de envío.",
+  noAprobada: "Esa aprobación no existe o todavía no está aprobada.",
+  canalOtro: "Las aprobaciones de canal «otro» no las envía Claude: envíala tú y márcala como ejecutada.",
+  sinConector: (canal: string) =>
+    `No encontré un conector para enviar por ${canal}. Conéctalo en claude.ai → Connectors (si ya está, conversa una vez con Claude para que lo reconozca) y vuelve a intentarlo.`,
 };
 
+/** Servidor de un conector de claude.ai y el nombre de la herramienta sin el prefijo del servidor. */
+function conector(h: string): { servidor: string; nombre: string } | null {
+  const m = CONECTOR.exec(h);
+  if (!m) return null;
+  const [, servidor, nombre] = m;
+  const prefijo = nombre.slice(0, servidor.length + 1).toLowerCase();
+  const propio = prefijo === `${servidor.toLowerCase()}-` || prefijo === `${servidor.toLowerCase()}_`;
+  return { servidor, nombre: propio ? nombre.slice(servidor.length + 1) : nombre };
+}
+
 export const lecturaConectores = (herramientas: string[]): string[] =>
-  herramientas.filter((h) => {
-    const m = CONECTOR.exec(h);
-    if (!m) return false;
-    const [, servidor, nombre] = m;
-    const prefijo = nombre.slice(0, servidor.length + 1).toLowerCase();
-    const sinPrefijo = prefijo === `${servidor.toLowerCase()}-` || prefijo === `${servidor.toLowerCase()}_` ? nombre.slice(servidor.length + 1) : nombre;
-    return LECTURA.test(sinPrefijo);
-  });
+  herramientas.filter((h) => { const c = conector(h); return c !== null && LECTURA.test(c.nombre); });
+
+/** Las herramientas de envío que corresponden al canal de una aprobación (de las que trae el último `init`). */
+export function herramientasDeEnvio(canal: string, herramientas: string[]): string[] {
+  const regla = Object.hasOwn(CANALES, canal) ? CANALES[canal] : null;
+  if (!regla) return [];
+  return herramientas.filter((h) => { const c = conector(h); return c !== null && regla.servidor.test(c.servidor) && regla.verbo.test(c.nombre); });
+}
+
+/**
+ * Lo que el shell deja enviar en este turno. Solo "Ejecuta la aprobación bandeja/<x>.md", leyendo el archivo
+ * aquí (no se confía en la UI): `tipo: aprobacion`, `estado: aprobado` y herramientas solo de su `canal`.
+ */
+export async function permisoEnvio(raiz: string, mensaje: string, herramientas: string[]): Promise<{ envio: string[] } | { error: string }> {
+  const ruta = EJECUTA.exec(mensaje)?.[1];
+  if (!ruta) return { envio: [] };
+  let meta: Record<string, unknown> | null = null;
+  try {
+    const fm = FRONTMATTER.exec(await readFile(join(raiz, ruta), "utf8"))?.[1];
+    meta = fm ? parse(fm) : null;
+  } catch { /* no existe o el YAML está roto: no hay permiso */ }
+  if (meta?.tipo !== "aprobacion" || meta.estado !== "aprobado") return { error: TEXTOS.noAprobada };
+  const canal = String(meta.canal);
+  if (!Object.hasOwn(CANALES, canal)) return { error: TEXTOS.canalOtro };
+  const envio = herramientasDeEnvio(canal, herramientas);
+  return envio.length ? { envio } : { error: TEXTOS.sinConector(canal) };
+}
 
 export function argsClaude({ mensaje, contexto, persona, sesion, envio = [], herramientas = [] }: {
   mensaje: string; contexto: string; persona: string; sesion?: string; envio?: string[]; herramientas?: string[];
@@ -117,10 +162,9 @@ export function crearClaude(deps: Deps) {
 
   return {
     /** Un turno: pausa el sync, espera el que corre, commitea lo pendiente, guarda HEAD, corre `claude` y suelta la pausa al terminar. */
-    async enviar(contextoId: string, mensaje: string, contexto: string, emitir: Emitir, envio: string[] = []): Promise<void> {
+    async enviar(contextoId: string, mensaje: string, contexto: string, emitir: Emitir): Promise<void> {
       const fallar = (texto: string) => { emitir({ tipo: "error", texto }); emitir({ tipo: "fin" }); };
       if (ocupado) return fallar(TEXTOS.ocupado);
-      if (!Array.isArray(envio) || !envio.every((h) => typeof h === "string" && ENVIO.test(h))) return fallar(TEXTOS.envio);
       ocupado = true;
       const reanudar = deps.sync.pausar();
       try {
@@ -128,11 +172,12 @@ export function crearClaude(deps: Deps) {
         // Lo que la persona dejó sin commitear (el sync espera 5 s de calma) entra a la base de Deshacer.
         await deps.sync.ahora();
         if (deps.sync.estado() === "conflicto") return fallar(TEXTOS.conflicto);
+        const permiso = await permisoEnvio(deps.raiz, mensaje, herramientas); // enviar hacia afuera solo al ejecutar una aprobación
+        if ("error" in permiso) return fallar(permiso.error);
         const [persona, commitPrevio] = await Promise.all([deps.persona(), deps.head().catch(() => null)]);
         emitir({ tipo: "inicio", commitPrevio });
         const args = argsClaude({
-          mensaje, contexto, persona, herramientas, sesion: deps.sesiones.leer(contextoId),
-          envio: APROBACION.test(mensaje) ? envio : [], // enviar hacia afuera solo al ejecutar una aprobación
+          mensaje, contexto, persona, herramientas, sesion: deps.sesiones.leer(contextoId), envio: permiso.envio,
         });
         await correr(contextoId, args, persona, emitir);
       } finally {
