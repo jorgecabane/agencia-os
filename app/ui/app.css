@@ -1,6 +1,5 @@
 /* Componentes de la app. Valores de color: siempre los tokens de tokens.css. */
 :root {
-  --sobre-foco: #1d1c1a;
   --radio: 9px;
   --lateral-ancho: 216px;
   --panel-ancho: 392px;
@@ -44,7 +43,7 @@
 }
 .nav-it:hover { background: var(--superficie); color: var(--texto); }
 .nav-it[aria-current="page"] { background: var(--elevado); color: var(--texto); }
-.nav-it .n { margin-left: auto; color: var(--tenue); font-size: 12px; }
+.nav-it .n { margin-left: auto; color: var(--tenue); font-size: 14px; }
 .grupo { color: var(--tenue); font-size: 12px; margin: 18px 10px 6px; }
 .cliente-it { display: flex; align-items: center; gap: 9px; padding: 5px 10px; color: var(--apagado); }
 .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
@@ -76,11 +75,11 @@
 @media (hover: hover) and (pointer: fine) { .fila:hover { border-color: var(--linea); } }
 .fila:active { transform: scale(0.99); }
 .fila[aria-pressed="true"] { border-color: var(--foco); background: var(--elevado); }
-.fila .cuando { color: var(--apagado); font-size: 12.5px; }
+.fila .cuando { color: var(--apagado); font-size: 14px; }
 .fila .cuando.tarde { color: var(--atraso); }
 .fila .barra { width: 3px; height: 32px; border-radius: 2px; }
 .fila .t { font-size: 14px; font-weight: 550; line-height: 1.35; }
-.fila .sub { display: block; color: var(--apagado); font-size: 12.5px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fila .sub { display: block; color: var(--apagado); font-size: 14px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fila .sub .ic { color: var(--foco); }
 .vacio { color: var(--tenue); margin: 6px 0 0; }
 
@@ -104,6 +103,8 @@
 @keyframes panel-entra { from { opacity: 0; transform: translateX(12px); } }
 .panel-cabeza { display: flex; align-items: flex-start; gap: 8px; }
 .panel-cabeza .chips { flex: 1; }
+.panel:focus { outline: none; }
+.panel:focus-visible { outline: 2px solid var(--foco); outline-offset: -2px; }
 .panel h2 { font-family: var(--fuente-titulo); font-weight: 400; font-size: 22px; line-height: 1.2; margin: 0; }
 .contexto { color: var(--apagado); margin: -6px 0 0; }
 .subtitulo { font-size: 12.5px; font-weight: 550; color: var(--apagado); margin: 4px 0 0; }

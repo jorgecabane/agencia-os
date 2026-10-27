@@ -19,6 +19,14 @@
   --foco: #a7b0ff;
   --avance: #8fc79a;
   --atraso: #e58b7b;
+  --en-curso: #c9b46a;
+  --sobre-foco: #1d1c1a;
+  --cliente-1: #e0a060;
+  --cliente-2: #7fb38a;
+  --cliente-3: #9a8ad8;
+  --cliente-4: #d78aa8;
+  --cliente-5: #6fa8d8;
+  --cliente-6: #c9b46a;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --fuente-titulo: "Newsreader", Georgia, serif;
   --fuente-ui: -apple-system, "SF Pro Text", system-ui, sans-serif;

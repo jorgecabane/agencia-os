@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { actualizarIndice, construirIndice, type Indice } from "./indice";
 
 /** Lo que toda pantalla necesita: el índice del repo y quién está usando la app. */
@@ -18,9 +18,13 @@ async function leerTodas(rutas: string[]): Promise<Map<string, string | null>> {
   return new Map(rutas.map((r, k) => [r, textos[k]]));
 }
 
+export type CargaIndice = { indice: Indice | null; error: string | null; reintentar: () => void };
+
 /** Índice del repo: se arma al abrir y se actualiza con cada cambio de archivo. */
-export function useIndice(): Indice | null {
+export function useIndice(): CargaIndice {
   const [indice, setIndice] = useState<Indice | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [intento, setIntento] = useState(0);
   useEffect(() => {
     let vivo = true;
     const pendientes: Map<string, string | null>[] = [];
@@ -36,11 +40,12 @@ export function useIndice(): Indice | null {
       if (!vivo) return;
       // Lo que cambió mientras se leía el repo se aplica encima.
       setIndice(pendientes.reduce(actualizarIndice, construirIndice(legibles)));
-    })();
+    })().catch((e: unknown) => vivo && setError(e instanceof Error ? e.message : String(e)));
     return () => {
       vivo = false;
       quitar();
     };
-  }, []);
-  return indice;
+  }, [intento]);
+  const reintentar = useCallback(() => { setError(null); setIntento((n) => n + 1); }, []);
+  return { indice, error, reintentar };
 }

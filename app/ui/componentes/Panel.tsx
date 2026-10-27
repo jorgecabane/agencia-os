@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { clienteDeRuta, colorPara, cuando, fechaLocal, titulo } from "../datos/hoy";
 import { separar, unir } from "../datos/md";
 import { inspiracion, propuestas } from "../datos/propuestas";
@@ -30,6 +30,8 @@ export function Panel({ ruta, onCerrar, onEditar, onDesarrollar, chat, animar = 
   const [elegida, setElegida] = useState(0);
   const [abierto, setAbierto] = useState<Abierto>(null);
   const [error, setError] = useState<string | null>(null);
+  const caja = useRef<HTMLElement>(null);
+  useEffect(() => caja.current?.focus(), [ruta]); // al abrir, el foco entra al panel
 
   useEffect(() => {
     let vivo = true;
@@ -46,7 +48,7 @@ export function Panel({ ruta, onCerrar, onEditar, onDesarrollar, chat, animar = 
     return () => window.removeEventListener("keydown", tecla);
   }, [onCerrar]);
 
-  if (texto === null) return <aside className="panel" aria-label="Detalle" />;
+  if (texto === null) return <aside ref={caja} tabIndex={-1} className="panel" aria-label="Detalle" />;
   const { meta, cuerpo } = separar(texto);
   const esEntregable = meta?.tipo === "entregable";
   const props = propuestas(cuerpo).sort((a, b) => Number(b.recomendada) - Number(a.recomendada));
@@ -68,7 +70,7 @@ export function Panel({ ruta, onCerrar, onEditar, onDesarrollar, chat, animar = 
   const borrar = () => window.aos.repo.delete(ruta).then(onCerrar, () => setError("No se pudo borrar."));
 
   return (
-    <aside className={animar ? "panel anima" : "panel"} aria-label={`Detalle de ${titulo(ruta)}`}>
+    <aside ref={caja} tabIndex={-1} className={animar ? "panel anima" : "panel"} aria-label={`Detalle de ${titulo(ruta)}`}>
       <div className="panel-cabeza">
         <Etiquetas meta={meta ?? {}} cliente={cliente?.nombre} color={colorPara(String(meta?.cliente ?? ""))} />
         <button className="x" onClick={onCerrar} aria-label="Cerrar detalle">×</button>
@@ -150,7 +152,7 @@ export function Panel({ ruta, onCerrar, onEditar, onDesarrollar, chat, animar = 
 }
 
 const ANILLO: Record<string, string> = {
-  en_curso: "#c9b46a", revision: "var(--foco)", aprobado: "var(--avance)", cancelado: "var(--atraso)",
+  en_curso: "var(--en-curso)", revision: "var(--foco)", aprobado: "var(--avance)", cancelado: "var(--atraso)",
 };
 const ESTADO: Record<string, string> = { en_curso: "en curso", revision: "revisión" };
 

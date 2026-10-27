@@ -8,13 +8,24 @@ import { Hoy } from "./pantallas/Hoy";
 const aviso = new URLSearchParams(location.search).get("aviso");
 
 export function App() {
-  const indice = useIndice();
+  const { indice, error, reintentar } = useIndice();
   // undefined = aún leyendo; null = nadie eligió persona.
   const [persona, setPersona] = useState<string | null | undefined>(undefined);
   const [eligiendo, setEligiendo] = useState(false);
   const [pantalla, ir] = useState<Pantalla>({ nombre: "hoy" });
   useEffect(() => void window.aos.persona().then(setPersona, () => setPersona(null)), []);
 
+  if (error) {
+    return (
+      <main className="elegir" role="alert">
+        <div className="elegir-caja">
+          <h1 className="titulo">No pude leer el repo</h1>
+          <p className="bajada">{error}</p>
+          <button className="btn pri" onClick={reintentar}>Reintentar</button>
+        </div>
+      </main>
+    );
+  }
   if (!indice || persona === undefined) return null;
   if (!persona || eligiendo) {
     return (

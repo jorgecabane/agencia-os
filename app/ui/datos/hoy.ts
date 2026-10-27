@@ -2,7 +2,7 @@ import type { Indice } from "./indice";
 import type { Entregable, Promesa, Reunion } from "./tipos";
 
 const CERRADOS = new Set(["publicado", "cancelado"]);
-const COLORES = ["#e0a060", "#7fb38a", "#9a8ad8", "#d78aa8", "#6fa8d8", "#c9b46a"];
+const COLORES = [1, 2, 3, 4, 5, 6].map((n) => `var(--cliente-${n})`); // tokens.css
 
 /** Color estable por slug de cliente o persona (la ficha no trae color). */
 export function colorPara(slug: string): string {

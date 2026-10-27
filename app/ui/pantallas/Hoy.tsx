@@ -1,4 +1,4 @@
-import { type MouseEvent, type ReactNode, useCallback, useEffect, useState } from "react";
+import { type MouseEvent, type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import type { Commit } from "../../shared/puente";
 import { Panel } from "../componentes/Panel";
 import { clienteDeRuta, colorPara, cuando, hoy, titulo } from "../datos/hoy";
@@ -11,22 +11,31 @@ import type { Entregable, Promesa } from "../datos/tipos";
 
 const plural = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`;
 
-/** Commits desde la última visita; luego marca HEAD como visto. */
-function useDesdeUltimaVisita(): { commits: Commit[]; yo: string } {
-  const [r, setR] = useState<{ commits: Commit[]; yo: string }>({ commits: [], yo: "" });
+type Visita = { commits: Commit[]; yo: string };
+
+// Una vez por sesión de la app: volver a Hoy (p. ej. desde Editar) muestra las mismas novedades.
+let visita: Promise<Visita> | null = null;
+async function cargarVisita(): Promise<Visita> {
+  const [{ ultimoVisto }, { email }, [head]] = await Promise.all([
+    window.aos.config.leer(), window.aos.git.yo(), window.aos.git.log({ max: 1 }),
+  ]);
+  if (!head) return { commits: [], yo: email };
+  // Sin visita previa no hay "desde": solo se marca. Si el commit ya no existe (rebase), se omite.
+  const commits = ultimoVisto && ultimoVisto !== head.hash
+    ? await window.aos.git.log({ desde: ultimoVisto }).catch(() => [])
+    : [];
+  await window.aos.config.guardar({ ultimoVisto: head.hash });
+  return { commits, yo: email };
+}
+
+/** Commits desde la última visita; al leerlos se marca HEAD como visto. */
+function useDesdeUltimaVisita(): Visita {
+  const [r, setR] = useState<Visita>({ commits: [], yo: "" });
   useEffect(() => {
-    void (async () => {
-      const [{ ultimoVisto }, { email }, [head]] = await Promise.all([
-        window.aos.config.leer(), window.aos.git.yo(), window.aos.git.log({ max: 1 }),
-      ]);
-      if (!head) return;
-      // Sin visita previa no hay "desde": solo se marca. Si el commit ya no existe (rebase), se omite.
-      const commits = ultimoVisto && ultimoVisto !== head.hash
-        ? await window.aos.git.log({ desde: ultimoVisto }).catch(() => [])
-        : [];
-      setR({ commits, yo: email });
-      await window.aos.config.guardar({ ultimoVisto: head.hash });
-    })().catch(() => {});
+    let vivo = true;
+    visita ??= cargarVisita().catch(() => ({ commits: [], yo: "" }));
+    void visita.then((v) => vivo && setR(v));
+    return () => { vivo = false; };
   }, []);
   return r;
 }
@@ -71,11 +80,18 @@ export function Hoy({ fecha, onEditar }: { fecha: string; onEditar: (ruta: strin
   const { commits, yo } = useDesdeUltimaVisita();
   const frases = novedades(commits, yo, indice.personas);
   const nombre = indice.personas.find((p) => p.slug === persona)?.nombre ?? persona;
-  const cerrar = useCallback(() => setSel(null), []);
+  const origen = useRef<HTMLElement | null>(null);
+  const cerrar = useCallback(() => {
+    setSel(null);
+    origen.current?.focus(); // si la fila ya no existe (borrada), el foco queda en el documento
+  }, []);
   const nombreCliente = (slug: string) => indice.clientes.find((c) => c.slug === slug)?.nombre ?? slug;
 
   // Un clic de teclado (detail 0) abre el panel sin animación.
-  const abrir = (ruta: string) => (e: MouseEvent) => setSel(sel?.ruta === ruta ? null : { ruta, animar: e.detail !== 0 });
+  const abrir = (ruta: string) => (e: MouseEvent<HTMLElement>) => {
+    origen.current = e.currentTarget;
+    setSel(sel?.ruta === ruta ? null : { ruta, animar: e.detail !== 0 });
+  };
   const fila = (ruta: string, cuandoTxt: ReactNode, tarde: boolean, cliente: string, t: string, sub: ReactNode, estado?: ReactNode) => (
     <button key={ruta + t} className="fila" aria-pressed={sel?.ruta === ruta} onClick={abrir(ruta)}>
       <span className={tarde ? "cuando tarde" : "cuando"}>{cuandoTxt}</span>
