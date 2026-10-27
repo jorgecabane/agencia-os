@@ -25,6 +25,8 @@ Verifica cada una; si falta, ofrece instalarla y espera su "sí":
 - `gh auth status` (si no hay sesión: que corra `gh auth login`).
 - App de escritorio de Claude (`ls /Applications/Claude.app`): quien no use la terminal trabaja en su pestaña **Code**, abriendo la carpeta del repo; ahí aplican este CLAUDE.md, las skills y los hooks.
 
+**Instala la app** (opcional): baja `agencia-os.zip` de https://github.com/jorgecabane/agencia-os/releases, muévela a Aplicaciones (primera vez: clic derecho → Abrir) y elige la carpeta de este repo. Para quien no usa terminal, la app reemplaza la pestaña Code en el día a día. Detalle en `docs/app.md`.
+
 ## 3. Consentimiento de privacidad (explícito)
 
 Dile, en palabras simples, lo que dice la spec §9.1, y pide un "sí" claro antes de seguir:

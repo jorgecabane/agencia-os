@@ -8,6 +8,8 @@ servidores `claude mcp add` locales no existen en la nube, salvo que sean conect
 variables de entorno del entorno en la nube. Por defecto Claude empuja a ramas `claude/`; el prompt de
 `recolectar` ordena push a `main`. Estos comportamientos de `/schedule`: por verificar (dueño del espacio).
 
+El chat de la app de escritorio (`docs/app.md`) usa estos mismos conectores de claude.ai; no se configura nada aparte.
+
 ## Estado
 
 | Conector | Disponible en nube | Lectura/escritura | Cómo autenticar | Estado |

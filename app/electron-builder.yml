@@ -7,5 +7,10 @@ files:
   - ui-dist/**
   - shell/assets/**
 mac:
-  target: dir
+  target:
+    - target: dir
+      arch: arm64
+    - target: zip
+      arch: arm64
+  artifactName: agencia-os.${ext}
   identity: null
