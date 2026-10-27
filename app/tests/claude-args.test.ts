@@ -125,9 +125,9 @@ describe("crearClaude", () => {
     expect(t.reanudar).toHaveBeenCalledTimes(1);
   });
 
-  it("un turno a la vez por contexto", async () => {
+  it("un turno a la vez en toda la app, aunque sean contextos distintos", async () => {
     const t = armar((h) => cerrar(h, 0));
-    await Promise.all([t.enviar(), t.enviar()]);
+    await Promise.all([t.enviar(), t.claude.enviar("clientes/acme", "hola", "clientes/acme", (e) => t.eventos.push(e))]);
     expect(t.llamadas).toHaveLength(1);
     expect(t.eventos).toContainEqual({ tipo: "error", texto: "Espera a que Claude termine de responder" });
   });

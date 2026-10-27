@@ -97,6 +97,8 @@ export function Editor({ ruta, onPedirClaude, onErrorFuera, onHistorial }: Props
   };
   const guardarRef = useRef(guardar);
   guardarRef.current = guardar;
+  // Antes de pedirle algo a Claude se guarda lo recién escrito: así entra a la base de Deshacer del turno.
+  const pedir = onPedirClaude && ((t: string) => void guardarRef.current().finally(() => onPedirClaude(t)));
 
   const programar = () => {
     setEstado("pendiente");
@@ -177,8 +179,8 @@ export function Editor({ ruta, onPedirClaude, onErrorFuera, onHistorial }: Props
       {conflicto && (
         <div className="aviso-editor" role="alert">
           <span>⚠ Cambió mientras editabas: revisa. Quedaron las dos versiones, la tuya primero.</span>
-          <button className="btn" aria-disabled={!onPedirClaude} disabled={!onPedirClaude}
-            onClick={() => onPedirClaude?.(`En ${ruta} quedaron dos versiones de un bloque porque se editó al mismo tiempo. Mézclalas en una sola.`)}>
+          <button className="btn" aria-disabled={!pedir} disabled={!pedir}
+            onClick={() => pedir?.(`En ${ruta} quedaron dos versiones de un bloque porque se editó al mismo tiempo. Mézclalas en una sola.`)}>
             Pedirle a Claude que lo mezcle
           </button>
           <button className="x" aria-label="Cerrar aviso" onClick={() => setConflicto(false)}>×</button>
@@ -192,7 +194,7 @@ export function Editor({ ruta, onPedirClaude, onErrorFuera, onHistorial }: Props
       )}
       {modo === "visual" ? (
         <Lienzo key={version} inicial={textoDe(base, modo)} ruta={ruta} {...enlace}
-          subirImagen={subirImagen} onImagenPesada={avisoPesada} onPedirClaude={onPedirClaude} previo={previo} />
+          subirImagen={subirImagen} onImagenPesada={avisoPesada} onPedirClaude={pedir} previo={previo} />
       ) : (
         <Crudo key={version} inicial={textoDe(base, modo)} {...enlace} />
       )}

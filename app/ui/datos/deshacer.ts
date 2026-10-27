@@ -23,7 +23,7 @@ export function archivosADeshacer(eventos: EventoChat[]): string[] {
 
 /** Commits de esta persona: los de la app y los de sus sesiones con Claude (hook Stop: "sesión: <persona> …"). */
 const propio = (mensaje: string, persona: string) =>
-  [`app: ${persona} `, `app: deshacer ${persona}`, `sesión: ${persona} `].some((p) => mensaje.startsWith(p));
+  mensaje === `app: deshacer ${persona}` || [`app: ${persona} `, `app: deshacer ${persona} `, `sesión: ${persona} `].some((p) => mensaje.startsWith(p));
 
 type Aos = {
   repo: Pick<Puente["repo"], "write" | "delete">; git: Pick<Puente["git"], "show" | "log">;

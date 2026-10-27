@@ -77,6 +77,11 @@ describe("deshacer", () => {
     expect(r.omitidos).toEqual(["b.md"]);
   });
 
+  it("el commit de otra persona con un nombre que empieza igual (camila) es ajeno", async () => {
+    const a = aos({}, { "t1 b.md": ["app: deshacer camila"], "t1 c.md": ["app: camila 2026-10-27T15:00Z"] });
+    expect(await deshacer({ "b.md": "t1", "c.md": "t1" }, "cami", a)).toEqual({ omitidos: ["b.md", "c.md"] });
+  });
+
   it("si todo quedó omitido no commitea", async () => {
     const a = aos({}, { "t1 b.md": ["sesión: jorge 2026-10-27T15:00Z"] });
     expect(await deshacer({ "b.md": "t1" }, "cami", a)).toEqual({ omitidos: ["b.md"] });

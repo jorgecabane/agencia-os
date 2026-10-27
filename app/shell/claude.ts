@@ -70,7 +70,8 @@ function liviano(ev: Record<string, unknown>): Record<string, unknown> {
 export function crearClaude(deps: Deps) {
   const spawn = deps.spawn ?? spawnNode;
   const vivos = new Map<string, ChildProcess>();
-  const ocupados = new Set<string>();
+  // Un turno a la vez en toda la app: el `sync.ahora()` de un turno nunca sube lo que otro dejó a medias.
+  let ocupado = false;
   let herramientas: string[] = []; // las del último `init`: así se sabe qué conectores hay
 
   function correr(contextoId: string, args: string[], persona: string, emitir: Emitir): Promise<void> {
@@ -118,9 +119,9 @@ export function crearClaude(deps: Deps) {
     /** Un turno: pausa el sync, espera el que corre, commitea lo pendiente, guarda HEAD, corre `claude` y suelta la pausa al terminar. */
     async enviar(contextoId: string, mensaje: string, contexto: string, emitir: Emitir, envio: string[] = []): Promise<void> {
       const fallar = (texto: string) => { emitir({ tipo: "error", texto }); emitir({ tipo: "fin" }); };
-      if (ocupados.has(contextoId)) return fallar(TEXTOS.ocupado);
+      if (ocupado) return fallar(TEXTOS.ocupado);
       if (!Array.isArray(envio) || !envio.every((h) => typeof h === "string" && ENVIO.test(h))) return fallar(TEXTOS.envio);
-      ocupados.add(contextoId);
+      ocupado = true;
       const reanudar = deps.sync.pausar();
       try {
         await deps.sync.enCurso();
@@ -135,7 +136,7 @@ export function crearClaude(deps: Deps) {
         });
         await correr(contextoId, args, persona, emitir);
       } finally {
-        ocupados.delete(contextoId);
+        ocupado = false;
         reanudar();
       }
     },

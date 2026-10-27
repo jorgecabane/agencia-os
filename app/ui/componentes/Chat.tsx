@@ -21,14 +21,15 @@ const LEIDO: Record<Estado, string> = { ok: "listo", corriendo: "en curso", erro
 export function Chat({ contextoId, contexto, etiqueta, color, formato, pedido, onAbrir, onCerrar }: Props) {
   const turnos = useConversacion(contextoId);
   const enCurso = Boolean(turnos.at(-1)?.enCurso);
+  const claudeOcupado = useAlgunoEnCurso(); // un turno a la vez en toda la app
   const fin = useRef<HTMLDivElement>(null);
   const enviado = useRef<Pedido | undefined>(undefined);
   const [espera, setEspera] = useState(false); // pidieron algo mientras Claude seguía respondiendo
   const mandar = (texto: string) => {
-    if (enCurso) return setEspera(true);
+    if (claudeOcupado) return setEspera(true);
     if (texto.trim()) enviar(contextoId, texto.trim(), contexto);
   };
-  useEffect(() => { if (!enCurso) setEspera(false); }, [enCurso]);
+  useEffect(() => { if (!claudeOcupado) setEspera(false); }, [claudeOcupado]);
   // Solo el texto final se anuncia; los pasos que cambian en vivo no.
   const final = enCurso ? "" : bloques(turnos.at(-1)?.eventos ?? []).filter((b) => b.tipo === "texto").at(-1);
 
@@ -50,12 +51,13 @@ export function Chat({ contextoId, contexto, etiqueta, color, formato, pedido, o
       <div className="msgs">
         {turnos.length === 0 && <p className="vacio">Pídele algo a Claude: trabaja en el repo y lo ves cambiar en vivo.</p>}
         {turnos.map((t, k) => <TurnoVista key={k} turno={t} onAbrir={onAbrir} onDetener={() => cancelar(contextoId)} />)}
-        {espera && <p className="trabajando" role="status">Espera a que Claude termine de responder; después vuelve a pedírselo.</p>}
+        {/* Siempre montado: los lectores de pantalla anuncian el cambio de texto. */}
+        <p className={espera ? "trabajando" : "sr"} role="status">{espera ? "Espera a que Claude termine de responder; después vuelve a pedírselo." : ""}</p>
         <div ref={fin} />
       </div>
       <p className="sr" aria-live="polite">{final && final.tipo === "texto" ? final.texto : ""}</p>
       <BarraRevision />
-      <Entrada enCurso={enCurso} onEnviar={mandar} recetas={recetas(contexto, formato)} enfocar={Boolean(onCerrar)} />
+      <Entrada enCurso={claudeOcupado} onEnviar={mandar} recetas={recetas(contexto, formato)} enfocar={Boolean(onCerrar)} />
     </section>
   );
 }
@@ -106,8 +108,9 @@ function Entrada({ enCurso, onEnviar, recetas: rs, enfocar }: {
   const id = useRef(`chat-${Math.random().toString(36).slice(2)}`).current;
   const enviarForm = (e?: FormEvent) => {
     e?.preventDefault();
-    if (enCurso || !texto.trim()) return;
-    onEnviar(texto);
+    if (!texto.trim()) return;
+    onEnviar(texto); // si Claude está ocupado, el chat avisa que espere y no se envía
+    if (enCurso) return; // el texto queda para mandarlo después
     setTexto("");
   };
   const tecla = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -120,7 +123,7 @@ function Entrada({ enCurso, onEnviar, recetas: rs, enfocar }: {
         autoFocus={enfocar} placeholder="Responde o pide un cambio…" />
       <div className="entrada-pie">
         <div className="recetas" aria-label="Atajos">
-          {rs.map((r) => <button key={r.etiqueta} type="button" className="receta" aria-disabled={enCurso} onClick={() => !enCurso && onEnviar(r.mensaje)}>{r.etiqueta}</button>)}
+          {rs.map((r) => <button key={r.etiqueta} type="button" className="receta" aria-disabled={enCurso} onClick={() => onEnviar(r.mensaje)}>{r.etiqueta}</button>)}
         </div>
         <button className="btn pri" type="submit" aria-disabled={enCurso || !texto.trim()}>Enviar</button>
       </div>
