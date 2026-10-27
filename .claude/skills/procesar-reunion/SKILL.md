@@ -74,7 +74,7 @@ Fecha: la dicha en la reunión convertida a `YYYY-MM-DD`; si no se dijo, `(sin f
   `fecha`, `origen: "[[clientes/<c>/reuniones/<acta sin .md>]]"`; cuerpo: qué se decidió, por qué, alternativas descartadas.
 - **Cada promesa nuestra** (con o sin fecha) → `clientes/<c>/entregables/<vence>-<slug>.md` con `tipo: entregable`,
   `cliente`, `formato` (slug corto: `propuesta`, `post-instagram`, `reporte`…), `vence`, `estado: brief`,
-  `responsable` (quien prometió), `origen: "[[clientes/<c>/reuniones/<acta>]]"`; cuerpo `## Brief` con lo pedido y `## Versiones` vacío.
+  `responsable` (slug de quien prometió; si no queda claro quién, el `responsable` de la `_ficha.md` del cliente, y dilo al cerrar), `origen: "[[clientes/<c>/reuniones/<acta>]]"`; cuerpo `## Brief` con lo pedido y `## Versiones` vacío.
   Sin fecha dicha: `vence` = fecha de la reunión + 7 días y `fecha_tentativa: true` (el brief del día
   le pide al responsable confirmarla). Ninguna promesa nuestra queda solo en el acta.
   Las promesas del cliente (lo que nos debe: fotos, accesos, aprobaciones) quedan como `- [ ]` en el acta;

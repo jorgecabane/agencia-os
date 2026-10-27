@@ -111,3 +111,18 @@ def test_persona_zona_horaria():
     base = {"tipo": "persona", "nombre": "n", "slug": "n", "rol": "r", "nivel_automatizacion": "alto"}
     assert validar({**base, "zona_horaria": "America/Santiago"}) == []
     assert "zona IANA" in validar({**base, "zona_horaria": "Chile"})[0]
+
+
+def test_cli_responsable_debe_ser_del_equipo(tmp_path):
+    (tmp_path / "equipo/personas").mkdir(parents=True)
+    (tmp_path / "equipo/personas/cami.md").write_text(
+        "---\ntipo: persona\nnombre: Cami\nslug: cami\nrol: marketing\nnivel_automatizacion: alto\n---\n")
+    e = tmp_path / "clientes/acme/entregables"
+    e.mkdir(parents=True)
+    base = "---\ntipo: entregable\ncliente: acme\nformato: post\nvence: 2026-10-30\nestado: brief\n"
+    (e / "a.md").write_text(base + "responsable: cami\n---\n")
+    (e / "b.md").write_text(base + "responsable: ia\n---\n")
+    assert _cli(tmp_path).returncode == 0
+    (e / "c.md").write_text(base + "responsable: kami\n---\n")
+    r = _cli(tmp_path)
+    assert r.returncode == 1 and "responsable 'kami'" in r.stdout
