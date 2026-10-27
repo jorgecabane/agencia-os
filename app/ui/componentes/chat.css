@@ -1,0 +1,68 @@
+/* Chat con Claude (mockups-app/chat.html). Colores: tokens de tokens.css. */
+.chat { display: flex; flex-direction: column; min-height: 0; background: var(--chat); }
+.chat.cajon {
+  width: var(--panel-ancho); height: 100vh; border-left: 1px solid var(--linea-suave);
+  padding-top: var(--alto-barra-ventana);
+}
+.panel .chat { border: 1px solid var(--linea-suave); border-radius: var(--radio); flex-shrink: 0; }
+.chat-cabeza { padding: 12px 14px 10px; border-bottom: 1px solid var(--linea-suave); display: flex; align-items: center; gap: 8px; }
+.chat .ctx {
+  display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 9px; border-radius: 7px; max-width: 60%;
+  background: var(--superficie); border: 1px solid var(--linea); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.chat .ctx .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.chat-cabeza .r { margin-left: auto; color: var(--tenue); font-size: 12px; }
+.msgs { padding: 14px; display: flex; flex-direction: column; gap: 12px; flex: 1; overflow: auto; min-height: 120px; }
+.chat.cajon .msgs { min-height: 0; }
+.panel .msgs { max-height: 360px; }
+.yo {
+  align-self: flex-end; background: var(--elevado); border-radius: 12px 12px 4px 12px; padding: 8px 12px; max-width: 85%;
+  white-space: pre-wrap; font-size: 14px;
+}
+.ia { font-size: 14px; line-height: 1.55; color: var(--texto); white-space: pre-wrap; }
+.pasos {
+  list-style: none; margin: 0; border: 1px solid var(--linea-suave); border-radius: 10px; padding: 8px 10px;
+  font-size: 13px; color: var(--apagado); display: flex; flex-direction: column; gap: 5px;
+}
+.pasos li { display: flex; gap: 8px; align-items: baseline; }
+.pasos .ic { width: 12px; flex-shrink: 0; text-align: center; }
+.pasos .ok .ic { color: var(--avance); }
+.pasos .corriendo .ic, .trabajando .run { color: var(--foco); }
+.pasos .error { color: var(--atraso); }
+.trabajando { display: flex; align-items: center; gap: 8px; color: var(--apagado); margin: 0; font-size: 13px; }
+.trabajando .btn { margin-left: auto; height: 26px; }
+.chat-error { color: var(--atraso); margin: 0; font-size: 13px; }
+.aprob { border: 1px solid var(--aprobacion-linea); background: var(--aprobacion-fondo); border-radius: 10px; padding: 10px 12px; font-size: 13px; }
+.aprob b { display: block; margin-bottom: 4px; font-weight: 600; }
+.aprob .q { color: var(--apagado); margin: 0 0 8px; }
+.entrada { margin: 12px; border: 1px solid var(--linea); border-radius: 12px; padding: 10px 12px; background: var(--superficie); }
+.entrada:focus-within { border-color: var(--tenue); }
+.entrada textarea {
+  all: unset; box-sizing: border-box; width: 100%; font-size: 14px; line-height: 1.45; color: var(--texto); resize: none; white-space: pre-wrap;
+}
+.entrada textarea::placeholder { color: var(--tenue); }
+.entrada textarea:focus-visible { outline: none; }
+.entrada:has(textarea:focus-visible) { outline: 2px solid var(--foco); outline-offset: 2px; }
+.entrada-pie { display: flex; align-items: flex-end; gap: 8px; margin-top: 8px; }
+.recetas { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+.receta {
+  all: unset; cursor: pointer; font-size: 14px; border: 1px solid var(--linea); border-radius: 6px; padding: 2px 8px; color: var(--apagado);
+  transition: color 150ms ease, border-color 150ms ease, transform 160ms var(--ease-out);
+}
+.receta:hover { color: var(--texto); border-color: var(--tenue); }
+.receta:active { transform: scale(0.97); }
+.receta:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+.receta[aria-disabled="true"] { opacity: 0.5; cursor: default; transform: none; }
+.revision {
+  margin: 0 12px; display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+  background: var(--elevado); border: 1px solid var(--linea); border-radius: 10px; padding: 8px 10px; font-size: 13px;
+}
+.doc .revision { position: sticky; bottom: 12px; margin: 18px 0 0; z-index: 1; }
+.revision .grow { flex: 1; color: var(--apagado); min-width: 12ch; }
+.marca-nuevo {
+  display: inline-block; width: 10px; height: 10px; margin-right: 6px; vertical-align: -1px; border-radius: 2px;
+  background: var(--avance-tenue); box-shadow: inset 2px 0 0 var(--avance);
+}
+.lienzo .nuevo { background: var(--avance-tenue); box-shadow: inset 2px 0 0 var(--avance); border-radius: 4px; padding-inline: 8px; margin-inline: -8px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.panel .revision .grow, .chat.cajon .revision .grow { flex-basis: 100%; }

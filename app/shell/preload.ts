@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
-import type { Estado, Puente } from "../shared/puente";
+import type { Estado, EventoChat, Puente } from "../shared/puente";
 
 // El preload corre en sandbox (solo puede requerir "electron"): la versión llega por argv desde main.
 const shellVersion = Number(process.argv.find((a) => a.startsWith("--aos-shell="))?.split("=")[1]);
@@ -30,7 +30,7 @@ const puente: Puente = {
       ipcRenderer.on("sync:cambio", escucha);
       return () => ipcRenderer.removeListener("sync:cambio", escucha);
     },
-    ahora: () => ipcRenderer.invoke("sync:ahora"),
+    ahora: (mensaje) => ipcRenderer.invoke("sync:ahora", mensaje),
     enCurso: () => ipcRenderer.invoke("sync:en-curso"),
     pausar: () => {
       const id = ++pausas;
@@ -43,6 +43,15 @@ const puente: Puente = {
   config: {
     leer: () => ipcRenderer.invoke("config:leer"),
     guardar: (parcial) => ipcRenderer.invoke("config:guardar", parcial),
+  },
+  claude: {
+    enviar: (id, mensaje, contexto, envio) => ipcRenderer.invoke("claude:enviar", id, mensaje, contexto, envio),
+    onEvento: (cb) => {
+      const escucha = (_e: unknown, id: string, ev: EventoChat) => cb(id, ev);
+      ipcRenderer.on("claude:evento", escucha);
+      return () => ipcRenderer.removeListener("claude:evento", escucha);
+    },
+    cancelar: (id) => ipcRenderer.send("claude:cancelar", id),
   },
   git: {
     log: (opts) => ipcRenderer.invoke("git:log", opts),

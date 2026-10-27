@@ -15,8 +15,8 @@ export interface Sync {
   onEstado(cb: (e: Estado) => void): () => void;
   escribio(): void;
   foco(): void;
-  /** Corre ya, incluso tras un conflicto. */
-  ahora(): Promise<void>;
+  /** Corre ya, incluso tras un conflicto. Con `mensaje`, ese es el del commit (p. ej. "app: deshacer jorge"). */
+  ahora(mensaje?: string): Promise<void>;
   pausar(): () => void;
   /** Resuelve cuando no hay ninguna ejecución en curso (usar tras `pausar()`). */
   enCurso(): Promise<void>;
@@ -32,6 +32,7 @@ export function crearSync(deps: {
   let corriendo: Promise<void> | null = null;
   let repetir = false;
   let pausas = 0;
+  let mensaje: string | null = null; // pedido por ahora(mensaje): lo usa la próxima ejecución
   let calma: NodeJS.Timeout | undefined;
   const oyentes = new Set<(e: Estado) => void>();
 
@@ -43,8 +44,10 @@ export function crearSync(deps: {
 
   async function ejecutar(): Promise<void> {
     poner("subiendo");
+    const pedido = mensaje;
+    mensaje = null;
     const codigo = await Promise.resolve()
-      .then(async () => deps.correr(`app: ${await deps.persona()} ${deps.ahora().toISOString().slice(0, 16)}Z`))
+      .then(async () => deps.correr(pedido ?? `app: ${await deps.persona()} ${deps.ahora().toISOString().slice(0, 16)}Z`))
       .catch(() => SALIDA_SIN_CONEXION);
     if (codigo === 0) poner("al-dia");
     else poner(codigo === SALIDA_CONFLICTO ? "conflicto" : "sin-conexion");
@@ -84,8 +87,11 @@ export function crearSync(deps: {
       calma = setTimeout(auto, CALMA_MS);
     },
     foco: auto,
-    ahora() {
+    async ahora(pedido) {
       if (estado === "conflicto") estado = "sin-conexion"; // salir del bloqueo antes de reintentar
+      if (pedido === undefined) return lanzar();
+      mensaje = pedido;
+      await corriendo; // si había una en curso, la del mensaje va después
       return lanzar();
     },
     pausar() {

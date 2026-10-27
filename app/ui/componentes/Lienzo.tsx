@@ -17,14 +17,40 @@ import "@milkdown/crepe/theme/common/list-item.css";
 import "@milkdown/crepe/theme/common/placeholder.css";
 import "@milkdown/crepe/theme/common/toolbar.css";
 import "@milkdown/crepe/theme/common/table.css";
-import { commandsCtx } from "@milkdown/kit/core";
+import { commandsCtx, editorViewCtx } from "@milkdown/kit/core";
 import { uploadConfig } from "@milkdown/kit/plugin/upload";
 import { clearTextInCurrentBlockCommand } from "@milkdown/kit/preset/commonmark";
-import { Decoration } from "@milkdown/kit/prose/view";
+import { Plugin, PluginKey } from "@milkdown/kit/prose/state";
+import { Decoration, DecorationSet } from "@milkdown/kit/prose/view";
+import { $prose } from "@milkdown/kit/utils";
 import { useEffect, useRef } from "react";
 
 export const MAX_IMAGEN = 2 * 1024 * 1024;
 const raizRepo = () => window.aos.config.leer().then((c) => c.repo);
+/** Texto comparable entre markdown y documento: sin URLs de links, signos ni espacios. */
+const normal = (s: string) => s.replace(/\]\([^)]*\)/g, "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
+
+/** Marca los bloques cuyo texto no estaba en `previo()` (lo que Claude agregó). null = sin marcas. */
+function marcasNuevo(previo: () => string | null) {
+  let cache: [string, string] | null = null;
+  return $prose(() => new Plugin({
+    key: new PluginKey("aos-nuevo"),
+    props: {
+      decorations: (state) => {
+        const p = previo();
+        if (p === null) return null;
+        if (cache?.[0] !== p) cache = [p, normal(p)];
+        const antes = cache[1];
+        const marcas: Decoration[] = [];
+        state.doc.forEach((nodo, pos) => {
+          const t = normal(nodo.textContent);
+          if (t && !antes.includes(t)) marcas.push(Decoration.node(pos, pos + nodo.nodeSize, { class: "nuevo" }));
+        });
+        return DecorationSet.create(state.doc, marcas);
+      },
+    },
+  }));
+}
 
 /** Cómo el Editor lee en vivo el contenido de un lienzo (visual o markdown) y sabe cuándo nace y muere. */
 export type Enlace = { onCambio: () => void; onListo: (leer: () => string) => void; onSoltar: (leer: () => string) => void };
@@ -32,6 +58,8 @@ export type Enlace = { onCambio: () => void; onListo: (leer: () => string) => vo
 type PropsLienzo = Enlace & {
   inicial: string; ruta: string;
   subirImagen: (f: File) => Promise<string>; onImagenPesada: () => void; onPedirClaude?: (pedido: string) => void;
+  /** Contenido antes de los cambios de Claude por revisar: lo que no estaba se marca. */
+  previo?: string | null;
 };
 
 /** El editor Crepe. Se crea una vez por montaje: para recargar el contenido se cambia su `key`. */
@@ -39,6 +67,8 @@ export function Lienzo(props: PropsLienzo) {
   const raiz = useRef<HTMLDivElement>(null);
   const p = useRef(props);
   p.current = props;
+  const vista = useRef<(() => void) | null>(null); // redibuja las marcas cuando cambia `previo`
+  useEffect(() => vista.current?.(), [props.previo]);
   useEffect(() => {
     const { inicial, ruta } = p.current;
     // Sin bloques de código con resaltado ni fórmulas: traen cientos de archivos y el repo no los usa.
@@ -98,13 +128,22 @@ export function Lienzo(props: PropsLienzo) {
         return Decoration.widget(pos, aviso, spec);
       },
     })));
+    crepe.editor.use(marcasNuevo(() => p.current.previo ?? null));
     crepe.on((l) => l.markdownUpdated(() => p.current.onCambio()));
     const leer = () => crepe.getMarkdown();
     let vivo = true;
-    const creado = crepe.create().then(() => vivo && p.current.onListo(leer));
+    const creado = crepe.create().then(() => {
+      if (!vivo) return;
+      p.current.onListo(leer);
+      vista.current = () => crepe.editor.action((ctx) => {
+        const v = ctx.get(editorViewCtx);
+        v.dispatch(v.state.tr.setMeta("aos-nuevo", true));
+      });
+    });
     return () => {
       // Al desmontar el Editor, su limpieza corre antes que esta (React limpia de padre a hijo) y alcanza a leer.
       vivo = false;
+      vista.current = null;
       p.current.onSoltar(leer);
       void creado.then(() => crepe.destroy());
     };

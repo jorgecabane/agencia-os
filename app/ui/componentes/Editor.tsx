@@ -6,6 +6,8 @@ import { componer, modoInicial, relativa, rutaAdjunto, type Modo } from "../dato
 import { separar } from "../datos/md";
 import { aGuardar, pendiente } from "../datos/mezcla";
 import { useSesion } from "../datos/sesion";
+import { useRevision } from "../datos/chat";
+import { BarraRevision } from "./Chat";
 import { Etiquetas } from "./Etiquetas";
 import { Lienzo, MAX_IMAGEN, type Enlace } from "./Lienzo";
 
@@ -40,6 +42,7 @@ export function Editor({ ruta, onPedirClaude, onErrorFuera, onHistorial }: Props
     base: "", modo: "visual" as Modo, visto: null as string | null, leer: null as (() => string) | null,
     cambios: {} as Record<string, unknown>, timer: 0, guardando: false, montado: true,
   });
+  const previo = usePrevio(ruta);
   const actual = () => r.current.leer?.() ?? null;
   const sucio = () => pendiente(r.current.visto, actual(), r.current.cambios);
 
@@ -189,12 +192,27 @@ export function Editor({ ruta, onPedirClaude, onErrorFuera, onHistorial }: Props
       )}
       {modo === "visual" ? (
         <Lienzo key={version} inicial={textoDe(base, modo)} ruta={ruta} {...enlace}
-          subirImagen={subirImagen} onImagenPesada={avisoPesada} onPedirClaude={onPedirClaude} />
+          subirImagen={subirImagen} onImagenPesada={avisoPesada} onPedirClaude={onPedirClaude} previo={previo} />
       ) : (
         <Crudo key={version} inicial={textoDe(base, modo)} {...enlace} />
       )}
+      <BarraRevision ruta={ruta} />
     </article>
   );
+}
+
+/** Si Claude cambió `ruta` y nadie lo ha revisado: cómo estaba antes ("" si no existía); si no, null. */
+function usePrevio(ruta: string): string | null {
+  const revision = useRevision();
+  const commit = revision?.rutas.includes(ruta) ? revision.commitPrevio : null;
+  const [previo, setPrevio] = useState<string | null>(null);
+  useEffect(() => {
+    let vivo = true;
+    if (!commit) setPrevio(null);
+    else void window.aos.git.show(commit, ruta).then((t) => vivo && setPrevio(t), () => vivo && setPrevio(""));
+    return () => { vivo = false; };
+  }, [commit, ruta]);
+  return previo;
 }
 
 /** Edición como markdown: un textarea con el cuerpo (o el archivo entero si el frontmatter está roto). */

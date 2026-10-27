@@ -3,6 +3,7 @@ import { clienteDeRuta, colorPara, cuando, fechaLocal, titulo } from "../datos/h
 import { cambiar as cambiarFm, separar } from "../datos/md";
 import { inspiracion, propuestas } from "../datos/propuestas";
 import { useSesion } from "../datos/sesion";
+import { Chat, type Pedido } from "./Chat";
 
 type Abierto = "reagendar" | "asignar" | "borrar" | null;
 
@@ -20,16 +21,16 @@ function contexto(cuerpo: string): string | null {
   return null;
 }
 
-/** Detalle de un archivo del repo: etiquetas, contexto, propuestas, inspiración, acciones y chat. */
-export function Panel({ ruta, onCerrar, onEditar, onDesarrollar, chat, animar = true }: {
-  ruta: string; onCerrar: () => void; onEditar?: (ruta: string) => void;
-  onDesarrollar?: (propuesta: string) => void; chat?: ReactNode; animar?: boolean;
+/** Detalle de un archivo del repo: etiquetas, contexto, propuestas, inspiración, acciones y el chat de esa tarea. */
+export function Panel({ ruta, onCerrar, onEditar, animar = true }: {
+  ruta: string; onCerrar: () => void; onEditar?: (ruta: string) => void; animar?: boolean;
 }) {
   const { indice } = useSesion();
   const [texto, setTexto] = useState<string | null>(null);
   const [elegida, setElegida] = useState(0);
   const [abierto, setAbierto] = useState<Abierto>(null);
   const [error, setError] = useState<string | null>(null);
+  const [pedido, setPedido] = useState<Pedido>();
   const caja = useRef<HTMLElement>(null);
   useEffect(() => caja.current?.focus(), [ruta]); // al abrir, el foco entra al panel
 
@@ -103,9 +104,8 @@ export function Panel({ ruta, onCerrar, onEditar, onDesarrollar, chat, animar = 
       <div className="acciones">
         {esEntregable && (
           <button
-            className="btn pri" aria-disabled={!onDesarrollar || props.length === 0}
-            title={onDesarrollar ? undefined : "Disponible cuando esté el chat"}
-            onClick={() => onDesarrollar && props[elegida] && onDesarrollar(props[elegida].texto)}
+            className="btn pri" aria-disabled={props.length === 0}
+            onClick={() => props[elegida] && setPedido({ texto: `Desarrolla la propuesta ${elegida + 1} (“${props[elegida].texto}”)` })}
           >
             {props.length ? `Desarrollar la ${elegida + 1}` : "Desarrollar"}
           </button>
@@ -143,7 +143,8 @@ export function Panel({ ruta, onCerrar, onEditar, onDesarrollar, chat, animar = 
       )}
       {error && <p className="error" role="alert">{error}</p>}
 
-      {chat}
+      <Chat contextoId={ruta} contexto={ruta} etiqueta={titulo(ruta)} color={meta?.cliente ? colorPara(String(meta.cliente)) : undefined}
+        formato={esEntregable ? String(meta?.formato ?? "") || undefined : undefined} pedido={pedido} onAbrir={onEditar} />
     </aside>
   );
 }

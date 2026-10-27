@@ -6,7 +6,7 @@
   --alto-barra-ventana: 38px;
 }
 
-.app { display: grid; grid-template-columns: var(--lateral-ancho) minmax(0, 1fr) auto; height: 100vh; }
+.app { display: grid; grid-template-columns: var(--lateral-ancho) minmax(0, 1fr) auto auto; height: 100vh; }
 .arrastre { -webkit-app-region: drag; height: var(--alto-barra-ventana); position: fixed; inset: 0 0 auto 0; }
 .arrastre ~ * button, .arrastre ~ * select, .arrastre ~ * input { -webkit-app-region: no-drag; }
 

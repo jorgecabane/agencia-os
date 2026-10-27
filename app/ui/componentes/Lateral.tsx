@@ -2,8 +2,8 @@ import { colorPara, hoy } from "../datos/hoy";
 import { useSesion } from "../datos/sesion";
 import { IndicadorSync } from "./IndicadorSync";
 
-export type Pantalla = { nombre: "hoy" } | { nombre: "tablero" } | { nombre: "cliente"; slug: string }
-  | { nombre: "editar"; ruta: string; desde: "hoy" | "tablero" };
+type Principal = { nombre: "hoy" } | { nombre: "tablero" } | { nombre: "cliente"; slug: string };
+export type Pantalla = Principal | { nombre: "editar"; ruta: string; desde: Principal };
 
 /** Barra lateral común. Las demás pantallas se suman aquí cuando existan. */
 export function Lateral({ pantalla, ir, fecha, onCambiarPersona }: {

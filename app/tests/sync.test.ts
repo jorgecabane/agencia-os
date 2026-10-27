@@ -55,6 +55,17 @@ describe("crearSync (reloj falso)", () => {
     sync.parar();
   });
 
+  it("ahora(mensaje) commitea con ese mensaje, aun en pausa, y la siguiente vuelve al de siempre", async () => {
+    const { correr, sync } = armar([0, 0]);
+    const reanudar = sync.pausar();
+    await sync.ahora("app: deshacer jorge");
+    expect(correr).toHaveBeenLastCalledWith("app: deshacer jorge");
+    reanudar();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(correr).toHaveBeenLastCalledWith("app: jorge 2026-10-27T14:05Z");
+    sync.parar();
+  });
+
   it("en pausa no corre y al reanudar corre una vez", async () => {
     const { correr, sync } = armar([0]);
     const reanudar = sync.pausar();
