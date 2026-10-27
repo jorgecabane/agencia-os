@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Commit + sync con el equipo. Lo llama stop.py tras cada respuesta y SessionEnd como red final.
-# Sale 0, salvo conflicto real (3): el commit queda local y stop.py le pide a Claude mezclarlo.
+# Uso: sync.sh [mensaje]. Sale 0 (al día), 3 (conflicto real: stop.py le pide a Claude mezclarlo)
+# o 4 (sin conexión: el commit queda local y se reintenta).
 cd "${CLAUDE_PROJECT_DIR:-.}" || exit 0
 git remote get-url origin >/dev/null 2>&1 || exit 0
 [ -d "$(git rev-parse --git-dir)/rebase-merge" ] && exit 0  # Claude está resolviendo un conflicto
@@ -10,7 +11,7 @@ persona="${persona:-sin-nombre}"
 
 [ -z "$(git status --porcelain)" ] && [ -z "$(git rev-list @{u}.. 2>/dev/null)" ] && exit 0
 if [ -n "$(git status --porcelain)" ]; then
-  git add -A && git commit -qm "sesión: $persona $(date -u +%FT%RZ)"
+  git add -A && git commit -qm "${1:-sesión: $persona $(date -u +%FT%RZ)}"
 fi
 
 if ! git pull -q --rebase --autostash; then
@@ -21,7 +22,10 @@ if ! git pull -q --rebase --autostash; then
     exit 3
   fi
   echo "agencia-os: no se pudo sincronizar (sin red); tu commit quedó local y se reintenta en la próxima respuesta" >&2
-  exit 0
+  exit 4
 fi
-git push -q || echo "agencia-os: no pude subir los cambios; se reintenta en la próxima respuesta" >&2
+if ! git push -q; then
+  echo "agencia-os: no pude subir los cambios; se reintenta en la próxima respuesta" >&2
+  exit 4
+fi
 exit 0

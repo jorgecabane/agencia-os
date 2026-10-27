@@ -33,6 +33,9 @@ Actúas como **jefe de proyecto** de la compañía, no como asistente que espera
 | Métricas semanales | `clientes/<c>/metricas/YYYY-Www.md` |
 | Reportes generados + nota con conclusiones | `clientes/<c>/reportes/` |
 | Eventos del cliente (append-only) | `clientes/<c>/linea-de-tiempo.md` |
+| Páginas libres del cliente (sin `tipo`) | `clientes/<c>/paginas/` |
+| Imágenes del cliente (≤ 2 MB; más pesado, link a Drive) | `clientes/<c>/adjuntos/` |
+| Todo borrador hacia afuera (correo, post, DM, ads) para aprobar | `bandeja/YYYY-MM-DD-aprobacion-<slug>.md` (`tipo: aprobacion`) |
 | Propuestas tuyas, triage, "Lo que cambié" | `bandeja/` |
 | Bitácora de cada sesión | `sesiones/YYYY-MM-DD-<persona>-<slug>.md` |
 | Personas del equipo | `equipo/personas/<slug>.md` |
@@ -54,12 +57,16 @@ El esquema exacto está en `scripts/aos/esquemas.py`; esto es lo obligatorio:
 | `reunion` / `brief-reunion` | `cliente, fecha` | opcionales `asistentes`, `fuente`, `granola_id` |
 | `decision` | `cliente, fecha` | `origen`; cuerpo: qué se decidió, por qué, alternativas descartadas |
 | `sesion` | `persona, fecha, session_id, clientes` | `clientes`: lista de slugs tocados (puede ser `[]`) |
+| `aprobacion` | `persona, cliente, canal, estado` | `canal`: email, instagram, dm, ads, otro · `estado`: pendiente, aprobado, descartado, ejecutado · el borrador va en el cuerpo |
 | `persona` | `nombre, slug, rol, nivel_automatizacion` | `nivel_automatizacion`: alto, medio, bajo · `zona_horaria` IANA (default `America/Santiago`) |
 
 Fechas en formato `YYYY-MM-DD`. Marcas de tiempo de máquina (`ultima_recoleccion`, `ultimo_indexado`,
 commits) en UTC: `YYYY-MM-DDTHH:MMZ` (`date -u +%Y-%m-%dT%H:%MZ`). Horas de reuniones con su zona
 (`2026-01-20T10:00-03:00`). "Hoy", "mañana" y los horarios de briefs, en la `zona_horaria` de cada persona. `contexto.md`, `brandbook.md`, `material.md` y
 `linea-de-tiempo.md` no llevan `tipo`.
+
+La app de escritorio (`app/`) muestra y edita este repo. Si tocas `app/ui/`, corre
+`pnpm --dir app build:ui` y commitea `app/ui-dist/` en el mismo commit.
 
 ## Al trabajar para un cliente
 

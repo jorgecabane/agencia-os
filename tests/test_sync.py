@@ -88,3 +88,19 @@ def test_linea_de_tiempo_se_une_sin_conflicto(tmp_path):
     t.write_text("- 1\n- de a\n")
     assert sync(a).returncode == 0
     assert git(remoto, "show", "main:clientes/acme/linea-de-tiempo.md") == "- 1\n- de b\n- de a\n"
+
+
+def test_mensaje_personalizado(tmp_path):
+    remoto, a, _ = setup(tmp_path)
+    (a / "f.txt").write_text("x\n")
+    r = subprocess.run([str(SYNC), "app: jorge 2026-10-27T10:00Z"], capture_output=True, text=True,
+                       env={**ENV, "CLAUDE_PROJECT_DIR": str(a)}, cwd=a)
+    assert r.returncode == 0
+    assert git(remoto, "log", "-1", "--format=%s").strip() == "app: jorge 2026-10-27T10:00Z"
+
+
+def test_sin_red_sale_4(tmp_path):
+    remoto, a, _ = setup(tmp_path)
+    git(a, "remote", "set-url", "origin", str(tmp_path / "no-existe.git"))
+    (a / "f.txt").write_text("x\n")
+    assert sync(a).returncode == 4

@@ -126,3 +126,10 @@ def test_cli_responsable_debe_ser_del_equipo(tmp_path):
     (e / "c.md").write_text(base + "responsable: kami\n---\n")
     r = _cli(tmp_path)
     assert r.returncode == 1 and "responsable 'kami'" in r.stdout
+
+
+def test_aprobacion():
+    ok = {"tipo": "aprobacion", "persona": "jorge", "cliente": "acme", "canal": "email", "estado": "pendiente"}
+    assert validar(ok) == []
+    assert "'canal' debe ser uno de" in validar({**ok, "canal": "fax"})[0]
+    assert "'estado' debe ser uno de" in validar({**ok, "estado": "listo"})[0]

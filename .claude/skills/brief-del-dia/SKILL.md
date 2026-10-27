@@ -66,7 +66,11 @@ o redistribuir, y dilo.
 - <sobrecarga, próximo contacto vencido, cliente sin actividad> → <acción propuesta>
 ```
 
-Omite las secciones vacías. No cambies estados ni fechas por tu cuenta: solo propón.
+Además, en cada entregable listado (atrasado o de la semana) escribe en su propio archivo una sección
+`## Propuestas` (reemplázala si ya existe) con 2–3 viñetas `- <propuesta>`, la recomendada primero y
+terminada en ` (recomendada)`.
+
+Omite las secciones vacías. No cambies estados ni fechas por tu cuenta: solo propón (la sección `## Propuestas` es lo único que escribes en los entregables).
 
 ## 4. Cierre
 

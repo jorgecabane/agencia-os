@@ -40,6 +40,7 @@ cliente: <c>
 fecha: YYYY-MM-DDTHH:MM
 asistentes: [<persona>, "ana@cliente.cl"]
 fuente: calendar
+link: "<url de la videollamada>"   # solo si el evento la trae
 ---
 
 ## Para qué es esta reunión

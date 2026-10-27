@@ -5,3 +5,6 @@ __pycache__/
 .pytest_cache/
 .env*
 .claude/settings.local.json
+app/node_modules/
+app/out/
+app/dist/
