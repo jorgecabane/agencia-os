@@ -1,4 +1,6 @@
-import { type DragEvent, type FormEvent, type MouseEvent, type ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import {
+  type DragEvent, type FormEvent, type MouseEvent, type ReactNode, useCallback, useEffect, useRef, useState,
+} from "react";
 import type { Commit } from "../../shared/puente";
 import { colorPersona, etiquetaEstado, Filtros } from "../componentes/Filtros";
 import { ANILLO, Panel } from "../componentes/Panel";
@@ -31,119 +33,156 @@ function useVistas(): [Vista[] | null, (vs: Vista[]) => Promise<void>] {
   return [vistas, guardar]; // null = aún leyendo
 }
 
-export function Tablero({ fecha, onEditar }: { fecha: string; onEditar: (ruta: string) => void }) {
+/** Cambios recién hechos en el tablero, encima del índice hasta que el índice los refleje. */
+function useMovidos(onError: (msg: string) => void) {
   const { indice } = useSesion();
-  const [leidas, guardarLista] = useVistas();
-  const vistas = leidas ?? POR_DEFECTO;
-  const [actual, setActual] = useState<Actual>({ filtro: POR_DEFECTO[0].filtro, agrupar: "estado" });
-  const cargadas = leidas !== null;
-  useEffect(() => { if (cargadas) setActual({ filtro: vistas[0].filtro, agrupar: vistas[0].agrupar }); }, [cargadas]); // al abrir, la primera vista del equipo
-  const [nombrando, setNombrando] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  // Cambios recién arrastrados, mientras el índice se entera del archivo escrito.
   const [movidos, setMovidos] = useState<Record<string, Partial<Entregable>>>({});
-  useEffect(() => setMovidos({}), [indice]);
-  const [sel, setSel] = useState<{ ruta: string; animar: boolean } | null>(null);
-  const origen = useRef<HTMLElement | null>(null);
-  const cerrar = useCallback(() => { setSel(null); origen.current?.focus(); }, []);
-
+  useEffect(() => setMovidos((m) => {
+    const pendiente = ([ruta, c]: [string, Partial<Entregable>]) => {
+      const e = indice.entregables.find((x) => x.ruta === ruta);
+      return e !== undefined && Object.entries(c).some(([k, v]) => e[k as keyof Entregable] !== v);
+    };
+    const quedan = Object.entries(m).filter(pendiente);
+    return quedan.length === Object.keys(m).length ? m : Object.fromEntries(quedan);
+  }), [indice]);
   const es = indice.entregables.map((e) => (movidos[e.ruta] ? { ...e, ...movidos[e.ruta] } : e));
-  const visibles = aplicar(es, actual.filtro, fecha).sort((a, b) => String(a.vence).localeCompare(String(b.vence)));
-  const commits = useUltimosCommits(visibles.map((e) => e.ruta));
-  const nombrePersona = (slug: string) => (slug === "ia" ? "Claude" : indice.personas.find((p) => p.slug === slug)?.nombre ?? slug);
-
   const mover = (e: Entregable, cambios: Partial<Entregable>) => {
     if (Object.entries(cambios).every(([k, v]) => e[k as keyof Entregable] === v)) return;
     setMovidos((m) => ({ ...m, [e.ruta]: { ...m[e.ruta], ...cambios } }));
     cambiar(e.ruta, cambios).catch(() => {
       setMovidos(({ [e.ruta]: _, ...resto }) => resto);
-      setError(`No se pudo mover “${titulo(e.ruta)}”. Revisa que el archivo se pueda leer.`);
+      onError(`No se pudo mover “${titulo(e.ruta)}”. Revisa que el archivo se pueda leer.`);
     });
   };
+  return { es, mover };
+}
+
+export function Tablero({ fecha, onEditar }: { fecha: string; onEditar: (ruta: string) => void }) {
+  const { indice } = useSesion();
+  const [actual, setActual] = useState<Actual>({ filtro: POR_DEFECTO[0].filtro, agrupar: "estado" });
+  const [error, setError] = useState<string | null>(null);
+  const { es, mover } = useMovidos(setError);
+  const [sel, setSel] = useState<{ ruta: string; animar: boolean } | null>(null);
+  const origen = useRef<HTMLElement | null>(null);
+  const cerrar = useCallback(() => { setSel(null); origen.current?.focus(); }, []);
+
+  const visibles = aplicar(es, actual.filtro, fecha).sort((a, b) => String(a.vence).localeCompare(String(b.vence)));
+  const commits = useUltimosCommits(visibles.map((e) => e.ruta));
   const abrir = (ruta: string) => (ev: MouseEvent<HTMLElement>) => {
     origen.current = ev.currentTarget;
     setSel(sel?.ruta === ruta ? null : { ruta, animar: ev.detail !== 0 });
   };
-  const guardarVista = (ev: FormEvent<HTMLFormElement>) => {
-    ev.preventDefault();
-    const nombre = String(new FormData(ev.currentTarget).get("nombre")).trim();
-    if (!nombre) return;
-    guardarLista([...vistas.filter((v) => v.nombre !== nombre), { nombre, filtro: actual.filtro, agrupar: actual.agrupar }]).then(() => setNombrando(false), () => setError("No se pudo guardar la vista."));
-  };
-
-  const responsables = actual.agrupar === "persona"
-    ? [...new Set([...indice.personas.map((p) => p.slug), "ia", ...visibles.map((e) => e.responsable)])]
-      .filter((p) => visibles.some((e) => e.responsable === p))
-    : [null];
+  const tarjeta = (e: Entregable) => (
+    <Tarjeta
+      key={e.ruta} e={e} fecha={fecha} commit={commits.get(e.ruta)} abierta={sel?.ruta === e.ruta} onAbrir={abrir(e.ruta)}
+      onMover={(estado) => { mover(e, { estado }); seguirFoco(e.ruta); }}
+    />
+  );
+  const otraAgrupacion = actual.agrupar === "estado" ? "persona" : "estado";
 
   return (
     <>
       <main className="principal tablero">
-        <div className="tablero-cabeza">
-          <h1 className="titulo">Tablero</h1>
-          <div className="vistas" role="group" aria-label="Vistas guardadas">
-            {vistas.map((v) => (
-              <button key={v.nombre} aria-pressed={igual(v, actual)} onClick={() => setActual({ filtro: v.filtro, agrupar: v.agrupar })}>{v.nombre}</button>
-            ))}
-            {nombrando ? (
-              <form className="nueva-vista" onSubmit={guardarVista} onKeyDown={(ev) => ev.key === "Escape" && setNombrando(false)}>
-                <label className="oculto" htmlFor="nueva-vista">Nombre de la vista</label>
-                <input id="nueva-vista" name="nombre" placeholder="Nombre de la vista" autoFocus required />
-                <button className="btn" type="submit">Guardar</button>
-              </form>
-            ) : (
-              <button className="mas" onClick={() => setNombrando(true)} title="Guardar los filtros de ahora como vista">+ Vista</button>
-            )}
-          </div>
-        </div>
-
-        <Filtros es={indice.entregables} filtro={actual.filtro} cambiar={(filtro) => setActual({ ...actual, filtro })} fecha={fecha}>
+        <CabezaVistas actual={actual} elegir={setActual} onError={setError} />
+        <Filtros es={es} filtro={actual.filtro} cambiar={(filtro) => setActual({ ...actual, filtro })} fecha={fecha}>
           <span>{plural(visibles.length)}</span>
           <span className="sep" aria-hidden />
-          <button className="btn plano" onClick={() => setActual({ ...actual, agrupar: actual.agrupar === "estado" ? "persona" : "estado" })}>
-            Agrupar por {actual.agrupar}
-          </button>
+          <button className="btn plano" onClick={() => setActual({ ...actual, agrupar: otraAgrupacion })}>Agrupar por {actual.agrupar}</button>
         </Filtros>
         {error && <p className="error" role="alert">{error}</p>}
-        {!visibles.length && (
-          <p className="vacio">Nada calza con estos filtros. <button className="btn plano" onClick={() => setActual({ ...actual, filtro: {} })}>Ver todo</button></p>
+        {visibles.length ? (
+          <Carriles visibles={visibles} porPersona={actual.agrupar === "persona"} mover={mover} tarjeta={tarjeta} />
+        ) : (
+          <p className="vacio">
+            Nada calza con estos filtros.{" "}
+            <button className="btn plano" onClick={() => setActual({ ...actual, filtro: {} })}>Ver todo</button>
+          </p>
         )}
-
-        {visibles.length > 0 && responsables.map((p) => (
-          <section key={p ?? "todos"} className="carril" aria-label={p ? `Tareas de ${nombrePersona(p)}` : undefined}>
-            {p && (
-              <h2 className="carril-cabeza">
-                <span className="av" style={{ background: colorPersona(p) }} aria-hidden>{p === "ia" ? "✦" : nombrePersona(p)[0]}</span>
-                {nombrePersona(p)} <span className="c">{visibles.filter((e) => e.responsable === p).length}</span>
-              </h2>
-            )}
-            <Columnas
-              es={p ? visibles.filter((e) => e.responsable === p) : visibles}
-              onSoltar={(e, estado) => mover(e, p ? { estado, responsable: p } : { estado })}
-              tarjeta={(e) => (
-                <Tarjeta
-                  key={e.ruta} e={e} fecha={fecha} commit={commits.get(e.ruta)} abierta={sel?.ruta === e.ruta}
-                  cliente={indice.clientes.find((c) => c.slug === e.cliente)?.nombre ?? e.cliente}
-                  persona={nombrePersona(e.responsable)} onAbrir={abrir(e.ruta)} onMover={(estado) => { mover(e, { estado }); seguirFoco(e.ruta); }}
-                />
-              )}
-            />
-          </section>
-        ))}
       </main>
       {sel && <Panel key={sel.ruta} ruta={sel.ruta} animar={sel.animar} onCerrar={cerrar} onEditar={onEditar} />}
     </>
   );
 }
 
-function Columnas({ es, onSoltar, tarjeta }: {
-  es: Entregable[]; onSoltar: (e: Entregable, estado: string) => void; tarjeta: (e: Entregable) => ReactNode;
+/** Título, vistas guardadas (la que calza con los filtros de ahora queda marcada) y "+ Vista". */
+function CabezaVistas({ actual, elegir, onError }: { actual: Actual; elegir: (a: Actual) => void; onError: (msg: string) => void }) {
+  const [leidas, guardarLista] = useVistas();
+  const vistas = leidas ?? POR_DEFECTO;
+  const [nombrando, setNombrando] = useState(false);
+  const cargadas = leidas !== null;
+  // Al abrir, la primera vista del equipo.
+  useEffect(() => { if (cargadas) elegir({ filtro: vistas[0].filtro, agrupar: vistas[0].agrupar }); }, [cargadas]);
+  const guardar = (ev: FormEvent<HTMLFormElement>) => {
+    ev.preventDefault();
+    const nombre = String(new FormData(ev.currentTarget).get("nombre")).trim();
+    if (!nombre) return;
+    const nueva = { nombre, filtro: actual.filtro, agrupar: actual.agrupar };
+    guardarLista([...vistas.filter((v) => v.nombre !== nombre), nueva])
+      .then(() => setNombrando(false), () => onError("No se pudo guardar la vista."));
+  };
+  return (
+    <div className="tablero-cabeza">
+      <h1 className="titulo">Tablero</h1>
+      <div className="vistas" role="group" aria-label="Vistas guardadas">
+        {vistas.map((v) => (
+          <button key={v.nombre} aria-pressed={igual(v, actual)} onClick={() => elegir({ filtro: v.filtro, agrupar: v.agrupar })}>
+            {v.nombre}
+          </button>
+        ))}
+        {nombrando ? (
+          <form className="nueva-vista" onSubmit={guardar} onKeyDown={(ev) => ev.key === "Escape" && setNombrando(false)}>
+            <label className="oculto" htmlFor="nueva-vista">Nombre de la vista</label>
+            <input id="nueva-vista" name="nombre" placeholder="Nombre de la vista" autoFocus required />
+            <button className="btn" type="submit">Guardar</button>
+          </form>
+        ) : (
+          <button className="mas" onClick={() => setNombrando(true)} title="Guardar los filtros de ahora como vista">+ Vista</button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Un carril con todo, o uno por responsable. Soltar en el carril de otra persona también la asigna. */
+function Carriles({ visibles, porPersona, mover, tarjeta }: {
+  visibles: Entregable[]; porPersona: boolean; mover: (e: Entregable, c: Partial<Entregable>) => void;
+  tarjeta: (e: Entregable) => ReactNode;
+}) {
+  const { indice } = useSesion();
+  const nombre = (slug: string) => (slug === "ia" ? "Claude" : indice.personas.find((p) => p.slug === slug)?.nombre ?? slug);
+  const responsables = porPersona
+    ? [...new Set([...indice.personas.map((p) => p.slug), "ia", ...visibles.map((e) => e.responsable)])]
+      .filter((p) => visibles.some((e) => e.responsable === p))
+    : [null];
+  const buscar = (ruta: string) => visibles.find((e) => e.ruta === ruta);
+  return responsables.map((p) => {
+    const suyas = p ? visibles.filter((e) => e.responsable === p) : visibles;
+    return (
+      <section key={p ?? "todos"} className="carril" aria-label={p ? `Tareas de ${nombre(p)}` : undefined}>
+        {p && (
+          <h2 className="carril-cabeza">
+            <span className="av" style={{ background: colorPersona(p) }} aria-hidden>{p === "ia" ? "✦" : nombre(p)[0]}</span>
+            {nombre(p)} <span className="c">{suyas.length}</span>
+          </h2>
+        )}
+        <Columnas
+          es={suyas} buscar={buscar} tarjeta={tarjeta}
+          onSoltar={(e, estado) => mover(e, p ? { estado, responsable: p } : { estado })}
+        />
+      </section>
+    );
+  });
+}
+
+function Columnas({ es, buscar, onSoltar, tarjeta }: {
+  es: Entregable[]; buscar: (ruta: string) => Entregable | undefined;
+  onSoltar: (e: Entregable, estado: string) => void; tarjeta: (e: Entregable) => ReactNode;
 }) {
   const [sobre, setSobre] = useState<string | null>(null);
   const soltar = (estado: string) => (ev: DragEvent) => {
     ev.preventDefault();
     setSobre(null);
-    const e = es.find((x) => x.ruta === ev.dataTransfer.getData("text/plain"));
+    const e = buscar(ev.dataTransfer.getData("text/plain")); // puede venir de otro carril
     if (e) onSoltar(e, estado);
   };
   return (
@@ -152,8 +191,13 @@ function Columnas({ es, onSoltar, tarjeta }: {
         const aqui = es.filter((e) => e.estado === estado);
         return (
           <section
-            key={estado} className={sobre === estado ? "col sobre" : "col"} aria-label={`${etiquetaEstado(estado)}, ${plural(aqui.length)}`}
-            onDragOver={(ev) => { ev.preventDefault(); ev.dataTransfer.dropEffect = "move"; if (sobre !== estado) setSobre(estado); }}
+            key={estado} className={sobre === estado ? "col sobre" : "col"}
+            aria-label={`${etiquetaEstado(estado)}, ${plural(aqui.length)}`}
+            onDragOver={(ev) => {
+              ev.preventDefault();
+              ev.dataTransfer.dropEffect = "move";
+              if (sobre !== estado) setSobre(estado);
+            }}
             onDragLeave={(ev) => !ev.currentTarget.contains(ev.relatedTarget as Node) && setSobre(null)}
             onDrop={soltar(estado)}
           >
@@ -169,11 +213,13 @@ function Columnas({ es, onSoltar, tarjeta }: {
   );
 }
 
-function Tarjeta({ e, fecha, commit, abierta, cliente, persona, onAbrir, onMover }: {
-  e: Entregable; fecha: string; commit: Commit | undefined | null; abierta: boolean; cliente: string; persona: string;
+function Tarjeta({ e, fecha, commit, abierta, onAbrir, onMover }: {
+  e: Entregable; fecha: string; commit: Commit | undefined | null; abierta: boolean;
   onAbrir: (ev: MouseEvent<HTMLElement>) => void; onMover: (estado: string) => void;
 }) {
   const { indice } = useSesion();
+  const cliente = indice.clientes.find((c) => c.slug === e.cliente)?.nombre ?? e.cliente;
+  const persona = e.responsable === "ia" ? "Claude" : indice.personas.find((p) => p.slug === e.responsable)?.nombre ?? e.responsable;
   const a = commit === null ? null : actividad(commit, new Date(), indice.personas);
   const act = a && (e.estado !== "publicado" || a.tipo === "avanzo") ? a : null; // lo publicado no está "quieto"
   const c = cuando(e.vence, fecha);
@@ -188,12 +234,16 @@ function Tarjeta({ e, fecha, commit, abierta, cliente, persona, onAbrir, onMover
       <div className="cl"><span className="dot" style={{ background: colorPara(e.cliente) }} aria-hidden />{cliente}</div>
       {act && <div className={`act ${act.tipo}`}><span aria-hidden>{ICONO[act.tipo]}</span>{act.texto}</div>}
       <div className="pie-tarjeta">
-        <span className={tarde ? "tarde" : undefined}>{tarde ? `Vencía ${c.texto}` : c.texto[0].toUpperCase() + c.texto.slice(1)}</span>
+        <span className={tarde ? "tarde" : undefined}>
+          {tarde ? `Vencía ${c.texto}` : c.texto[0].toUpperCase() + c.texto.slice(1)}
+        </span>
         <select className="mover" aria-label={`Mover ${t} a…`} value="" onChange={(ev) => onMover(ev.target.value)}>
           <option value="" disabled>Mover a…</option>
           {ESTADOS.filter((x) => x !== e.estado).map((x) => <option key={x} value={x}>{etiquetaEstado(x)}</option>)}
         </select>
-        <span className="av" style={{ background: colorPersona(e.responsable) }} title={persona} aria-label={`Responsable: ${persona}`}>
+        <span
+          className="av" style={{ background: colorPersona(e.responsable) }} title={persona} aria-label={`Responsable: ${persona}`}
+        >
           {e.responsable === "ia" ? "✦" : persona[0]}
         </span>
       </div>

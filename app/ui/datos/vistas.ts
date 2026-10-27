@@ -28,8 +28,11 @@ export const leerVistas = (): Promise<Vista[]> =>
 export const guardarVistas = (vs: Vista[]): Promise<void> =>
   window.aos.repo.write(RUTA_VISTAS, `${JSON.stringify(vs, null, 2)}\n`);
 
-/** Mismo filtro y agrupación (sin importar el orden de las claves ni las listas vacías). */
+/** Mismo filtro y agrupación (sin importar el orden de claves ni de valores en las listas). */
 export const igual = (a: Omit<Vista, "nombre">, b: Omit<Vista, "nombre">): boolean => {
-  const norma = (f: Filtro) => JSON.stringify(Object.entries(f).filter(([, v]) => v !== undefined && v !== false).sort());
+  const norma = (f: Filtro) => JSON.stringify(Object.entries(f)
+    .filter(([, v]) => v !== undefined && v !== false)
+    .map(([k, v]) => [k, Array.isArray(v) ? [...v].sort() : v])
+    .sort(([a], [b]) => String(a).localeCompare(String(b))));
   return a.agrupar === b.agrupar && norma(a.filtro) === norma(b.filtro);
 };
