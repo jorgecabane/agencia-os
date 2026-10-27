@@ -1,0 +1,10 @@
+appId: cl.agencia-os.app
+productName: agencia-os
+directories:
+  output: dist
+files:
+  - out/**
+  - ui-dist/**
+mac:
+  target: dir
+  identity: null

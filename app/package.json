@@ -1,0 +1,27 @@
+{
+  "name": "agencia-os",
+  "version": "0.1.0",
+  "private": true,
+  "description": "App de escritorio de agencia-os",
+  "main": "out/shell/main.js",
+  "scripts": {
+    "dev": "pnpm build:ui && pnpm build:shell && electron .",
+    "build:ui": "vite build",
+    "build:shell": "tsc -p tsconfig.json",
+    "dist": "pnpm build:ui && pnpm build:shell && electron-builder --config electron-builder.yml",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "electron": "45.0.0",
+    "electron-builder": "26.18.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "typescript": "7.0.2",
+    "vite": "8.3.5",
+    "vitest": "5.0.5"
+  }
+}

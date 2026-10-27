@@ -1,0 +1,41 @@
+@font-face {
+  font-family: "Newsreader";
+  font-style: normal;
+  font-weight: 400 500;
+  font-display: swap;
+  src: url("./fuentes/newsreader-latin.woff2") format("woff2");
+}
+
+:root {
+  --fondo: #242322;
+  --lateral: #1f1e1d;
+  --superficie: #2b2a28;
+  --elevado: #343230;
+  --linea: #3f3d39;
+  --linea-suave: #36342f;
+  --texto: #ece9e2;
+  --apagado: #a39f96;
+  --tenue: #7c786f;
+  --foco: #a7b0ff;
+  --avance: #8fc79a;
+  --atraso: #e58b7b;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --fuente-titulo: "Newsreader", Georgia, serif;
+  --fuente-ui: -apple-system, "SF Pro Text", system-ui, sans-serif;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--fondo);
+  color: var(--texto);
+  font: 13px/1.45 var(--fuente-ui);
+}
+
+:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
