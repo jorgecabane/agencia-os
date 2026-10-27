@@ -1,7 +1,7 @@
 // Campos según scripts/aos/esquemas.py. Las fechas son siempre texto ISO.
 export type Cliente = {
   ruta: string; nombre: string; slug: string; etapa: string; modalidad: string; responsable: string;
-  dominios_email?: string[]; emails?: string[]; proximo_contacto?: string;
+  dominios_email?: string[]; emails?: string[]; proximo_contacto?: string; drive?: string;
 };
 export type Entregable = {
   ruta: string; cliente: string; formato: string; vence: string; estado: string; responsable: string;

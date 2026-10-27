@@ -20,7 +20,7 @@ const seguirFoco = (ruta: string) =>
 const plural = (n: number) => `${n} ${n === 1 ? "tarea" : "tareas"}`;
 
 /** Vistas guardadas del equipo (`app/vistas.json`), releídas si alguien las cambia. */
-function useVistas(): [Vista[] | null, (vs: Vista[]) => Promise<void>] {
+export function useVistas(): [Vista[] | null, (vs: Vista[]) => Promise<void>] {
   const [vistas, setVistas] = useState<Vista[] | null>(null);
   useEffect(() => {
     let vivo = true;

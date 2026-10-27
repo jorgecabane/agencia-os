@@ -4,6 +4,7 @@ import { ElegirPersona } from "./componentes/ElegirPersona";
 import { Lateral, type Pantalla } from "./componentes/Lateral";
 import { fechaLocal } from "./datos/hoy";
 import { SesionCtx, useIndice } from "./datos/sesion";
+import { Cliente } from "./pantallas/Cliente";
 import { Hoy } from "./pantallas/Hoy";
 import { Tablero } from "./pantallas/Tablero";
 
@@ -54,6 +55,7 @@ export function App() {
         <Lateral pantalla={pantalla} ir={ir} fecha={fecha} onCambiarPersona={() => setEligiendo(true)} />
         {pantalla.nombre === "hoy" && <Hoy fecha={fecha} onEditar={(ruta) => ir({ nombre: "editar", ruta, desde: "hoy" })} />}
         {pantalla.nombre === "tablero" && <Tablero fecha={fecha} onEditar={(ruta) => ir({ nombre: "editar", ruta, desde: "tablero" })} />}
+        {pantalla.nombre === "cliente" && <Cliente key={pantalla.slug} slug={pantalla.slug} fecha={fecha} onErrorFuera={setErrorGuardar} />}
         {pantalla.nombre === "editar" && (
           <main className="principal editar">
             <button className="btn plano" onClick={() => ir({ nombre: pantalla.desde })}>‹ Volver a {pantalla.desde === "hoy" ? "Hoy" : "Tablero"}</button>

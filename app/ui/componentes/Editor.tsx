@@ -17,13 +17,15 @@ type Props = {
   onPedirClaude?: (pedido: string) => void;
   /** Un guardado que falla después de salir del editor (al volver) no tiene dónde mostrarse: se avisa arriba. */
   onErrorFuera?: (mensaje: string) => void;
+  /** Muestra "Historial" junto a "Editado por…". */
+  onHistorial?: () => void;
 };
 
 /** Texto que se edita en cada modo: el cuerpo, o el archivo entero si su frontmatter está roto. */
 const textoDe = (archivo: string, modo: Modo) => (modo === "archivo" ? archivo : separar(archivo).cuerpo);
 
 /** Página tipo Notion: frontmatter como etiquetas arriba, cuerpo en Milkdown Crepe (o markdown), guardado solo y mezcla segura. */
-export function Editor({ ruta, onPedirClaude, onErrorFuera }: Props) {
+export function Editor({ ruta, onPedirClaude, onErrorFuera, onHistorial }: Props) {
   const { indice } = useSesion();
   const [base, setBase] = useState<string | null>(null); // lo último leído o escrito: con esto se compara
   const [modo, setModo] = useState<Modo>("visual");
@@ -57,7 +59,7 @@ export function Editor({ ruta, onPedirClaude, onErrorFuera }: Props) {
     const s = r.current;
     clearTimeout(s.timer);
     if (s.guardando) return void (s.timer = window.setTimeout(() => void guardarRef.current(), ESPERA_GUARDADO_MS));
-    if (!sucio()) return;
+    if (!sucio()) return void (s.montado && setEstado("guardado")); // un aviso de cambio sin cambio real
     s.guardando = true;
     if (s.montado) setEstado("guardando");
     try {
@@ -149,10 +151,12 @@ export function Editor({ ruta, onPedirClaude, onErrorFuera }: Props) {
   const exigido = modoInicial(base) !== "visual";
   return (
     <article className="doc">
-      <h1 className="doc-titulo">{titulo(ruta)}</h1>
+      {/* Si el cuerpo ya abre con "# Título", ese es el título: no se repite. */}
+      {!/^#\s/.test(separar(base).cuerpo.trimStart()) && <h1 className="doc-titulo">{titulo(ruta)}</h1>}
       <div className="guardado" role="status">
         {estado === "guardado" ? <span className="ok">✓ Guardado</span> : <span>{estado === "guardando" ? "Guardando…" : "● Sin guardar"}</span>}
         {ultimo && <span>Editado por {autor(ultimo, indice.personas)} {hace(ultimo.fecha, new Date())}</span>}
+        {onHistorial && <button className="btn plano historial" onClick={onHistorial}>Historial</button>}
         {!exigido && (
           <button className="btn plano" onClick={() => void cambiarModo(modo === "visual" ? "markdown" : "visual")}>
             {modo === "visual" ? "Ver como markdown" : "Ver como documento"}

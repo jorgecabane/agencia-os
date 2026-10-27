@@ -2,7 +2,8 @@ import { colorPara, hoy } from "../datos/hoy";
 import { useSesion } from "../datos/sesion";
 import { IndicadorSync } from "./IndicadorSync";
 
-export type Pantalla = { nombre: "hoy" } | { nombre: "tablero" } | { nombre: "editar"; ruta: string; desde: "hoy" | "tablero" };
+export type Pantalla = { nombre: "hoy" } | { nombre: "tablero" } | { nombre: "cliente"; slug: string }
+  | { nombre: "editar"; ruta: string; desde: "hoy" | "tablero" };
 
 /** Barra lateral común. Las demás pantallas se suman aquí cuando existan. */
 export function Lateral({ pantalla, ir, fecha, onCambiarPersona }: {
@@ -22,9 +23,12 @@ export function Lateral({ pantalla, ir, fecha, onCambiarPersona }: {
       </button>
       <div className="grupo">Clientes</div>
       {indice.clientes.map((c) => (
-        <div className="cliente-it" key={c.slug}>
+        <button
+          className="nav-it" key={c.slug} onClick={() => ir({ nombre: "cliente", slug: c.slug })}
+          aria-current={pantalla.nombre === "cliente" && pantalla.slug === c.slug ? "page" : undefined}
+        >
           <span className="dot" style={{ background: colorPara(c.slug) }} aria-hidden />{c.nombre}
-        </div>
+        </button>
       ))}
       <div className="pie">
         {rotos.length > 0 && (
