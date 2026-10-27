@@ -31,7 +31,8 @@ export function Aprobaciones({ inicial, onEditar }: { inicial?: string; onEditar
       <h1 className="titulo">Aprobaciones</h1>
       <p className="bajada">Lo que Claude dejó listo para salir. Nada se envía hasta que lo apruebes.</p>
       <div className="aprob-cuerpo">
-        <nav className="aprob-lista" aria-label="Borradores">
+        <nav className="aprob-lista" aria-labelledby="aprob-lista-t">
+          <h2 id="aprob-lista-t" className="oculto" tabIndex={-1}>Borradores</h2>
           {grupos.length === 0 && <p className="vacio">No hay nada esperando tu OK.</p>}
           {grupos.map((g) => (
             <section key={g.titulo} className="seccion">
@@ -124,6 +125,12 @@ function Acciones({ estado, canal, ocupado, onAprobar, onGuardar, onCorregir, on
 }) {
   const [confirmar, setConfirmar] = useState(false);
   const manual = canal === "otro";
+  // Al descartar, el borrador sale de la lista: el foco va a su encabezado (siempre está, aunque quede vacía).
+  const descartar = async () => {
+    if (!(await onGuardar("descartado"))) return;
+    setConfirmar(false);
+    requestAnimationFrame(() => document.getElementById("aprob-lista-t")?.focus());
+  };
   return (
     <>
       <div className="acciones">
@@ -138,11 +145,14 @@ function Acciones({ estado, canal, ocupado, onAprobar, onGuardar, onCorregir, on
         <button className="btn" onClick={onEditar}>Editar</button>
         <button className="btn" aria-expanded={confirmar} onClick={() => setConfirmar(true)}>Descartar</button>
       </div>
+      {estado === "aprobado" && !manual && (
+        <p className="aprob-aviso"><span aria-hidden>▲ </span>Revisa que no haya salido ya antes de reenviar.</p>
+      )}
       {confirmar && (
         <div className="formulario" role="alertdialog" aria-label="Confirmar descarte"
           onKeyDown={(e) => { if (e.key === "Escape") { e.preventDefault(); setConfirmar(false); } }}>
           <span>¿Descartar este borrador? No se enviará.</span>
-          <button className="btn peligro" autoFocus onClick={() => void onGuardar("descartado").then(() => setConfirmar(false))}>Sí, descartar</button>
+          <button className="btn peligro" autoFocus onClick={() => void descartar()}>Sí, descartar</button>
           <button className="btn plano" onClick={() => setConfirmar(false)}>Cancelar</button>
         </div>
       )}

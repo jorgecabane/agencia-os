@@ -3,6 +3,8 @@
 /* — Calendario — */
 .cal { min-width: 0; }
 .cal-nav { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+.cal-rotulo:focus { outline: none; }
+.cal-rotulo:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
 .cal-rotulo { font-family: var(--fuente-titulo); font-weight: 400; font-size: 20px; margin: 0 6px; min-width: 9ch; text-align: center; }
 .cal-ayuda { color: var(--tenue); font-size: 12.5px; }
 .cal-grilla { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1px; background: var(--linea-suave); border: 1px solid var(--linea-suave); border-radius: 10px; overflow: hidden; }
@@ -21,14 +23,14 @@
   transition: border-color 150ms ease, transform 160ms var(--ease-out);
 }
 .cal-item[draggable="true"] { cursor: grab; }
-.cal-item:active { transform: scale(0.98); }
+.cal-item:active:not(:focus-visible) { transform: scale(0.98); }
 .cal-item:focus-visible, .cal-mas:focus-visible { outline: 2px solid var(--foco); outline-offset: 1px; }
 .cal-item[aria-pressed="true"] { border-color: var(--foco); background: var(--elevado); }
 .cal-item.reunion { background: transparent; border-style: dashed; color: var(--apagado); }
 .cal-item.cerrado { opacity: 0.55; }
 .cal-t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .semana .cal-t { white-space: normal; flex-basis: 100%; }
-.cal-sub { flex-basis: 100%; color: var(--tenue); font-size: 12.5px; }
+.cal-sub { flex-basis: 100%; color: var(--tenue); font-size: 14px; }
 .cal-hora { color: var(--texto); font-variant-numeric: tabular-nums; }
 .cal-ic { color: var(--tenue); }
 .cal-tarde { color: var(--atraso); font-size: 11px; }
@@ -39,7 +41,8 @@
 
 /* — Aprobaciones — */
 .aprob-cuerpo { display: grid; grid-template-columns: minmax(240px, 320px) minmax(0, 1fr); gap: 28px; align-items: start; }
-.aprob-lista .seccion:first-child { margin-top: 0; }
+.aprob-aviso { color: var(--en-curso); margin: 0; font-size: 14px; }
+.aprob-lista .seccion:nth-child(2) { margin-top: 0; }
 .aprob-lista .fila { width: 100%; }
 .fila.aprob-fila { grid-template-columns: 3px minmax(0, 1fr); text-align: left; }
 .aprob-detalle { display: flex; flex-direction: column; gap: 14px; max-width: 680px; min-width: 0; }

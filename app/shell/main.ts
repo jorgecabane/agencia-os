@@ -191,7 +191,8 @@ function cablearSistema(raiz: string, barra: Barra, claude: Claude, mostrar: () 
     return true;
   });
   ipcMain.handle("sistema:conectores", () => conectores(raiz));
-  ipcMain.handle("sistema:cambiar-repo", async () => {
+  ipcMain.handle("sistema:cambiar-repo", async (e) => {
+    if (e.sender !== principal?.webContents) return false;
     const repo = await pedirRepo();
     if (!repo) return false;
     guardarConfig({ repo });

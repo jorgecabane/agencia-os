@@ -154,15 +154,16 @@ describe("crearClaude: conversación perdida", () => {
 const HERRAMIENTAS = [
   "Read", "mcp__claude_ai_Gmail__search_threads", "mcp__claude_ai_Gmail__send_email", "mcp__claude_ai_Gmail__create_draft",
   "mcp__claude_ai_Gmail__delete_thread", "mcp__claude_ai_Instagram__publish_post", "mcp__claude_ai_Instagram__send_message",
-  "mcp__claude_ai_Meta_Ads__create_campaign", "mcp__otro__send_email",
+  "mcp__claude_ai_Meta_Ads__create_campaign", "mcp__claude_ai_Meta__publish_post", "mcp__claude_ai_Threads__publish_post", "mcp__otro__send_email",
 ];
 
 describe("herramientasDeEnvio", () => {
   it("cada canal solo recibe las de su conector y con verbo de envío", () => {
     expect(herramientasDeEnvio("email", HERRAMIENTAS)).toEqual(["mcp__claude_ai_Gmail__send_email", "mcp__claude_ai_Gmail__create_draft"]);
-    expect(herramientasDeEnvio("instagram", HERRAMIENTAS)).toEqual(["mcp__claude_ai_Instagram__publish_post", "mcp__claude_ai_Instagram__send_message"]);
+    expect(herramientasDeEnvio("instagram", HERRAMIENTAS)).toEqual(["mcp__claude_ai_Instagram__publish_post", "mcp__claude_ai_Meta__publish_post"]);
     expect(herramientasDeEnvio("dm", HERRAMIENTAS)).toEqual(["mcp__claude_ai_Instagram__send_message"]);
-    expect(herramientasDeEnvio("ads", HERRAMIENTAS)).toEqual(["mcp__claude_ai_Meta_Ads__create_campaign"]);
+    expect(herramientasDeEnvio("ads", HERRAMIENTAS)).toEqual(["mcp__claude_ai_Meta_Ads__create_campaign"]); // ni publish_post de Meta ni Threads
+    expect(herramientasDeEnvio("ads", HERRAMIENTAS)).not.toContain("mcp__claude_ai_Meta__publish_post");
     expect(herramientasDeEnvio("otro", HERRAMIENTAS)).toEqual([]);
     expect(herramientasDeEnvio("toString", HERRAMIENTAS)).toEqual([]);
   });

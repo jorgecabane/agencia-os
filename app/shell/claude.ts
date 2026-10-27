@@ -13,14 +13,16 @@ const LECTURA = /^(list|get|search|read|fetch)(?:[-_]|$)/i;
 // Solo el mensaje exacto que manda Aprobaciones; la ruta no puede salir de bandeja/.
 const EJECUTA = /^Ejecuta la aprobación (bandeja\/[^/\s]+\.md)$/;
 const FRONTMATTER = /^---\r?\n([\s\S]*?)\r?\n---/;
-const SIN_ADS = "^(?!.*ads)"; // un post o un DM nunca gasta en anuncios
+// Servidor de anuncios: "Ads" como palabra (Meta_Ads, Google_Ads, GoogleAds), no "Threads" ni "Uploads".
+const ADS = "(?:^|[-_]|google|meta|facebook)ads(?:[-_]|$)";
+const SIN_ADS = `^(?!.*${ADS})`; // un post o un DM nunca gasta en anuncios
 const verbos = (...v: string[]) => new RegExp(`^(${v.join("|")})(?:[-_]|$)`, "i");
 /** Qué conector y qué verbos puede usar cada canal de una aprobación. `otro` no tiene: se envía a mano. */
 const CANALES: Record<string, { servidor: RegExp; verbo: RegExp }> = {
   email: { servidor: /gmail/i, verbo: verbos("send", "reply", "draft", "create[-_]draft") },
-  instagram: { servidor: new RegExp(`${SIN_ADS}.*(instagram|meta|facebook)`, "i"), verbo: verbos("publish", "post", "create", "schedule", "upload", "send", "reply") },
+  instagram: { servidor: new RegExp(`${SIN_ADS}.*(instagram|meta|facebook)`, "i"), verbo: verbos("publish", "post", "create", "schedule", "upload") }, // los mensajes son del canal dm
   dm: { servidor: new RegExp(`${SIN_ADS}.*(instagram|meta|facebook|messenger|whatsapp)`, "i"), verbo: verbos("send", "reply") },
-  ads: { servidor: /meta|facebook|google[-_]?ads/i, verbo: verbos("create", "update", "publish", "launch") },
+  ads: { servidor: new RegExp(ADS, "i"), verbo: verbos("create", "update", "publish", "launch") },
 };
 const SIN_SESION = /not logged in|please run \/login|invalid api key/i;
 const SESION_PERDIDA = /no conversation found/i;

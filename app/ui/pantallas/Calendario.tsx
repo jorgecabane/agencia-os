@@ -16,8 +16,9 @@ const CERRADOS = new Set(["publicado", "cancelado"]);
 // Alt + flecha mueve la tarea un día (← →) o una semana (↑ ↓).
 const TECLAS: Record<string, number> = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 };
 const largo = (dia: string, o: Intl.DateTimeFormatOptions) => new Date(`${dia}T12:00:00Z`).toLocaleDateString("es-CL", { ...o, timeZone: "UTC" });
-const seguirFoco = (ruta: string) =>
-  requestAnimationFrame(() => document.querySelector<HTMLElement>(`.cal [data-ruta="${CSS.escape(ruta)}"]`)?.focus());
+// Si la tarea salió de lo que se ve (otro mes o semana), el foco va al rótulo del calendario.
+const seguirFoco = (ruta: string) => requestAnimationFrame(() =>
+  (document.querySelector<HTMLElement>(`.cal [data-ruta="${CSS.escape(ruta)}"]`) ?? document.querySelector<HTMLElement>(".cal-rotulo"))?.focus());
 
 export function Calendario({ fecha, onEditar }: { fecha: string; onEditar: (ruta: string) => void }) {
   const { indice } = useSesion();
@@ -35,9 +36,11 @@ export function Calendario({ fecha, onEditar }: { fecha: string; onEditar: (ruta
   const mes = ancla.slice(0, 7);
   const filas = vista === "mes" ? semanas(i, mes, filtro, fecha) : [dias(i, lunes(ancla), sumarDias(lunes(ancla), 6), filtro, fecha)];
   const paso = (n: number) => setAncla(vista === "mes" ? `${sumarMeses(mes, n)}-01` : sumarDias(ancla, 7 * n));
+  const visibles = filas.flat();
   const mueve = (e: Entregable, dia: string) => {
     mover(e, { vence: dia }); // solo `vence`: `recurrencia_fecha` queda como estaba
-    setAnuncio(`${titulo(e.ruta)} ahora vence el ${largo(dia, { weekday: "long", day: "numeric", month: "long" })}`);
+    const fuera = dia < visibles[0].dia || dia > visibles[visibles.length - 1].dia ? ", fuera de esta vista" : "";
+    setAnuncio(`${titulo(e.ruta)} ahora vence el ${largo(dia, { weekday: "long", day: "numeric", month: "long" })}${fuera}`);
   };
   const ctx: Ctx = {
     fecha, mes: vista === "mes" ? mes : null, sel: sel?.ruta, es, mueve,
@@ -78,7 +81,7 @@ function Cabeza({ vista, setVista, ancla, paso, hoy }: {
       </div>
       <div className="cal-nav">
         <button className="btn plano" onClick={() => paso(-1)} aria-label={`${unidad} anterior`}>‹</button>
-        <h2 className="cal-rotulo" aria-live="polite">{rotulo}</h2>
+        <h2 className="cal-rotulo" aria-live="polite" tabIndex={-1}>{rotulo}</h2>
         <button className="btn plano" onClick={() => paso(1)} aria-label={`${unidad} siguiente`}>›</button>
         <button className="btn" onClick={hoy}>Hoy</button>
       </div>
