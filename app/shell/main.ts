@@ -80,6 +80,7 @@ function cablearRepo(ventana: BrowserWindow, raiz: string): void {
   ipcMain.handle("repo:list", (_e, glob: string) => repo.list(glob));
   ipcMain.handle("repo:read", (_e, ruta: string) => repo.read(ruta));
   ipcMain.handle("repo:write", (_e, ruta: string, contenido: string) => repo.write(ruta, contenido).finally(sync.escribio));
+  ipcMain.handle("repo:write-base64", (_e, ruta: string, base64: string) => repo.writeBase64(ruta, base64).finally(sync.escribio));
   ipcMain.handle("repo:move", (_e, de: string, a: string) => repo.move(de, a).finally(sync.escribio));
   ipcMain.handle("repo:delete", (_e, ruta: string) => repo.delete(ruta).finally(sync.escribio));
   const parar = repo.onCambio((rutas) => ventana.webContents.send("repo:cambio", rutas));

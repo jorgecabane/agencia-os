@@ -14,6 +14,7 @@ const puente: Puente = {
     list: (glob) => ipcRenderer.invoke("repo:list", glob),
     read: (ruta) => ipcRenderer.invoke("repo:read", ruta),
     write: (ruta, contenido) => ipcRenderer.invoke("repo:write", ruta, contenido),
+    writeBase64: (ruta, base64) => ipcRenderer.invoke("repo:write-base64", ruta, base64),
     move: (de, a) => ipcRenderer.invoke("repo:move", de, a),
     delete: (ruta) => ipcRenderer.invoke("repo:delete", ruta),
     onCambio: (cb) => {

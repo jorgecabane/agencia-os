@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import { Editor } from "./componentes/Editor";
 import { ElegirPersona } from "./componentes/ElegirPersona";
 import { Lateral, type Pantalla } from "./componentes/Lateral";
-import { fechaLocal, titulo } from "./datos/hoy";
+import { fechaLocal } from "./datos/hoy";
 import { SesionCtx, useIndice } from "./datos/sesion";
 import { Hoy } from "./pantallas/Hoy";
 import { Tablero } from "./pantallas/Tablero";
@@ -47,23 +48,12 @@ export function App() {
         {pantalla.nombre === "hoy" && <Hoy fecha={fecha} onEditar={(ruta) => ir({ nombre: "editar", ruta, desde: "hoy" })} />}
         {pantalla.nombre === "tablero" && <Tablero fecha={fecha} onEditar={(ruta) => ir({ nombre: "editar", ruta, desde: "tablero" })} />}
         {pantalla.nombre === "editar" && (
-          <Editar ruta={pantalla.ruta} desde={pantalla.desde} onVolver={() => ir({ nombre: pantalla.desde })} />
+          <main className="principal editar">
+            <button className="btn plano" onClick={() => ir({ nombre: pantalla.desde })}>‹ Volver a {pantalla.desde === "hoy" ? "Hoy" : "Tablero"}</button>
+            <Editor key={pantalla.ruta} ruta={pantalla.ruta} />
+          </main>
         )}
       </div>
     </SesionCtx.Provider>
-  );
-}
-
-/** Provisional: muestra el archivo tal cual. El editor de verdad llega después. */
-function Editar({ ruta, desde, onVolver }: { ruta: string; desde: "hoy" | "tablero"; onVolver: () => void }) {
-  const [texto, setTexto] = useState("");
-  useEffect(() => void window.aos.repo.read(ruta).then(setTexto, () => setTexto("")), [ruta]);
-  return (
-    <main className="principal editar">
-      <button className="btn plano" onClick={onVolver}>‹ Volver a {desde === "hoy" ? "Hoy" : "Tablero"}</button>
-      <h1 className="titulo" style={{ marginTop: 12 }}>{titulo(ruta)}</h1>
-      <p className="bajada">{ruta}</p>
-      <pre>{texto}</pre>
-    </main>
   );
 }

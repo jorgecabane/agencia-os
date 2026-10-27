@@ -13,9 +13,18 @@ export function actividad(ultimo: Commit | undefined, hoy: Date, personas: Perso
   const horas = Math.max(0, Math.floor((hoy.getTime() - Date.parse(ultimo.fecha)) / HORA_MS));
   const dias = Math.floor(horas / 24);
   if (dias >= DIAS_QUIETA) return { tipo: "quieta", texto: `Quieta hace ${dias} días` };
-  const quien = personas.find((p) => p.nombre.toLowerCase() === ultimo.autor.toLowerCase())?.nombre ?? ultimo.autor;
-  const hace = horas < 1 ? "recién" : horas < 24 ? `hace ${horas} h` : dias === 1 ? "ayer" : `hace ${dias} días`;
-  return { tipo: "avanzo", texto: `${quien} avanzó ${hace}` };
+  return { tipo: "avanzo", texto: `${autor(ultimo, personas)} avanzó ${hace(ultimo.fecha, hoy)}` };
+}
+
+/** Nombre de persona del autor del commit si calza (sin mayúsculas); si no, el nombre de git. */
+export const autor = (c: Commit, personas: Persona[]): string =>
+  personas.find((p) => p.nombre.toLowerCase() === c.autor.toLowerCase())?.nombre ?? c.autor;
+
+/** "recién", "hace 3 h", "ayer" o "hace 5 días". */
+export function hace(fecha: string, hoy: Date): string {
+  const horas = Math.max(0, Math.floor((hoy.getTime() - Date.parse(fecha)) / HORA_MS));
+  const dias = Math.floor(horas / 24);
+  return horas < 1 ? "recién" : horas < 24 ? `hace ${horas} h` : dias === 1 ? "ayer" : `hace ${dias} días`;
 }
 
 // Último commit por ruta, compartido entre pantallas. undefined = sin commits; null = aún preguntando.

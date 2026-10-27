@@ -36,6 +36,19 @@ export function crearRepo(raiz: string) {
     return destino;
   };
 
+  const escribir = async (ruta: string, contenido: string | Buffer): Promise<void> => {
+    const destino = absEscritura(ruta);
+    await mkdir(dirname(destino), { recursive: true });
+    const tmp = `${destino}.${process.pid}.${randomUUID()}${MARCA_TMP}`;
+    try {
+      await writeFile(tmp, contenido);
+      await rename(tmp, destino);
+    } catch (error) {
+      await rm(tmp, { force: true });
+      throw error;
+    }
+  };
+
   return {
     async list(patron: string): Promise<string[]> {
       abs(patron.replace(/\*/g, "x"));
@@ -44,17 +57,12 @@ export function crearRepo(raiz: string) {
     async read(ruta: string): Promise<string> {
       return readFile(abs(ruta), "utf8");
     },
-    async write(ruta: string, contenido: string): Promise<void> {
-      const destino = absEscritura(ruta);
-      await mkdir(dirname(destino), { recursive: true });
-      const tmp = `${destino}.${process.pid}.${randomUUID()}${MARCA_TMP}`;
-      try {
-        await writeFile(tmp, contenido);
-        await rename(tmp, destino);
-      } catch (error) {
-        await rm(tmp, { force: true });
-        throw error;
-      }
+    write(ruta: string, contenido: string): Promise<void> {
+      return escribir(ruta, contenido);
+    },
+    /** Para binarios (imágenes): mismo resguardo y escritura atómica que `write`. */
+    writeBase64(ruta: string, base64: string): Promise<void> {
+      return escribir(ruta, Buffer.from(base64, "base64"));
     },
     async move(de: string, a: string): Promise<void> {
       const destino = absEscritura(a);

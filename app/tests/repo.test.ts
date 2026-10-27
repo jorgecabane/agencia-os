@@ -15,6 +15,18 @@ describe("puente de archivos", () => {
     expect(readdirSync(join(dir, "a/b"))).toEqual(["nota.md"]);
   });
 
+  it("escribe binarios desde base64, atómico y con los mismos resguardos de ruta", async () => {
+    const dir = fixtureRepo({});
+    const repo = crearRepo(dir);
+    const bytes = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x00, 0xff]);
+    await repo.writeBase64("clientes/acme/adjuntos/a.png", bytes.toString("base64"));
+    expect(readFileSync(join(dir, "clientes/acme/adjuntos/a.png"))).toEqual(bytes);
+    expect(readdirSync(join(dir, "clientes/acme/adjuntos"))).toEqual(["a.png"]);
+    for (const ruta of ["../x.png", "/etc/x.png", ".git/x.png"]) {
+      await expect(repo.writeBase64(ruta, "AA==")).rejects.toThrow("ruta fuera del repo");
+    }
+  });
+
   it("rechaza rutas fuera del repo en todas las operaciones", async () => {
     const repo = crearRepo(fixtureRepo({ "x.md": "x" }));
     const malas = ["../x", "/etc/x", ".", "", ".git", ".git/config"];

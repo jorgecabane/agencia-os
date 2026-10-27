@@ -134,11 +134,45 @@
 .elegir ul { list-style: none; padding: 0; margin: 20px 0 0; display: flex; flex-direction: column; gap: 6px; }
 .elegir .fila { grid-template-columns: 22px minmax(0, 1fr); }
 
-/* Editar (provisional hasta el editor) */
-.editar pre {
-  white-space: pre-wrap; background: var(--superficie); border: 1px solid var(--linea-suave); border-radius: var(--radio);
-  padding: 14px 16px; font: 13px/1.5 ui-monospace, "SF Mono", monospace; color: var(--texto);
+/* Editor tipo Notion */
+.doc { max-width: 680px; margin: 26px auto 0; }
+.doc-titulo { font-family: var(--fuente-titulo); font-weight: 400; font-size: 32px; letter-spacing: -0.01em; margin: 0 0 4px; }
+.guardado { display: flex; gap: 12px; align-items: center; color: var(--tenue); font-size: 14px; margin: 0 0 14px; }
+.guardado .ok { color: var(--avance); }
+.etiquetas { margin-bottom: 18px; }
+.chip.boton { all: unset; display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 8px; border-radius: 7px; background: var(--superficie); border: 1px solid var(--linea); font-size: 14px; color: var(--texto); white-space: nowrap; cursor: pointer; transition: border-color 150ms ease; }
+.chip.boton:hover { border-color: var(--tenue); }
+.chip.boton:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+.chip.editando { height: 26px; font-size: 14px; border-color: var(--foco); }
+.chip.editando input { all: unset; color: var(--texto); font-size: 14px; min-width: 4ch; }
+.aviso-editor {
+  display: flex; align-items: center; gap: 10px; margin: 0 0 14px; padding: 8px 8px 8px 12px; font-size: 14px;
+  border: 1px solid var(--atraso); border-radius: var(--radio); background: var(--superficie); color: var(--texto);
 }
+.aviso-editor > span { flex: 1; }
+.lienzo { margin-left: -60px; } /* deja espacio a la manilla de bloques sin correr el texto */
+.lienzo .milkdown {
+  --crepe-color-background: var(--fondo); --crepe-color-on-background: var(--texto);
+  --crepe-color-surface: var(--elevado); --crepe-color-surface-low: var(--superficie);
+  --crepe-color-on-surface: var(--texto); --crepe-color-on-surface-variant: var(--apagado);
+  --crepe-color-outline: var(--tenue); --crepe-color-primary: var(--foco);
+  --crepe-color-secondary: var(--resaltado); --crepe-color-on-secondary: var(--texto);
+  --crepe-color-inverse: var(--texto); --crepe-color-on-inverse: var(--sobre-foco);
+  --crepe-color-inline-code: var(--atraso); --crepe-color-error: var(--atraso);
+  --crepe-color-hover: var(--superficie); --crepe-color-selected: var(--resaltado); --crepe-color-inline-area: var(--superficie);
+  --crepe-base-font-size: 15px; --crepe-font-title: var(--fuente-titulo); --crepe-font-default: var(--fuente-ui);
+  --crepe-font-code: ui-monospace, "SF Mono", monospace;
+  --crepe-shadow-1: 0 12px 32px var(--sombra); --crepe-shadow-2: 0 12px 32px var(--sombra);
+  background: transparent;
+}
+.lienzo .milkdown .ProseMirror { padding: 4px 0 120px 60px; outline: none; }
+.lienzo .milkdown .ProseMirror p { line-height: 1.6; }
+.lienzo .milkdown table { border-collapse: collapse; }
+.lienzo .milkdown th, .lienzo .milkdown td { border: 1px solid var(--linea); }
+.lienzo .milkdown .milkdown-slash-menu, .lienzo .milkdown .milkdown-block-handle { font-size: 14px; }
+.lienzo .milkdown .milkdown-slash-menu { border: 1px solid var(--linea); }
+.lienzo .milkdown .milkdown-slash-menu .menu-groups .menu-group h6 { text-transform: none; }
+.lienzo .milkdown .milkdown-block-handle { transition: opacity 150ms ease; }
 
 .aviso { position: fixed; top: 8px; left: 50%; transform: translateX(-50%); margin: 0; z-index: 2; color: var(--apagado); background: var(--elevado); border: 1px solid var(--linea); border-radius: 7px; padding: 4px 10px; }
 

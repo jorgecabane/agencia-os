@@ -27,6 +27,8 @@ export interface Puente {
     list(glob: string): Promise<string[]>;
     read(ruta: string): Promise<string>;
     write(ruta: string, contenido: string): Promise<void>;
+    /** Escribe un binario (p. ej. una imagen pegada) dado en base64. */
+    writeBase64(ruta: string, base64: string): Promise<void>;
     move(de: string, a: string): Promise<void>;
     delete(ruta: string): Promise<void>;
     /** Rutas cambiadas, agrupadas cada 150 ms. Devuelve cómo dejar de escuchar. */
