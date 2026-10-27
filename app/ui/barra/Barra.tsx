@@ -1,15 +1,16 @@
 import { type FormEvent, type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { Estado } from "../../shared/puente";
 import { ESTADO } from "../componentes/Panel";
-import { agenda, avisosPendientes, cuentaRegresiva, siguienteEstado } from "../datos/agenda";
+import { agenda, avisosPendientes, cuentaRegresiva, nombreCliente, siguienteEstado } from "../datos/agenda";
 import { colorPara, fechaLocal, titulo } from "../datos/hoy";
 import type { Indice } from "../datos/indice";
 import { cambiar } from "../datos/md";
 import { useSesion } from "../datos/sesion";
-import type { Entregable } from "../datos/tipos";
+import type { Entregable, Reunion } from "../datos/tipos";
 import "./barra.css";
 
 const MINUTO_MS = 60_000;
+const SIN_CASILLA = new Set(["aprobado", "publicado", "cancelado"]); // la casilla nunca marca publicado (R17)
 const PAUSA_MS = 60 * MINUTO_MS;
 const SYNC: Record<Estado, { icono: string; texto: string; clase: string }> = {
   "al-dia": { icono: "●", texto: "Al día", clase: "ok" },
@@ -66,37 +67,18 @@ export function Barra() {
   const a = agenda(indice, persona, ahora);
   useAvisos(indice, persona, ahora, a.pendientes, a.atrasado);
   const raiz = useAlto();
-  const cliente = (slug: string) => indice.clientes.find((c) => c.slug === slug)?.nombre ?? slug;
+  useEffect(() => {
+    const tecla = (e: KeyboardEvent) => e.key === "Escape" && cerrar();
+    window.addEventListener("keydown", tecla);
+    return () => window.removeEventListener("keydown", tecla);
+  }, []);
+  const cliente = (slug: string) => nombreCliente(indice, slug);
   const aprobaciones = indice.aprobaciones.filter((x) => x.persona === persona && x.estado === "pendiente");
   const abrir = (ruta?: string) => window.aos.sistema.principal(ruta);
-  const p = a.proxima;
   return (
-    <main ref={raiz} className="mb" onKeyDown={(e) => e.key === "Escape" && cerrar()}>
-      {p && (
-        <Seccion titulo="Próxima reunión">
-          <div className="next">
-            <p className="when">{cuentaRegresiva(p.fecha, ahora)}</p>
-            <p className="t">{titulo(p.ruta)} · {cliente(p.cliente)}</p>
-            <p className="s">{p.tipo === "brief-reunion" ? "Brief listo" : "Todavía sin brief"} · {hora(p.fecha)}</p>
-            <div className="acts">
-              <button className="b pri" onClick={() => abrir(p.ruta)}>Abrir brief</button>
-              {p.link?.startsWith("https://") && <button className="b" onClick={() => void window.aos.sistema.abrir(p.link!).then(cerrar, () => {})}>Unirme</button>}
-            </div>
-          </div>
-        </Seccion>
-      )}
-      {a.masTarde.length > 0 && (
-        <Seccion titulo="Más tarde hoy">
-          {a.masTarde.map((r) => (
-            <button key={r.ruta} className="row" onClick={() => abrir(r.ruta)}>
-              <span className="h">{hora(r.fecha)}</span>
-              <span className="dot" style={{ background: colorPara(r.cliente) }} aria-hidden />
-              <span className="txt">{titulo(r.ruta)} · {cliente(r.cliente)}</span>
-              {r.tipo === "brief-reunion" && <span className="r">brief listo</span>}
-            </button>
-          ))}
-        </Seccion>
-      )}
+    <main ref={raiz} className="mb">
+      {a.proxima && <Proxima r={a.proxima} ahora={ahora} cliente={cliente(a.proxima.cliente)} onAbrir={abrir} />}
+      <MasTarde reuniones={a.masTarde} cliente={cliente} onAbrir={abrir} />
       <hr className="sep" />
       <Seccion titulo="Mis entregas de hoy">
         {a.entregas.length === 0 && <p className="vacio-mb">Nada vence hoy.</p>}
@@ -123,6 +105,38 @@ function Seccion({ titulo: t, children }: { titulo: string; children: ReactNode 
   return <section aria-label={t}><h2 className="sec">{t}</h2>{children}</section>;
 }
 
+function Proxima({ r, ahora, cliente, onAbrir }: { r: Reunion; ahora: Date; cliente: string; onAbrir: (ruta: string) => void }) {
+  return (
+    <Seccion titulo="Próxima reunión">
+      <div className="next">
+        <p className="when">{cuentaRegresiva(r.fecha, ahora)}</p>
+        <p className="t">{titulo(r.ruta)} · {cliente}</p>
+        <p className="s">{r.tipo === "brief-reunion" ? "Brief listo" : "Todavía sin brief"} · {hora(r.fecha)}</p>
+        <div className="acts">
+          <button className="b pri" onClick={() => onAbrir(r.ruta)}>Abrir brief</button>
+          {r.link?.startsWith("https://") && <button className="b" onClick={() => void window.aos.sistema.abrir(r.link!).then(cerrar, () => {})}>Unirme</button>}
+        </div>
+      </div>
+    </Seccion>
+  );
+}
+
+function MasTarde({ reuniones, cliente, onAbrir }: { reuniones: Reunion[]; cliente: (slug: string) => string; onAbrir: (ruta: string) => void }) {
+  if (!reuniones.length) return null;
+  return (
+    <Seccion titulo="Más tarde hoy">
+      {reuniones.map((r) => (
+        <button key={r.ruta} className="row" onClick={() => onAbrir(r.ruta)}>
+          <span className="h">{hora(r.fecha)}</span>
+          <span className="dot" style={{ background: colorPara(r.cliente) }} aria-hidden />
+          <span className="txt">{titulo(r.ruta)} · {cliente(r.cliente)}</span>
+          {r.tipo === "brief-reunion" && <span className="r">brief listo</span>}
+        </button>
+      ))}
+    </Seccion>
+  );
+}
+
 /** Casilla "listo": avanza la entrega al siguiente estado (`siguienteEstado`), escribiendo solo `estado`. */
 function EntregaFila({ e, cliente, fecha, onAbrir }: { e: Entregable; cliente: string; fecha: string; onAbrir: (r: string) => void }) {
   const [error, setError] = useState(false);
@@ -131,7 +145,9 @@ function EntregaFila({ e, cliente, fecha, onAbrir }: { e: Entregable; cliente: s
   const avanzar = () => { setError(false); cambiar(e.ruta, { estado: sig }).catch(() => setError(true)); };
   return (
     <div className="row ent">
-      <button className="chk" onClick={avanzar} aria-label={`Pasar ${titulo(e.ruta)} a ${leido(sig)}`} title={`Pasar a ${leido(sig)}`} />
+      {SIN_CASILLA.has(e.estado)
+        ? <span className="chk-no" aria-hidden />
+        : <button className="chk" onClick={avanzar} aria-label={`Pasar ${titulo(e.ruta)} a ${leido(sig)}`} title={`Pasar a ${leido(sig)}`} />}
       <button className="txt link" onClick={() => onAbrir(e.ruta)}>{titulo(e.ruta)} · {cliente}</button>
       {error
         ? <span className="r tarde" role="alert">⚠ no se guardó</span>
@@ -167,14 +183,21 @@ function Captura() {
 function Pie({ ahora }: { ahora: Date }) {
   const [sync, setSync] = useState<Estado>(() => window.aos.sync.estado());
   const [hasta, setHasta] = useState<string | null>(null);
+  const [error, setError] = useState(false);
   useEffect(() => window.aos.sync.onEstado(setSync), []);
   useEffect(() => void window.aos.config.leer().then((c) => setHasta(c.pausaHasta), () => {}), []);
-  const pausar = (v: string | null) => { setHasta(v); void window.aos.config.guardar({ pausaHasta: v }); };
+  const pausar = (v: string | null) => {
+    const antes = hasta;
+    setHasta(v);
+    setError(false);
+    window.aos.config.guardar({ pausaHasta: v }).catch(() => { setHasta(antes); setError(true); });
+  };
   const enPausa = hasta !== null && new Date(hasta) > ahora;
   const s = SYNC[sync];
   return (
     <footer className="foot">
       <span className={s.clase} role="status"><span aria-hidden>{s.icono} </span>{s.texto}</span>
+      {error && <span className="tarde" role="alert">⚠ No pude guardar la pausa</span>}
       {enPausa
         ? <button className="link" onClick={() => pausar(null)}>Avisos en pausa hasta las {new Date(hasta).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })} · Reanudar</button>
         : <button className="link" onClick={() => pausar(new Date(ahora.getTime() + PAUSA_MS).toISOString())}>Pausar avisos 1 h</button>}

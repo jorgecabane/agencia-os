@@ -40,6 +40,15 @@ describe("agenda", () => {
     expect(agenda(i, "jorge", ahora).atrasado).toBe(false);
   });
 
+  it("la reunión que empezó hace menos de 10 min sigue como próxima, con 'Ahora'", () => {
+    const empezada = new Date("2026-10-27T17:04-03:00");
+    const a = agenda(i, "cami", empezada);
+    expect(a.proxima?.ruta).toBe(`${R}2026-10-27-revision-mensual-brief.md`);
+    expect(cuentaRegresiva(a.proxima!.fecha, empezada)).toBe("Ahora");
+    expect(a.masTarde.map((r) => r.ruta)).toEqual([`${R}2026-10-27-kickoff.md`]);
+    expect(agenda(i, "cami", new Date("2026-10-27T17:10-03:00")).proxima?.ruta).toBe(`${R}2026-10-27-kickoff.md`);
+  });
+
   it("cuentaRegresiva: 1 minuto, ahora y más de una hora", () => {
     expect(cuentaRegresiva("2026-10-27T16:53-03:00", ahora)).toBe("En 1 minuto");
     expect(cuentaRegresiva("2026-10-27T16:50-03:00", ahora)).toBe("Ahora");
@@ -77,11 +86,11 @@ describe("avisosPendientes", () => {
 });
 
 describe("siguienteEstado", () => {
-  it("brief → en_curso → revision → aprobado → publicado; publicado queda", () => {
+  it("brief → en_curso → revision → aprobado; nunca a publicado", () => {
     expect(siguienteEstado({ estado: "brief" })).toBe("en_curso");
     expect(siguienteEstado({ estado: "en_curso" })).toBe("revision");
     expect(siguienteEstado({ estado: "revision" })).toBe("aprobado");
-    expect(siguienteEstado({ estado: "aprobado" })).toBe("publicado");
+    expect(siguienteEstado({ estado: "aprobado" })).toBe("aprobado");
     expect(siguienteEstado({ estado: "publicado" })).toBe("publicado");
   });
 });

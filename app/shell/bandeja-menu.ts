@@ -39,6 +39,8 @@ export function crearBarra(nueva: (o: BrowserWindowConstructorOptions) => Browse
   tray.on("click", () => (ventana.isVisible() ? ventana.hide() : mostrar()));
   // Si otra app ya usa ⌥Espacio, register devuelve false: la captura sigue disponible desde la ventana.
   globalShortcut.register(ATAJO_CAPTURA, () => {
+    // Desde otra app, macOS no le da el foco del teclado a una ventana sin activar la app.
+    app.focus({ steal: true });
     mostrar();
     ventana.webContents.send("barra:captura");
   });

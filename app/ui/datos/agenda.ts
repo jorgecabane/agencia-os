@@ -5,12 +5,14 @@ import type { Entregable, Reunion } from "./tipos";
 
 const MIN_MS = 60_000;
 const AVISO_REUNION_MIN = 10;
-const SIGUIENTE: Record<string, string> = { brief: "en_curso", en_curso: "revision", revision: "aprobado", aprobado: "publicado" };
+const SIGUE_PROXIMA_MIN = 10; // una reunión que ya empezó sigue como "próxima" (con "Unirme") estos minutos
+// Nunca a `publicado`: marcar algo como publicado es decir que salió hacia afuera (ruling R17).
+const SIGUIENTE: Record<string, string> = { brief: "en_curso", en_curso: "revision", revision: "aprobado" };
 const plural = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`;
 const conHora = (r: Reunion) => String(r.fecha).length > 10;
 const inicio = (r: Reunion) => new Date(String(r.fecha)).getTime();
 
-/** La casilla "listo" de la barra: brief → en_curso → revision → aprobado → publicado; publicado (y cancelado) quedan. */
+/** La casilla "listo" de la barra: brief → en_curso → revision → aprobado; aprobado, publicado y cancelado quedan. */
 export const siguienteEstado = (e: Pick<Entregable, "estado">): string => SIGUIENTE[e.estado] ?? e.estado;
 
 /** "En 8 minutos", "En 1 minuto", "Ahora" o, a más de una hora, "A las 18:30". */
@@ -27,19 +29,21 @@ export function agenda(i: Indice, persona: string, ahora: Date): {
 } {
   const fecha = fechaLocal(ahora);
   const h = hoy(i, persona, fecha);
-  // Las sin hora quedan en "más tarde"; las que ya empezaron salen.
-  const quedan = h.reuniones.filter((r) => !conHora(r) || inicio(r) >= ahora.getTime());
-  const proxima = quedan.find(conHora);
+  const t = ahora.getTime();
+  // Próxima: la que empezó hace menos de 10 min (la última, si hay varias) o la primera que viene.
+  const candidatas = h.reuniones.filter((r) => conHora(r) && t - inicio(r) < SIGUE_PROXIMA_MIN * MIN_MS);
+  const proxima = candidatas.filter((r) => inicio(r) <= t).at(-1) ?? candidatas[0];
   return {
     proxima,
-    masTarde: quedan.filter((r) => r !== proxima),
+    // Las sin hora quedan en "más tarde"; las que ya empezaron salen.
+    masTarde: h.reuniones.filter((r) => r !== proxima && (!conHora(r) || inicio(r) > t)),
     entregas: h.entregas,
     pendientes: h.entregas.length,
     atrasado: h.entregas.some((e) => String(e.vence) < fecha),
   };
 }
 
-const nombreCliente = (i: Indice, slug: string) => i.clientes.find((c) => c.slug === slug)?.nombre ?? slug;
+export const nombreCliente = (i: Indice, slug: string): string => i.clientes.find((c) => c.slug === slug)?.nombre ?? slug;
 
 function avisoReunion(i: Indice, r: Reunion, ahora: Date): Aviso {
   const brief = r.tipo === "brief-reunion";

@@ -32,6 +32,7 @@
 .mb .chk:hover { border-color: var(--avance); }
 .mb .chk:active { transform: scale(0.9); }
 .mb .txt.link { text-align: left; }
+.mb .chk-no { width: 16px; height: 16px; flex: none; }
 
 .mb .sep { border: 0; height: 1px; background: var(--linea-suave); margin: 6px 4px; }
 .vacio-mb { color: var(--tenue); padding: 4px 10px 6px; font-size: 13px; }
@@ -40,9 +41,10 @@
   margin: 4px; border: 1px solid var(--linea); border-radius: var(--radio); padding: 6px 10px;
   display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
 }
-.cap:focus-within { border-color: var(--foco); }
+.cap:focus-within { outline: 2px solid var(--foco); outline-offset: 2px; }
 .cap input { all: unset; flex: 1; min-width: 0; font-size: 14px; color: var(--texto); user-select: text; }
 .cap input::placeholder { color: var(--tenue); }
+.cap input:focus-visible { outline: none; } /* el anillo va en .cap */
 .cap .espera { flex-basis: 100%; color: var(--apagado); font-size: 13px; }
 
 .foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 10px 4px; color: var(--tenue); font-size: 13px; }
