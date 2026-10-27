@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { aGuardar, mezclar } from "../ui/datos/mezcla";
+import { serializar } from "../ui/datos/markdown";
+import { separar } from "../ui/datos/md";
+import { aGuardar, mezclar, pendiente } from "../ui/datos/mezcla";
 
 const BASE = "# T\n\nPrimer párrafo.\n\nSegundo párrafo.\n\nTercero.\n";
 
@@ -39,5 +41,42 @@ describe("aGuardar", () => {
     expect(aGuardar(BASE, mio, BASE)).toEqual({ texto: mio, conflicto: false });
     const afuera = BASE.replace("# T", "# Título");
     expect(aGuardar(BASE, mio, afuera).texto).toBe("# Título\n\nPrimer párrafo.\n\nSegundo párrafo.\n\n3.\n");
+  });
+});
+
+describe("mezclar con frontmatter", () => {
+  const FM = (estado: string, extra = "") => `---\ntipo: entregable\nestado: ${estado}  # ojo\n${extra}---\n`;
+  const CUERPO = "Intro.\n\n| a | b |\n| --- | --- |\n| 1 | 2 |\n\nCierre.\n";
+
+  it("si ambos cambian la misma clave queda YAML válido y gana la mía; el resto de afuera se conserva", () => {
+    const base = FM("brief") + CUERPO;
+    const mio = FM("en_curso") + CUERPO;
+    const afuera = FM("revision", "responsable: cami\n") + CUERPO;
+    const { texto, conflicto } = mezclar(base, mio, afuera);
+    expect(conflicto).toBe(false);
+    const s = separar(texto);
+    expect(s.error).toBeUndefined();
+    expect(s.meta).toEqual({ tipo: "entregable", estado: "en_curso", responsable: "cami" });
+    expect(texto.match(/estado:/g)).toHaveLength(1);
+    expect(s.cuerpo).toBe(CUERPO);
+  });
+
+  it("la normalización de mi primera edición no choca con una tabla editada afuera", () => {
+    const base = FM("brief") + CUERPO;
+    const mio = FM("brief") + serializar(CUERPO.replace("Intro.", "Intro editada."));
+    const afuera = FM("brief") + CUERPO.replace("| 1 | 2 |", "| 1 | 22 |");
+    const { texto, conflicto } = mezclar(base, mio, afuera);
+    expect(conflicto).toBe(false);
+    expect(texto).toContain("Intro editada.");
+    expect(texto).toMatch(/\| 1 +\| 22 +\|/);
+  });
+});
+
+describe("pendiente", () => {
+  it("hay algo sin guardar si el lienzo difiere de lo ya incorporado (aunque su aviso no haya llegado) o hay etiquetas cambiadas", () => {
+    expect(pendiente("a", "a", {})).toBe(false);
+    expect(pendiente("a", "ab", {})).toBe(true);
+    expect(pendiente("a", null, {})).toBe(false); // lienzo aún no creado
+    expect(pendiente("a", "a", { estado: "x" })).toBe(true);
   });
 });

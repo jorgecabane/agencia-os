@@ -15,6 +15,7 @@ export function App() {
   const [persona, setPersona] = useState<string | null | undefined>(undefined);
   const [eligiendo, setEligiendo] = useState(false);
   const [pantalla, ir] = useState<Pantalla>({ nombre: "hoy" });
+  const [errorGuardar, setErrorGuardar] = useState<string | null>(null);
   useEffect(() => void window.aos.persona().then(setPersona, () => setPersona(null)), []);
 
   if (error) {
@@ -43,6 +44,12 @@ export function App() {
     <SesionCtx.Provider value={{ indice, persona }}>
       <div className="arrastre" aria-hidden />
       {aviso && <p role="status" className="aviso">ⓘ {aviso}</p>}
+      {errorGuardar && (
+        <p role="alert" className="aviso error-global">
+          ⚠ {errorGuardar}. Lo último que escribiste no quedó guardado.
+          <button className="x" aria-label="Cerrar aviso" onClick={() => setErrorGuardar(null)}>×</button>
+        </p>
+      )}
       <div className="app">
         <Lateral pantalla={pantalla} ir={ir} fecha={fecha} onCambiarPersona={() => setEligiendo(true)} />
         {pantalla.nombre === "hoy" && <Hoy fecha={fecha} onEditar={(ruta) => ir({ nombre: "editar", ruta, desde: "hoy" })} />}
@@ -50,7 +57,7 @@ export function App() {
         {pantalla.nombre === "editar" && (
           <main className="principal editar">
             <button className="btn plano" onClick={() => ir({ nombre: pantalla.desde })}>‹ Volver a {pantalla.desde === "hoy" ? "Hoy" : "Tablero"}</button>
-            <Editor key={pantalla.ruta} ruta={pantalla.ruta} />
+            <Editor key={pantalla.ruta} ruta={pantalla.ruta} onErrorFuera={setErrorGuardar} />
           </main>
         )}
       </div>

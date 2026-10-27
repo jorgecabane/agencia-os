@@ -1,4 +1,4 @@
-import type { Html, Parent, Root, RootContent, Text } from "mdast";
+import type { Html, Nodes, Parent, Root, RootContent, Text } from "mdast";
 import remarkGfm from "remark-gfm";
 import remarkParse from "remark-parse";
 import remarkStringify from "remark-stringify";
@@ -24,18 +24,49 @@ const proceso = unified()
   .use(() => (arbol: Root) => wikilinksCrudos(arbol))
   .use(remarkStringify, { bullet: "-", rule: "-" });
 
+const lector = unified().use(remarkParse).use(remarkGfm);
+
 /** Re-serializa un cuerpo markdown a las convenciones del repo: guiones en listas, `[[...]]` sin escapar, tablas GFM. */
 export const serializar = (md: string): string => String(proceso.processSync(md));
 
+/** Cómo se edita un documento: visual (Crepe), su cuerpo como markdown, o el archivo entero (frontmatter roto). */
+export type Modo = "visual" | "markdown" | "archivo";
+
+// Lo que el editor visual no sabe representar: se perdería al guardar.
+const NO_VISUAL = new Set(["html", "footnoteDefinition", "footnoteReference", "definition", "linkReference", "imageReference"]);
+
+/** Tipos y textos del árbol, para comparar antes y después de serializar. */
+function huella(n: Nodes, out: string[] = []): string[] {
+  out.push("value" in n ? `${n.type}:${n.value}` : n.type);
+  if ("children" in n) n.children.forEach((h) => huella(h, out));
+  return out;
+}
+
+/** El editor visual puede mostrar y guardar este cuerpo sin perder nada. */
+export function entiendeVisual(cuerpo: string): boolean {
+  const antes = huella(lector.parse(cuerpo));
+  if (antes.some((h) => NO_VISUAL.has(h.split(":")[0]!))) return false;
+  return huella(lector.parse(serializar(cuerpo))).join("\n") === antes.join("\n");
+}
+
+/** Con qué modo abrir un archivo. */
+export function modoInicial(texto: string): Modo {
+  const s = separar(texto);
+  if (s.error) return "archivo";
+  return entiendeVisual(s.cuerpo) ? "visual" : "markdown";
+}
+
 /**
- * Archivo completo a guardar. El frontmatter cambia solo en las claves de `cambios` (vía `unir`); el cuerpo
- * se re-serializa solo si su contenido cambió, así abrir y cerrar no reescribe nada.
+ * Archivo completo a guardar. En modo visual el cuerpo se re-serializa solo si su contenido cambió (abrir y
+ * cerrar no reescribe nada); en modo markdown va tal cual; en modo archivo `texto` es el archivo entero.
+ * El frontmatter cambia solo en las claves de `cambios` (vía `unir`).
  */
-export function componer(original: string, cambios: Record<string, unknown>, cuerpoEditor: string): string {
+export function componer(original: string, cambios: Record<string, unknown>, texto: string, modo: Modo = "visual"): string {
+  if (modo === "archivo") return texto;
   const { fm, cuerpo } = separar(original);
-  const igual = serializar(cuerpoEditor) === serializar(cuerpo);
+  const igual = modo === "visual" ? serializar(texto) === serializar(cuerpo) : texto === cuerpo;
   if (igual && !Object.keys(cambios).length) return original;
-  return unir(fm, cambios, igual ? cuerpo : serializar(cuerpoEditor));
+  return unir(fm, cambios, igual ? cuerpo : modo === "visual" ? serializar(texto) : texto);
 }
 
 const slug = (s: string) =>
@@ -48,7 +79,7 @@ const slug = (s: string) =>
 export function rutaAdjunto(ruta: string, nombre: string, fecha: string): string {
   const carpeta = /^clientes\/[^/]+\//.exec(ruta)?.[0] ?? (ruta.includes("/") ? `${ruta.split("/")[0]}/` : "");
   const punto = nombre.lastIndexOf(".");
-  const ext = punto > 0 ? nombre.slice(punto + 1).toLowerCase() : "png";
+  const ext = (punto > 0 ? nombre.slice(punto + 1).toLowerCase().replace(/[^a-z0-9]/g, "") : "") || "bin";
   return `${carpeta}adjuntos/${fecha}-${slug(punto > 0 ? nombre.slice(0, punto) : nombre)}.${ext}`;
 }
 

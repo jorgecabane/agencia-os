@@ -145,6 +145,14 @@
 .chip.boton:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
 .chip.editando { height: 26px; font-size: 14px; border-color: var(--foco); }
 .chip.editando input { all: unset; color: var(--texto); font-size: 14px; min-width: 4ch; }
+.error-etiqueta { color: var(--atraso); font-size: 14px; margin: -10px 0 14px; }
+.nota-crudo { color: var(--apagado); font-size: 14px; margin: 0 0 12px; }
+.crudo {
+  width: 100%; min-height: 60vh; resize: vertical; background: var(--superficie); color: var(--texto); border: 1px solid var(--linea-suave);
+  border-radius: var(--radio); padding: 14px 16px; font: 14px/1.6 ui-monospace, "SF Mono", monospace;
+}
+.crudo:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+.guardado .btn { margin-left: auto; }
 .aviso-editor {
   display: flex; align-items: center; gap: 10px; margin: 0 0 14px; padding: 8px 8px 8px 12px; font-size: 14px;
   border: 1px solid var(--atraso); border-radius: var(--radio); background: var(--superficie); color: var(--texto);
@@ -175,6 +183,8 @@
 .lienzo .milkdown .milkdown-block-handle { transition: opacity 150ms ease; }
 
 .aviso { position: fixed; top: 8px; left: 50%; transform: translateX(-50%); margin: 0; z-index: 2; color: var(--apagado); background: var(--elevado); border: 1px solid var(--linea); border-radius: 7px; padding: 4px 10px; }
+
+.aviso.error-global { color: var(--texto); border-color: var(--atraso); display: flex; align-items: center; gap: 8px; z-index: 3; }
 
 .oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .sep { width: 1px; height: 18px; background: var(--linea); flex: none; }

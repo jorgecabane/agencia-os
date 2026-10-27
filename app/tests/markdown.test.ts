@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { componer, relativa, rutaAdjunto, serializar } from "../ui/datos/markdown";
+import { componer, modoInicial, relativa, rutaAdjunto, serializar } from "../ui/datos/markdown";
 
 const TABLA = "| Segmento | Qué le importa | Dónde está |\n| --- | --- | --- |\n| Adoptantes | Qué comprar | Instagram |";
 const CUERPO = `# Contexto
@@ -56,6 +56,9 @@ describe("rutaAdjunto", () => {
     expect(rutaAdjunto("clientes/acme/entregables/x.md", "Foto Casting.PNG", "2026-10-27")).toBe("clientes/acme/adjuntos/2026-10-27-foto-casting.png");
     expect(rutaAdjunto("bandeja/x.md", "Ñandú café.jpg", "2026-10-27")).toBe("bandeja/adjuntos/2026-10-27-nandu-cafe.jpg");
     expect(rutaAdjunto("nota.md", "a.gif", "2026-10-27")).toBe("adjuntos/2026-10-27-a.gif");
+    expect(rutaAdjunto("nota.md", "raro.p[n]*g?", "2026-10-27")).toBe("adjuntos/2026-10-27-raro.png");
+    expect(rutaAdjunto("nota.md", "sin-extension", "2026-10-27")).toBe("adjuntos/2026-10-27-sin-extension.bin");
+    expect(rutaAdjunto("nota.md", "x.[*]", "2026-10-27")).toBe("adjuntos/2026-10-27-x.bin");
   });
 });
 
@@ -64,5 +67,32 @@ describe("relativa", () => {
     expect(relativa("clientes/acme/contexto.md", "clientes/acme/adjuntos/a.png")).toBe("adjuntos/a.png");
     expect(relativa("clientes/acme/entregables/x.md", "clientes/acme/adjuntos/a.png")).toBe("../adjuntos/a.png");
     expect(relativa("nota.md", "adjuntos/a.png")).toBe("adjuntos/a.png");
+  });
+});
+
+describe("componer en modo markdown y archivo", () => {
+  const ARCHIVO = "---\nestado: brief  # x\n---\nTexto *crudo*   con espacios\n";
+  it("markdown: el cuerpo va tal cual lo escribí, sin re-serializar; sin cambios no cambia nada", () => {
+    expect(componer(ARCHIVO, {}, "Texto *crudo*   con espacios\n", "markdown")).toBe(ARCHIVO);
+    expect(componer(ARCHIVO, { estado: "en_curso" }, "Otro   texto\n", "markdown")).toBe("---\nestado: en_curso  # x\n---\nOtro   texto\n");
+  });
+  it("archivo: el texto es el archivo completo, sin pasar por unir", () => {
+    expect(componer("---\nroto: [\n", {}, "---\nroto: [arreglado]\n---\n", "archivo")).toBe("---\nroto: [arreglado]\n---\n");
+  });
+});
+
+describe("modoInicial", () => {
+  it("visual si el editor entiende todo", () => {
+    expect(modoInicial(`---\ntipo: x\n---\n${CUERPO}`)).toBe("visual");
+    expect(modoInicial("Sin frontmatter, con *énfasis* y `código`.\n")).toBe("visual");
+  });
+  it("archivo si el frontmatter está roto", () => {
+    expect(modoInicial("---\ntipo: x\nsin cerrar\n")).toBe("archivo");
+    expect(modoInicial("---\ntipo: [\n---\nhola\n")).toBe("archivo");
+  });
+  it("markdown si hay partes que el editor visual no representa", () => {
+    expect(modoInicial("Hola <span>html</span>\n")).toBe("markdown");
+    expect(modoInicial("Nota[^1]\n\n[^1]: al pie\n")).toBe("markdown");
+    expect(modoInicial("[link][ref]\n\n[ref]: https://x.cl\n")).toBe("markdown");
   });
 });
