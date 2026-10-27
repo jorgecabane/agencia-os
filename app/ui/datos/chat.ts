@@ -3,13 +3,18 @@ import type { EventoChat } from "../../shared/puente";
 import { archivosADeshacer, deshacer } from "./deshacer";
 
 export type Turno = { mensaje: string; eventos: EventoChat[]; enCurso: boolean };
-/** Lo que Claude cambió y nadie ha aceptado ni deshecho: se acumula entre turnos hasta Aceptar o Deshacer todo. */
-export type Revision = { commitPrevio: string; rutas: string[] };
+/**
+ * Lo que Claude cambió y nadie ha aceptado ni deshecho, acumulado entre turnos hasta Aceptar o Deshacer todo:
+ * cada ruta con su base (HEAD antes del primer turno que la tocó).
+ */
+export type Revision = { archivos: Record<string, string> };
 export type Receta = { etiqueta: string; mensaje: string };
 
 // Vive fuera de React: cerrar el panel no corta el turno ni borra la conversación (dura lo que la sesión de la app).
 const conversaciones = new Map<string, Turno[]>();
 let revision: Revision | null = null;
+let omitidos: string[] = []; // del último Deshacer: lo que otra persona cambió después y no se pisó
+const SIN_OMITIDOS: string[] = [];
 const oyentes = new Set<() => void>();
 const avisar = () => oyentes.forEach((f) => f());
 const VACIA: Turno[] = [];
@@ -20,9 +25,9 @@ function alEvento(id: string, e: EventoChat): void {
   if (!turnos || !t) return;
   const nuevo = { ...t, eventos: [...t.eventos, e], enCurso: t.enCurso && e.tipo !== "fin" };
   conversaciones.set(id, [...turnos.slice(0, -1), nuevo]);
-  const previo = revision?.commitPrevio ?? nuevo.eventos.find((x) => x.tipo === "inicio")?.commitPrevio;
-  const rutas = archivosADeshacer(nuevo.eventos);
-  if (previo && rutas.length) revision = { commitPrevio: previo, rutas: [...new Set([...(revision?.rutas ?? []), ...rutas])] };
+  const base = nuevo.eventos.find((x) => x.tipo === "inicio")?.commitPrevio;
+  const nuevas = archivosADeshacer(nuevo.eventos).filter((r) => !revision?.archivos[r]);
+  if (base && nuevas.length) revision = { archivos: { ...revision?.archivos, ...Object.fromEntries(nuevas.map((r) => [r, base])) } };
   avisar();
 }
 
@@ -35,6 +40,8 @@ function suscribir(f: () => void): () => void {
 
 export const useConversacion = (id: string): Turno[] => useSyncExternalStore(suscribir, () => conversaciones.get(id) ?? VACIA);
 export const useRevision = (): Revision | null => useSyncExternalStore(suscribir, () => revision);
+export const useOmitidos = (): string[] => useSyncExternalStore(suscribir, () => (omitidos.length ? omitidos : SIN_OMITIDOS));
+export const olvidarOmitidos = () => { omitidos = []; avisar(); };
 const algunoEnCurso = () => [...conversaciones.values()].some((ts) => ts.at(-1)?.enCurso);
 export const useAlgunoEnCurso = (): boolean => useSyncExternalStore(suscribir, algunoEnCurso);
 
@@ -57,7 +64,7 @@ export function aceptar(): void {
 
 export async function deshacerTodo(persona: string): Promise<void> {
   if (!revision) return;
-  await deshacer(revision.rutas, revision.commitPrevio, persona);
+  omitidos = (await deshacer(revision.archivos, persona)).omitidos;
   revision = null;
   avisar();
 }

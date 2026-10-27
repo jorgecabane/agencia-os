@@ -24,6 +24,13 @@ describe("argsClaude", () => {
     expect(a[a.indexOf("--allowedTools") + 1]).toContain("mcp__claude_ai_Gmail__send_email");
   });
 
+  it("rechaza nombres que solo contienen un verbo de lectura", () => {
+    expect(lecturaConectores([
+      "mcp__claude_ai_Notion__delete_list_item", "mcp__claude_ai_Shop__update_listing", "mcp__claude_ai_Gmail__getaway_send",
+      "mcp__claude_ai_X__notion-fetch", "mcp__claude_ai_Gmail__readers_send", "mcp__claude_ai_Gmail__send_read_receipt",
+    ])).toEqual([]);
+  });
+
   it("solo las herramientas de lectura de los conectores", () => {
     expect(lecturaConectores([
       "Read", "mcp__claude_ai_Claude_Docs__read", "mcp__claude_ai_Claude_Docs__create", "mcp__claude_ai_Gmail__search_threads",
@@ -46,7 +53,7 @@ function falso(guion: (h: Hijo) => void) {
 type Hijo = EventEmitter & { stdout: PassThrough; stderr: PassThrough; kill: () => void };
 const cerrar = (h: Hijo, codigo: number | null) => { h.stdout.end(); h.stderr.end(); setTimeout(() => h.emit("close", codigo), 5); };
 
-function armar(guion: (h: Hijo) => void, sesiones: Record<string, string> = {}) {
+function armar(guion: (h: Hijo) => void, sesiones: Record<string, string> = {}, estadoSync = "al-dia") {
   const { spawn, llamadas } = falso(guion);
   const orden: string[] = [];
   const reanudar = vi.fn(() => orden.push("reanudar"));
@@ -56,7 +63,10 @@ function armar(guion: (h: Hijo) => void, sesiones: Record<string, string> = {}) 
     persona: async () => "cami",
     head: async () => "abc123",
     sesiones: { leer: (id) => sesiones[id], guardar: (id, s) => (sesiones[id] = s) },
-    sync: { pausar: () => (orden.push("pausar"), reanudar), enCurso: async () => void orden.push("enCurso") },
+    sync: {
+      pausar: () => (orden.push("pausar"), reanudar), enCurso: async () => void orden.push("enCurso"),
+      ahora: async () => void orden.push("ahora"), estado: () => estadoSync,
+    },
   });
   const eventos: EventoChat[] = [];
   const enviar = (msg = "hola", envio?: string[]) => claude.enviar("global", msg, "Todo el espacio", (e) => eventos.push(e), envio);
@@ -64,10 +74,10 @@ function armar(guion: (h: Hijo) => void, sesiones: Record<string, string> = {}) 
 }
 
 describe("crearClaude", () => {
-  it("pausa el sync, espera el que corre, avisa el commit previo, reenvía eventos y guarda la sesión", async () => {
+  it("pausa el sync, espera el que corre, commitea lo pendiente, avisa el commit previo, reenvía eventos y guarda la sesión", async () => {
     const t = armar((h) => { h.stdout.write(FIXTURE); cerrar(h, 0); });
     await t.enviar();
-    expect(t.orden).toEqual(["pausar", "enCurso", "reanudar"]);
+    expect(t.orden).toEqual(["pausar", "enCurso", "ahora", "reanudar"]);
     expect(t.eventos[0]).toEqual({ tipo: "inicio", commitPrevio: "abc123" });
     expect(t.eventos.filter((e) => e.tipo === "evento")).toHaveLength(FIXTURE.trim().split("\n").length);
     expect(t.eventos.at(-1)).toEqual({ tipo: "fin" });
@@ -120,6 +130,31 @@ describe("crearClaude", () => {
     await Promise.all([t.enviar(), t.enviar()]);
     expect(t.llamadas).toHaveLength(1);
     expect(t.eventos).toContainEqual({ tipo: "error", texto: "Espera a que Claude termine de responder" });
+  });
+});
+
+describe("crearClaude: bordes", () => {
+  it("si commitear lo pendiente deja un conflicto, no corre el turno", async () => {
+    const t = armar(() => {}, {}, "conflicto");
+    await t.enviar();
+    expect(t.llamadas).toHaveLength(0);
+    expect(t.eventos).toEqual([{ tipo: "error", texto: "Hay un conflicto con cambios del equipo. Resuélvelo antes de pedirle algo a Claude." }, { tipo: "fin" }]);
+    expect(t.reanudar).toHaveBeenCalledTimes(1);
+  });
+
+  it("envio inválido (no es lista o no es un conector) → no corre", async () => {
+    const t = armar((h) => cerrar(h, 0));
+    await t.enviar("Ejecuta la aprobación bandeja/x.md", ["Bash(rm -rf *)"]);
+    await t.enviar("Ejecuta la aprobación bandeja/x.md", "mcp__claude_ai_Gmail__send" as never);
+    expect(t.llamadas).toHaveLength(0);
+    expect(t.eventos.filter((e) => e.tipo === "error")).toHaveLength(2);
+  });
+
+  it("un result con error muestra el texto genérico, no el crudo", async () => {
+    const r = JSON.stringify({ type: "result", is_error: true, result: "API Error: 529 overloaded_error {...}", session_id: "s" });
+    const t = armar((h) => { h.stdout.write(`${r}\n`); cerrar(h, 1); });
+    await t.enviar();
+    expect(t.eventos.filter((e) => e.tipo === "error")).toEqual([{ tipo: "error", texto: "Claude no pudo terminar la respuesta. Inténtalo de nuevo." }]);
   });
 });
 

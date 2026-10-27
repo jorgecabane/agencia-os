@@ -28,6 +28,9 @@ describe("paso", () => {
     expect(paso({ name: "WebFetch", input: { url: "https://x.cl" } }, { error: true, rechazado: true })).toEqual({ texto: "No tengo permiso para WebFetch", estado: "error" });
     expect(paso({ name: "Bash", input: { command: "python3 -c 'print(1)'" } }, { error: true, rechazado: true }).texto)
       .toBe("No tengo permiso para Bash(python3 -c 'print(1)')");
+    const largo = `curl ${"x".repeat(200)}`;
+    expect(paso({ name: "Bash", input: { command: largo } }, { error: true, rechazado: true }).texto)
+      .toBe(`No tengo permiso para Bash(${largo.slice(0, 60)}…)`);
   });
 });
 

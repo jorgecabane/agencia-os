@@ -66,3 +66,5 @@
 .lienzo .nuevo { background: var(--avance-tenue); box-shadow: inset 2px 0 0 var(--avance); border-radius: 4px; padding-inline: 8px; margin-inline: -8px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .panel .revision .grow, .chat.cajon .revision .grow { flex-basis: 100%; }
+.revision .omitido { display: block; }
+.panel .revision.omitidos .grow, .chat.cajon .revision.omitidos .grow { flex-basis: 0; }

@@ -8,6 +8,7 @@ type Uso = { name: string; input: Record<string, unknown> };
 type Resultado = { error: boolean; rechazado: boolean };
 type Contenido = { type?: string; id?: string; name?: string; input?: Record<string, unknown>; text?: string; tool_use_id?: string; is_error?: boolean; content?: unknown };
 
+const CMD_MAX = 60;
 const EDITAN = new Set(["Edit", "Write", "MultiEdit"]);
 const RECHAZO = /requires approval|requested permissions|haven't granted/i;
 const APROBACION = /^bandeja\/[^/]*aprobacion[^/]*\.md$/;
@@ -29,7 +30,8 @@ const nombreDoc = (ruta: string) => DOCS[(ruta.split("/").pop() ?? "").replace(/
 export function paso(uso: Uso, resultado?: Resultado, cwd?: string): { texto: string; estado: Estado } {
   const { name, input } = uso;
   if (resultado?.rechazado) {
-    const cmd = name === "Bash" && typeof input.command === "string" ? `(${input.command})` : "";
+    const c = name === "Bash" && typeof input.command === "string" ? input.command : "";
+    const cmd = c ? `(${c.length > CMD_MAX ? `${c.slice(0, CMD_MAX)}…` : c})` : "";
     return { texto: `No tengo permiso para ${name}${cmd}`, estado: "error" };
   }
   const ruta = typeof input.file_path === "string" ? relativa(input.file_path, cwd) ?? input.file_path : "";
@@ -51,7 +53,7 @@ const bloquesDe = (ev: Record<string, unknown>): Contenido[] => {
 };
 
 /** Resultado de cada herramienta por id; rechazada si el meta dice "reject" o el texto lo dice. */
-function resultados(eventos: Record<string, unknown>[]): Map<string, Resultado> {
+export function resultados(eventos: Record<string, unknown>[]): Map<string, Resultado> {
   const r = new Map<string, Resultado>();
   for (const ev of eventos.filter((e) => e.type === "user")) {
     const metas = Array.isArray(ev.tool_result_meta) ? ev.tool_result_meta as { id?: string; permission_decision?: { decision?: string } }[] : [];

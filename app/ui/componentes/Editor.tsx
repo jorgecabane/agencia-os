@@ -204,7 +204,7 @@ export function Editor({ ruta, onPedirClaude, onErrorFuera, onHistorial }: Props
 /** Si Claude cambió `ruta` y nadie lo ha revisado: cómo estaba antes ("" si no existía); si no, null. */
 function usePrevio(ruta: string): string | null {
   const revision = useRevision();
-  const commit = revision?.rutas.includes(ruta) ? revision.commitPrevio : null;
+  const commit = revision?.archivos[ruta] ?? null;
   const [previo, setPrevio] = useState<string | null>(null);
   useEffect(() => {
     let vivo = true;

@@ -4,8 +4,10 @@ import { createInterface } from "node:readline";
 import type { EventoChat } from "../shared/puente";
 
 const BASE = ["Read", "Edit", "Write", "Glob", "Grep", "Skill", "Bash(uv run *)", "Bash(git *)", "Bash(pnpm --dir app *)"];
-// Conectores de claude.ai: solo los que leen. El nombre va tras el último "__" (a veces con prefijo: "notion-fetch").
-const LECTURA = /^(?:[a-z]+[-_])?(list|get|search|read|fetch)/i;
+// Conectores de claude.ai: solo los que leen. El verbo va primero, o tras el nombre del propio servidor ("notion-fetch").
+const CONECTOR = /^mcp__claude_ai_(.+?)__(.+)$/;
+const LECTURA = /^(list|get|search|read|fetch)(?:[-_]|$)/i;
+const ENVIO = /^mcp__claude_ai_[A-Za-z0-9_-]+$/;
 const APROBACION = /^Ejecuta la aprobación /;
 const SIN_SESION = /not logged in|please run \/login|invalid api key/i;
 const SESION_PERDIDA = /no conversation found/i;
@@ -19,12 +21,18 @@ export const TEXTOS = {
   ocupado: "Espera a que Claude termine de responder",
   nueva: "No encontré la conversación anterior. Vuelve a enviar tu mensaje y empiezo una nueva.",
   fallo: "Claude no pudo terminar la respuesta. Inténtalo de nuevo.",
+  conflicto: "Hay un conflicto con cambios del equipo. Resuélvelo antes de pedirle algo a Claude.",
+  envio: "No puedo usar esas herramientas de envío.",
 };
 
 export const lecturaConectores = (herramientas: string[]): string[] =>
   herramientas.filter((h) => {
-    const m = /^mcp__claude_ai_.+__(.+)$/.exec(h);
-    return Boolean(m && LECTURA.test(m[1]));
+    const m = CONECTOR.exec(h);
+    if (!m) return false;
+    const [, servidor, nombre] = m;
+    const prefijo = nombre.slice(0, servidor.length + 1).toLowerCase();
+    const sinPrefijo = prefijo === `${servidor.toLowerCase()}-` || prefijo === `${servidor.toLowerCase()}_` ? nombre.slice(servidor.length + 1) : nombre;
+    return LECTURA.test(sinPrefijo);
   });
 
 export function argsClaude({ mensaje, contexto, persona, sesion, envio = [], herramientas = [] }: {
@@ -45,7 +53,7 @@ type Deps = {
   /** Hash de HEAD antes del turno (para Deshacer). */
   head: () => Promise<string | null>;
   sesiones: { leer(id: string): string | undefined; guardar(id: string, sesion: string): void };
-  sync: { pausar(): () => void; enCurso(): Promise<void> };
+  sync: { pausar(): () => void; enCurso(): Promise<void>; ahora(): Promise<void>; estado(): string };
 };
 type Emitir = (e: EventoChat) => void;
 
@@ -74,13 +82,13 @@ export function crearClaude(deps: Deps) {
       });
       vivos.set(contextoId, hijo);
       let suelto = ""; // lo que no es JSON (stderr y avisos): ahí aparece "Not logged in"
-      let error: string | null = null;
+      let error: string | null = null; // texto crudo del result fallido: solo para reconocer casos conocidos
       createInterface({ input: hijo.stdout! }).on("line", (linea) => {
         let ev: Record<string, unknown>;
         try { ev = JSON.parse(linea); } catch { suelto += `${linea}\n`; return; }
         if (ev.type === "system" && ev.subtype === "init" && Array.isArray(ev.tools)) herramientas = ev.tools as string[];
         if ((ev.type === "result" || ev.subtype === "init") && typeof ev.session_id === "string") deps.sesiones.guardar(contextoId, ev.session_id);
-        if (ev.type === "result" && ev.is_error) error = String(ev.result ?? "") || TEXTOS.fallo;
+        if (ev.type === "result" && ev.is_error) error = String(ev.result ?? "");
         emitir({ tipo: "evento", evento: liviano(ev) });
       });
       hijo.stderr!.on("data", (d) => (suelto += String(d)));
@@ -101,19 +109,24 @@ export function crearClaude(deps: Deps) {
           return terminar(TEXTOS.nueva);
         }
         if (codigo === null) return terminar(null); // cancelado
-        terminar(error ?? (codigo === 0 ? null : TEXTOS.fallo));
+        terminar(error !== null || codigo !== 0 ? TEXTOS.fallo : null);
       });
     });
   }
 
   return {
-    /** Un turno: pausa el sync, espera el que corre, guarda HEAD, corre `claude` y suelta la pausa al terminar. */
+    /** Un turno: pausa el sync, espera el que corre, commitea lo pendiente, guarda HEAD, corre `claude` y suelta la pausa al terminar. */
     async enviar(contextoId: string, mensaje: string, contexto: string, emitir: Emitir, envio: string[] = []): Promise<void> {
-      if (ocupados.has(contextoId)) return emitir({ tipo: "error", texto: TEXTOS.ocupado });
+      const fallar = (texto: string) => { emitir({ tipo: "error", texto }); emitir({ tipo: "fin" }); };
+      if (ocupados.has(contextoId)) return fallar(TEXTOS.ocupado);
+      if (!Array.isArray(envio) || !envio.every((h) => typeof h === "string" && ENVIO.test(h))) return fallar(TEXTOS.envio);
       ocupados.add(contextoId);
       const reanudar = deps.sync.pausar();
       try {
         await deps.sync.enCurso();
+        // Lo que la persona dejó sin commitear (el sync espera 5 s de calma) entra a la base de Deshacer.
+        await deps.sync.ahora();
+        if (deps.sync.estado() === "conflicto") return fallar(TEXTOS.conflicto);
         const [persona, commitPrevio] = await Promise.all([deps.persona(), deps.head().catch(() => null)]);
         emitir({ tipo: "inicio", commitPrevio });
         const args = argsClaude({

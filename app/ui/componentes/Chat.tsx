@@ -1,5 +1,7 @@
 import { type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from "react";
-import { aceptar, cancelar, deshacerTodo, enviar, recetas, type Turno, useAlgunoEnCurso, useConversacion, useRevision } from "../datos/chat";
+import {
+  aceptar, cancelar, deshacerTodo, enviar, olvidarOmitidos, recetas, type Turno, useAlgunoEnCurso, useConversacion, useOmitidos, useRevision,
+} from "../datos/chat";
 import { titulo } from "../datos/hoy";
 import { type Bloque, bloques, type Estado } from "../datos/pasos";
 import { useSesion } from "../datos/sesion";
@@ -21,7 +23,14 @@ export function Chat({ contextoId, contexto, etiqueta, color, formato, pedido, o
   const enCurso = Boolean(turnos.at(-1)?.enCurso);
   const fin = useRef<HTMLDivElement>(null);
   const enviado = useRef<Pedido | undefined>(undefined);
-  const mandar = (texto: string) => texto.trim() && !enCurso && enviar(contextoId, texto.trim(), contexto);
+  const [espera, setEspera] = useState(false); // pidieron algo mientras Claude seguía respondiendo
+  const mandar = (texto: string) => {
+    if (enCurso) return setEspera(true);
+    if (texto.trim()) enviar(contextoId, texto.trim(), contexto);
+  };
+  useEffect(() => { if (!enCurso) setEspera(false); }, [enCurso]);
+  // Solo el texto final se anuncia; los pasos que cambian en vivo no.
+  const final = enCurso ? "" : bloques(turnos.at(-1)?.eventos ?? []).filter((b) => b.tipo === "texto").at(-1);
 
   useEffect(() => {
     if (!pedido || enviado.current === pedido) return; // StrictMode corre el efecto dos veces
@@ -38,11 +47,13 @@ export function Chat({ contextoId, contexto, etiqueta, color, formato, pedido, o
         <span className="r">{contextoId === "global" ? "Conversación general" : "Conversación de este contexto"}</span>
         {onCerrar && <button className="x" onClick={onCerrar} aria-label="Cerrar chat">×</button>}
       </div>
-      <div className="msgs" aria-live="polite">
+      <div className="msgs">
         {turnos.length === 0 && <p className="vacio">Pídele algo a Claude: trabaja en el repo y lo ves cambiar en vivo.</p>}
         {turnos.map((t, k) => <TurnoVista key={k} turno={t} onAbrir={onAbrir} onDetener={() => cancelar(contextoId)} />)}
+        {espera && <p className="trabajando" role="status">Espera a que Claude termine de responder; después vuelve a pedírselo.</p>}
         <div ref={fin} />
       </div>
+      <p className="sr" aria-live="polite">{final && final.tipo === "texto" ? final.texto : ""}</p>
       <BarraRevision />
       <Entrada enCurso={enCurso} onEnviar={mandar} recetas={recetas(contexto, formato)} enfocar={Boolean(onCerrar)} />
     </section>
@@ -55,7 +66,7 @@ function TurnoVista({ turno, onAbrir, onDetener }: { turno: Turno; onAbrir?: (ru
     <>
       <div className="yo">{turno.mensaje}</div>
       {bloques(turno.eventos).map((b, k) => <BloqueVista key={k} b={b} onAbrir={onAbrir} />)}
-      {errores.map((e) => <p key={e} className="chat-error" role="alert">⚠ {e}</p>)}
+      {errores.map((e, k) => <p key={`${k}-${e}`} className="chat-error" role="alert">⚠ {e}</p>)}
       {turno.enCurso && (
         <p className="trabajando">
           <span className="run" aria-hidden>◐</span>Claude está trabajando…
@@ -124,9 +135,12 @@ export function BarraRevision({ ruta }: { ruta?: string }) {
   const [error, setError] = useState<string | null>(null);
   const [deshaciendo, setDeshaciendo] = useState(false);
   const claudeTrabajando = useAlgunoEnCurso();
-  if (!revision || (ruta && !revision.rutas.includes(ruta))) return null;
+  const omitidos = useOmitidos();
+  if (!revision) return <Omitidos rutas={ruta ? omitidos.filter((r) => r === ruta) : omitidos} />;
+  const rutas = Object.keys(revision.archivos);
+  if (ruta && !rutas.includes(ruta)) return null;
   const ocupado = deshaciendo || claudeTrabajando;
-  const n = revision.rutas.length;
+  const n = rutas.length;
   const deshacer = () => {
     if (ocupado) return;
     setDeshaciendo(true);
@@ -137,11 +151,22 @@ export function BarraRevision({ ruta }: { ruta?: string }) {
     <div className="revision" role="region" aria-label="Cambios de Claude">
       <span className="grow">
         <span className="marca-nuevo" aria-hidden />
-        {ruta ? "Claude cambió este documento; lo nuevo está marcado." : `Claude cambió ${n === 1 ? "1 archivo" : `${n} archivos`}: ${revision.rutas.map(titulo).join(", ")}.`}
+        {ruta ? "Claude cambió este documento; lo nuevo está marcado." : `Claude cambió ${n === 1 ? "1 archivo" : `${n} archivos`}: ${rutas.map(titulo).join(", ")}.`}
       </span>
       {error && <span className="chat-error" role="alert">⚠ {error}</span>}
       <button className="btn" aria-disabled={ocupado} onClick={deshacer}>{deshaciendo ? "Deshaciendo…" : "Deshacer todo"}</button>
       <button className="btn pri" aria-disabled={ocupado} onClick={() => !ocupado && aceptar()}>Aceptar</button>
+    </div>
+  );
+}
+
+/** Lo que Deshacer no tocó porque otra persona lo cambió después. */
+function Omitidos({ rutas }: { rutas: string[] }) {
+  if (!rutas.length) return null;
+  return (
+    <div className="revision omitidos" role="alert">
+      <span className="grow">{rutas.map((r) => <span key={r} className="omitido">⚠ No deshice {titulo(r)}: alguien más lo cambió después.</span>)}</span>
+      <button className="x" aria-label="Cerrar aviso" onClick={olvidarOmitidos}>×</button>
     </div>
   );
 }
