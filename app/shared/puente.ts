@@ -1,6 +1,17 @@
 /** Versión del puente: sube cuando se agregan o cambian funciones de `Puente`. */
 export const SHELL_VERSION = 1;
 
+export type Estado = "al-dia" | "subiendo" | "sin-conexion" | "conflicto";
+
+export interface Commit {
+  hash: string;
+  autor: string;
+  email: string;
+  fecha: string;
+  mensaje: string;
+  rutas: string[];
+}
+
 /** Lo que el shell expone a la UI como `window.aos`. Las tareas siguientes lo completan. */
 export interface Puente {
   shellVersion: number;
@@ -13,6 +24,20 @@ export interface Puente {
     delete(ruta: string): Promise<void>;
     /** Rutas cambiadas, agrupadas cada 150 ms. Devuelve cómo dejar de escuchar. */
     onCambio(cb: (rutas: string[]) => void): () => void;
+  };
+  sync: {
+    estado(): Estado;
+    onEstado(cb: (e: Estado) => void): () => void;
+    ahora(): Promise<void>;
+    /** Detiene el sync (p. ej. mientras chatea Claude). Devuelve cómo reanudar; al reanudar corre una vez. */
+    pausar(): () => void;
+  };
+  git: {
+    log(opts: { desde?: string; ruta?: string; max?: number }): Promise<Commit[]>;
+    /** Contenido de `ruta` como quedó en el commit `hash`. */
+    show(hash: string, ruta: string): Promise<string>;
+    /** Nombre y correo de `git config`. */
+    yo(): Promise<{ nombre: string; email: string }>;
   };
 }
 

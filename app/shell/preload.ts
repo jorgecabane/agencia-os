@@ -1,8 +1,12 @@
 import { contextBridge, ipcRenderer } from "electron";
-import type { Puente } from "../shared/puente";
+import type { Estado, Puente } from "../shared/puente";
 
 // El preload corre en sandbox (solo puede requerir "electron"): la versión llega por argv desde main.
 const shellVersion = Number(process.argv.find((a) => a.startsWith("--aos-shell="))?.split("=")[1]);
+
+let estadoSync = ipcRenderer.sendSync("sync:estado") as Estado;
+ipcRenderer.on("sync:cambio", (_e, e: Estado) => (estadoSync = e));
+let pausas = 0;
 
 const puente: Puente = {
   shellVersion,
@@ -17,6 +21,25 @@ const puente: Puente = {
       ipcRenderer.on("repo:cambio", escucha);
       return () => ipcRenderer.removeListener("repo:cambio", escucha);
     },
+  },
+  sync: {
+    estado: () => estadoSync,
+    onEstado: (cb) => {
+      const escucha = (_e: unknown, e: Estado) => cb(e);
+      ipcRenderer.on("sync:cambio", escucha);
+      return () => ipcRenderer.removeListener("sync:cambio", escucha);
+    },
+    ahora: () => ipcRenderer.invoke("sync:ahora"),
+    pausar: () => {
+      const id = ++pausas;
+      ipcRenderer.send("sync:pausar", id);
+      return () => ipcRenderer.send("sync:reanudar", id);
+    },
+  },
+  git: {
+    log: (opts) => ipcRenderer.invoke("git:log", opts),
+    show: (hash, ruta) => ipcRenderer.invoke("git:show", hash, ruta),
+    yo: () => ipcRenderer.invoke("git:yo"),
   },
 };
 contextBridge.exposeInMainWorld("aos", puente);

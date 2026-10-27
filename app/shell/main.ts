@@ -4,7 +4,9 @@ import { join } from "node:path";
 import { SHELL_VERSION } from "../shared/puente";
 import { elegirUI } from "./cargar-ui";
 import { guardarConfig, leerConfig } from "./config";
+import * as git from "./git";
 import { crearRepo } from "./repo";
+import { correrSyncSh, crearSync, leerPersona } from "./sync";
 
 const ESPERA_RECARGA_MS = 300;
 
@@ -41,13 +43,42 @@ function vigilarUI(ventana: BrowserWindow, repo: string): void {
   ventana.on("closed", () => vigia.close());
 }
 
+function cablearSync(ventana: BrowserWindow, raiz: string): { escribio: () => void } {
+  const sync = crearSync({
+    correr: correrSyncSh(raiz),
+    ahora: () => new Date(),
+    persona: () => leerPersona(raiz),
+  });
+  const reanudar = new Map<number, () => void>();
+  ipcMain.on("sync:estado", (e) => (e.returnValue = sync.estado()));
+  ipcMain.handle("sync:ahora", () => sync.ahora());
+  ipcMain.on("sync:pausar", (_e, id: number) => reanudar.set(id, sync.pausar()));
+  ipcMain.on("sync:reanudar", (_e, id: number) => {
+    reanudar.get(id)?.();
+    reanudar.delete(id);
+  });
+  ipcMain.handle("git:log", (_e, opts) => git.log(raiz, opts));
+  ipcMain.handle("git:show", (_e, hash: string, ruta: string) => git.show(raiz, hash, ruta));
+  ipcMain.handle("git:yo", () => git.yo(raiz));
+  const quitar = sync.onEstado((e) => ventana.webContents.send("sync:cambio", e));
+  ventana.on("focus", sync.foco);
+  ventana.on("closed", () => {
+    quitar();
+    sync.parar();
+    reanudar.forEach((r) => r());
+  });
+  void sync.ahora(); // al abrir: traer lo del equipo
+  return sync;
+}
+
 function cablearRepo(ventana: BrowserWindow, raiz: string): void {
   const repo = crearRepo(raiz);
+  const sync = cablearSync(ventana, raiz);
   ipcMain.handle("repo:list", (_e, glob: string) => repo.list(glob));
   ipcMain.handle("repo:read", (_e, ruta: string) => repo.read(ruta));
-  ipcMain.handle("repo:write", (_e, ruta: string, contenido: string) => repo.write(ruta, contenido));
-  ipcMain.handle("repo:move", (_e, de: string, a: string) => repo.move(de, a));
-  ipcMain.handle("repo:delete", (_e, ruta: string) => repo.delete(ruta));
+  ipcMain.handle("repo:write", (_e, ruta: string, contenido: string) => repo.write(ruta, contenido).finally(sync.escribio));
+  ipcMain.handle("repo:move", (_e, de: string, a: string) => repo.move(de, a).finally(sync.escribio));
+  ipcMain.handle("repo:delete", (_e, ruta: string) => repo.delete(ruta).finally(sync.escribio));
   const parar = repo.onCambio((rutas) => ventana.webContents.send("repo:cambio", rutas));
   ventana.on("closed", parar);
 }
