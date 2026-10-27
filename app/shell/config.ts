@@ -5,7 +5,8 @@ import type { Config } from "../shared/puente";
 
 export type { Config };
 
-const RUTA_CONFIG = join(homedir(), "Library", "Application Support", "agencia-os", "config.json");
+// AOS_DATOS solo lo pone la prueba de humo (carpeta temporal); se lee en cada llamada porque main lo fija al arrancar.
+const rutaConfig = () => join(process.env.AOS_DATOS ?? join(homedir(), "Library", "Application Support", "agencia-os"), "config.json");
 
 const POR_DEFECTO: Config = {
   repo: null,
@@ -16,7 +17,7 @@ const POR_DEFECTO: Config = {
   pausaHasta: null,
 };
 
-export function leerConfig(ruta = RUTA_CONFIG): Config {
+export function leerConfig(ruta = rutaConfig()): Config {
   try {
     return { ...structuredClone(POR_DEFECTO), ...JSON.parse(readFileSync(ruta, "utf8")) };
   } catch {
@@ -24,7 +25,7 @@ export function leerConfig(ruta = RUTA_CONFIG): Config {
   }
 }
 
-export function guardarConfig(cambios: Partial<Config>, ruta = RUTA_CONFIG): void {
+export function guardarConfig(cambios: Partial<Config>, ruta = rutaConfig()): void {
   mkdirSync(dirname(ruta), { recursive: true });
   const temporal = `${ruta}.tmp`;
   writeFileSync(temporal, JSON.stringify({ ...leerConfig(ruta), ...cambios }, null, 2));

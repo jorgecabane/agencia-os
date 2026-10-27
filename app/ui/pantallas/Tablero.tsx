@@ -10,7 +10,7 @@ import { colorPara, cuando, titulo } from "../datos/hoy";
 import { cambiar } from "../datos/md";
 import { useSesion } from "../datos/sesion";
 import type { Entregable } from "../datos/tipos";
-import { guardarVistas, igual, leerVistas, POR_DEFECTO, RUTA_VISTAS, type Vista } from "../datos/vistas";
+import { ERROR_VISTAS, guardarVistas, igual, leerVistas, POR_DEFECTO, RUTA_VISTAS, type Vista } from "../datos/vistas";
 
 type Actual = Omit<Vista, "nombre">;
 const ICONO = { avanzo: "●", quieta: "▲", "sin-abrir": "◌" } as const;
@@ -19,18 +19,22 @@ const seguirFoco = (ruta: string) =>
   requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-ruta="${CSS.escape(ruta)}"] .mover`)?.focus());
 const plural = (n: number) => `${n} ${n === 1 ? "tarea" : "tareas"}`;
 
-/** Vistas guardadas del equipo (`app/vistas.json`), releídas si alguien las cambia. */
-export function useVistas(): [Vista[] | null, (vs: Vista[]) => Promise<void>] {
+/** Vistas guardadas del equipo (`app/vistas.json`), releídas si alguien las cambia. Si no se pueden leer: null y el error. */
+export function useVistas(): [Vista[] | null, (vs: Vista[]) => Promise<void>, string | null] {
   const [vistas, setVistas] = useState<Vista[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     let vivo = true;
-    const leer = () => void leerVistas().then((v) => vivo && setVistas(v));
+    const leer = () => void leerVistas().then(
+      (v) => { if (vivo) { setVistas(v); setError(null); } },
+      () => { if (vivo) { setVistas(null); setError(ERROR_VISTAS); } },
+    );
     leer();
     const quitar = window.aos.repo.onCambio((rutas) => rutas.includes(RUTA_VISTAS) && leer());
     return () => { vivo = false; quitar(); };
   }, []);
   const guardar = async (vs: Vista[]) => { await guardarVistas(vs); setVistas(vs); };
-  return [vistas, guardar]; // null = aún leyendo
+  return [vistas, guardar, error]; // null = aún leyendo o ilegible
 }
 
 /** Cambios recién hechos en el tablero, encima del índice hasta que el índice los refleje. */
@@ -106,7 +110,7 @@ export function Tablero({ fecha, onEditar }: { fecha: string; onEditar: (ruta: s
 
 /** Título, vistas guardadas (la que calza con los filtros de ahora queda marcada) y "+ Vista". */
 function CabezaVistas({ actual, elegir, onError }: { actual: Actual; elegir: (a: Actual) => void; onError: (msg: string) => void }) {
-  const [leidas, guardarLista] = useVistas();
+  const [leidas, guardarLista, errorVistas] = useVistas();
   const vistas = leidas ?? POR_DEFECTO;
   const [nombrando, setNombrando] = useState(false);
   const cargadas = leidas !== null;
@@ -136,9 +140,11 @@ function CabezaVistas({ actual, elegir, onError }: { actual: Actual; elegir: (a:
             <button className="btn" type="submit">Guardar</button>
           </form>
         ) : (
-          <button className="mas" onClick={() => setNombrando(true)} title="Guardar los filtros de ahora como vista">+ Vista</button>
+          // Hasta leer las del equipo no se guarda: se pisarían con las de fábrica.
+          <button className="mas" onClick={() => setNombrando(true)} disabled={!cargadas} title="Guardar los filtros de ahora como vista">+ Vista</button>
         )}
       </div>
+      {errorVistas && <p className="error" role="alert">⚠ {errorVistas}</p>}
     </div>
   );
 }

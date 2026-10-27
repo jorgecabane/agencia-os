@@ -1,7 +1,22 @@
 /** Versión del puente: sube cuando se agregan o cambian funciones de `Puente`. */
 export const SHELL_VERSION = 1;
 
+/** Donde se descarga la app nueva (el aviso de "Actualiza el marco" lo abre). */
+export const RELEASES = "https://github.com/jorgecabane/agencia-os/releases";
+
 export type Estado = "al-dia" | "subiendo" | "sin-conexion" | "conflicto";
+
+/**
+ * Lo que se le pide a Claude ante un conflicto de sync: el `MOTIVO_CONFLICTO` de `.claude/hooks/stop.py`
+ * (sync.sh aborta el rebase, así que aquí no se sabe qué archivos chocaron). Es el único mensaje que el chat
+ * acepta mientras hay conflicto.
+ */
+export const MOTIVO_CONFLICTO =
+  "No pude sincronizar: un compañero cambió lo mismo que tú.\nLos archivos en conflicto aparecen al correr `git pull --rebase`.\n" +
+  "Corre `git pull --rebase`, y en cada archivo en conflicto conserva lo de ambos (si se " +
+  "contradicen, deja lo más reciente y anota la diferencia en la bandeja del dueño). Valida con " +
+  "`uv run scripts/validar.py`, `git add` + `git rebase --continue`, `git push`, y cuéntale al " +
+  "usuario en una línea qué mezclaste.";
 
 export interface Commit {
   hash: string;
@@ -111,6 +126,10 @@ export interface Puente {
     conectores(): Promise<string>;
     /** Pide otra carpeta del repo y reinicia la app con ella; false si se canceló. */
     cambiarRepo(): Promise<boolean>;
+    /** Cambió `app/ui-dist` (llegó una versión nueva de la UI con el sync). La UI decide cuándo recargarse. */
+    onNuevaUI(cb: () => void): () => void;
+    /** Vuelve a cargar la UI de esta ventana. */
+    recargar(): void;
   };
 }
 

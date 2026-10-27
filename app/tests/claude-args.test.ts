@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { PassThrough } from "node:stream";
 import { describe, expect, it, vi } from "vitest";
-import type { EventoChat } from "../shared/puente";
+import { type EventoChat, MOTIVO_CONFLICTO } from "../shared/puente";
 import { argsClaude, crearClaude, herramientasDeEnvio, lecturaConectores } from "../shell/claude";
 import { fixtureRepo } from "./helpers";
 
@@ -23,6 +23,22 @@ describe("argsClaude", () => {
     const a = argsClaude({ mensaje: "Ejecuta la aprobación bandeja/x.md", contexto: "bandeja/x.md", persona: "cami", sesion: "s1", envio: ["mcp__claude_ai_Gmail__send_email"] });
     expect(a.slice(-2)).toEqual(["--resume", "s1"]);
     expect(a[a.indexOf("--allowedTools") + 1]).toContain("mcp__claude_ai_Gmail__send_email");
+  });
+
+  it("solo carga la configuración del repo: un permiso guardado en ~/.claude o settings.local.json no suma", () => {
+    const a = argsClaude({ mensaje: "hola", contexto: "Hoy", persona: "cami" });
+    expect(a[a.indexOf("--setting-sources") + 1]).toBe("project");
+    expect(a).not.toContain("--disallowedTools"); // sin init no hay conectores que negar
+  });
+
+  it("niega todo conector que no sea de lectura ni del envío de este turno", () => {
+    const herramientas = ["Read", "mcp__claude_ai_Gmail__search_threads", "mcp__claude_ai_Gmail__send_email", "mcp__claude_ai_Meta__publish_post", "mcp__otro__send"];
+    const negadas = (envio: string[]) => {
+      const a = argsClaude({ mensaje: "x", contexto: "Hoy", persona: "cami", herramientas, envio });
+      return a[a.indexOf("--disallowedTools") + 1].split(",");
+    };
+    expect(negadas([])).toEqual(["mcp__claude_ai_Gmail__send_email", "mcp__claude_ai_Meta__publish_post", "mcp__otro__send"]);
+    expect(negadas(["mcp__claude_ai_Gmail__send_email"])).toEqual(["mcp__claude_ai_Meta__publish_post", "mcp__otro__send"]);
   });
 
   it("rechaza nombres que solo contienen un verbo de lectura", () => {
@@ -57,6 +73,7 @@ const cerrar = (h: Hijo, codigo: number | null) => { h.stdout.end(); h.stderr.en
 function armar(guion: (h: Hijo) => void, sesiones: Record<string, string> = {}, estadoSync = "al-dia", raiz = "/repo") {
   const { spawn, llamadas } = falso(guion);
   const orden: string[] = [];
+  const ahoras: number[] = []; // cuántos `claude` habían corrido en cada sync.ahora()
   const reanudar = vi.fn(() => orden.push("reanudar"));
   const claude = crearClaude({
     raiz,
@@ -66,12 +83,12 @@ function armar(guion: (h: Hijo) => void, sesiones: Record<string, string> = {}, 
     sesiones: { leer: (id) => sesiones[id], guardar: (id, s) => (sesiones[id] = s) },
     sync: {
       pausar: () => (orden.push("pausar"), reanudar), enCurso: async () => void orden.push("enCurso"),
-      ahora: async () => void orden.push("ahora"), estado: () => estadoSync,
+      ahora: async () => void (orden.push("ahora"), ahoras.push(llamadas.length)), estado: () => estadoSync,
     },
   });
   const eventos: EventoChat[] = [];
   const enviar = (msg = "hola") => claude.enviar("global", msg, "Todo el espacio", (e) => eventos.push(e));
-  return { claude, enviar, eventos, llamadas, orden, reanudar, sesiones };
+  return { claude, enviar, eventos, llamadas, orden, ahoras, reanudar, sesiones };
 }
 
 describe("crearClaude", () => {
@@ -132,6 +149,17 @@ describe("crearClaude: bordes", () => {
     expect(t.llamadas).toHaveLength(0);
     expect(t.eventos).toEqual([{ tipo: "error", texto: "Hay un conflicto con cambios del equipo. Resuélvelo antes de pedirle algo a Claude." }, { tipo: "fin" }]);
     expect(t.reanudar).toHaveBeenCalledTimes(1);
+  });
+
+  it("en conflicto deja pasar solo el pedido de mezclarlo: sin sync antes y con sync después", async () => {
+    const t = armar((h) => cerrar(h, 0), {}, "conflicto");
+    await t.enviar(`${MOTIVO_CONFLICTO} `);
+    expect(t.llamadas).toHaveLength(0);
+    expect(t.ahoras).toEqual([0]); // el otro mensaje sí sincronizó antes (y chocó)
+    await t.enviar(MOTIVO_CONFLICTO);
+    expect(t.llamadas).toHaveLength(1);
+    expect(t.ahoras).toEqual([0, 1]); // el pedido de mezclar: un solo sync, después del turno
+    expect(t.eventos.filter((e) => e.tipo === "error")).toHaveLength(1);
   });
 
   it("un result con error muestra el texto genérico, no el crudo", async () => {

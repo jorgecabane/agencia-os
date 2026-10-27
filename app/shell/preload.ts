@@ -79,6 +79,12 @@ const puente: Puente = {
     alto: (px) => ipcRenderer.send("sistema:alto", px),
     conectores: () => ipcRenderer.invoke("sistema:conectores"),
     cambiarRepo: () => ipcRenderer.invoke("sistema:cambiar-repo"),
+    onNuevaUI: (cb) => {
+      const escucha = () => cb();
+      ipcRenderer.on("app:nueva-ui", escucha);
+      return () => ipcRenderer.removeListener("app:nueva-ui", escucha);
+    },
+    recargar: () => ipcRenderer.send("sistema:recargar"),
   },
 };
 contextBridge.exposeInMainWorld("aos", puente);

@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { igual, POR_DEFECTO, parsearVistas } from "../ui/datos/vistas";
+import { igual, parsearVistas } from "../ui/datos/vistas";
 
 it("vistas.json ausente → las 4 por defecto", () => {
   expect(parsearVistas(null).map((v) => v.nombre)).toEqual(["Esta semana", "Todo", "Atrasado", "Esperando al cliente"]);
@@ -10,8 +10,10 @@ it("vistas.json con vistas → esas", () => {
   expect(parsearVistas(JSON.stringify(v))).toEqual(v);
 });
 
-it("vistas.json ilegible → las por defecto", () => {
-  expect(parsearVistas("{no")).toEqual(POR_DEFECTO);
+it("vistas.json ilegible o sin vistas → error, nunca las por defecto (se pisarían al guardar)", () => {
+  expect(() => parsearVistas("{no")).toThrow();
+  expect(() => parsearVistas("[]")).toThrow();
+  expect(() => parsearVistas('[{"nombre": 1}]')).toThrow();
 });
 
 it("igual no depende del orden de claves ni de valores", () => {

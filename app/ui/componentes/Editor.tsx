@@ -5,6 +5,7 @@ import { fechaLocal, titulo } from "../datos/hoy";
 import { componer, modoInicial, relativa, rutaAdjunto, type Modo } from "../datos/markdown";
 import { separar } from "../datos/md";
 import { aGuardar, pendiente } from "../datos/mezcla";
+import { registrarEditor } from "../datos/recarga";
 import { useSesion } from "../datos/sesion";
 import { useRevision } from "../datos/chat";
 import { BarraRevision } from "./Chat";
@@ -78,7 +79,12 @@ export function Editor({ ruta, onPedirClaude, onErrorFuera, onHistorial }: Props
       s.base = siguio ? mio : escrito;
       s.visto = texto;
       if (s.cambios === cambios) s.cambios = {};
-      if (!s.montado) return;
+      if (!s.montado) {
+        // Escribió mientras se guardaba y salió: lo que quedó (la foto del lienzo) se guarda igual.
+        clearTimeout(s.timer);
+        if (sucio()) s.timer = window.setTimeout(() => void guardarRef.current(), ESPERA_GUARDADO_MS);
+        return;
+      }
       setCambiosVista(s.cambios);
       setBase(s.base);
       if (res.conflicto) setConflicto(true);
@@ -106,8 +112,10 @@ export function Editor({ ruta, onPedirClaude, onErrorFuera, onHistorial }: Props
     r.current.timer = window.setTimeout(() => void guardarRef.current(), ESPERA_GUARDADO_MS);
   };
 
+  const registro = useRef({ sinGuardar: () => sucio() || r.current.guardando, montado: () => r.current.montado });
   useEffect(() => {
     r.current.montado = true;
+    registrarEditor(registro.current);
     let vivo = true;
     const traerUltimo = () => void window.aos.git.log({ ruta, max: 1 }).then(([c]) => vivo && setUltimo(c), () => {});
     void window.aos.repo.read(ruta).then((t) => vivo && cargar(t), (e: unknown) => vivo && setAviso(`No pude abrir el archivo: ${String(e)}`));
@@ -148,7 +156,12 @@ export function Editor({ ruta, onPedirClaude, onErrorFuera, onHistorial }: Props
   const enlace: Enlace = {
     onCambio: programar,
     onListo: (leer) => Object.assign(r.current, { leer, visto: leer() }),
-    onSoltar: (leer) => { if (r.current.leer === leer) r.current.leer = null; },
+    // Al soltarse el lienzo queda una foto de su texto: un guardado en curso o pendiente todavía la necesita.
+    onSoltar: (leer) => {
+      if (r.current.leer !== leer) return;
+      const v = leer();
+      r.current.leer = () => v;
+    },
   };
 
   if (base === null) return aviso ? <p role="alert" className="aviso-editor">⚠ {aviso}</p> : null;

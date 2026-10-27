@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { MOTIVO_CONFLICTO, RELEASES } from "../shared/puente";
 import { Barra, BarraSinPersona } from "./barra/Barra";
 import { Chat, type Pedido } from "./componentes/Chat";
 import { Editor } from "./componentes/Editor";
@@ -6,6 +7,7 @@ import { ElegirPersona } from "./componentes/ElegirPersona";
 import { Lateral, type Pantalla } from "./componentes/Lateral";
 import { clienteDeRuta, colorPara, fechaLocal, titulo } from "./datos/hoy";
 import { APROBACION } from "./datos/pasos";
+import { sePuedeRecargar } from "./datos/recarga";
 import { SesionCtx, useIndice } from "./datos/sesion";
 import { Aprobaciones } from "./pantallas/Aprobaciones";
 import { Calendario } from "./pantallas/Calendario";
@@ -59,6 +61,8 @@ export function App() {
   const [pantalla, ir] = useState<Pantalla>({ nombre: "hoy" });
   const [errorGuardar, setErrorGuardar] = useState<string | null>(null);
   const { cajon, cerrar, pedir, capturar } = useCajon();
+  const [nuevaUI, setNuevaUI] = useState(false);
+  useEffect(() => window.aos.sistema.onNuevaUI(() => (sePuedeRecargar() ? window.aos.sistema.recargar() : setNuevaUI(true))), []);
   useEffect(() => {
     const leer = () => void window.aos.persona().then(setPersona, () => setPersona(null));
     leer();
@@ -115,7 +119,19 @@ export function App() {
   return (
     <SesionCtx.Provider value={{ indice, persona }}>
       <div className="arrastre" aria-hidden />
-      {aviso && <p role="status" className="aviso">ⓘ {aviso}</p>}
+      {/* El único aviso del shell es el de marco viejo: se baja de la página de versiones. */}
+      {aviso && (
+        <p role="status" className="aviso">
+          ⓘ {aviso} ·{" "}
+          <button className="btn plano" onClick={() => void window.aos.sistema.abrir(RELEASES)}>Descargar la versión nueva</button>
+        </p>
+      )}
+      {nuevaUI && (
+        <p role="status" className="aviso">
+          ⓘ Hay una versión nueva de la app ·{" "}
+          <button className="btn plano" onClick={() => window.aos.sistema.recargar()}>Recargar</button>
+        </p>
+      )}
       {errorGuardar && (
         <p role="alert" className="aviso error-global">
           ⚠ {errorGuardar}. Lo último que escribiste no quedó guardado.
@@ -123,7 +139,8 @@ export function App() {
         </p>
       )}
       <div className="app">
-        <Lateral pantalla={pantalla} ir={ir} fecha={fecha} onCambiarPersona={() => setEligiendo(true)} />
+        <Lateral pantalla={pantalla} ir={ir} fecha={fecha} onCambiarPersona={() => setEligiendo(true)}
+          onMezclar={() => capturar(MOTIVO_CONFLICTO)} />
         {pantalla.nombre === "hoy" && <Hoy fecha={fecha} onEditar={editar} />}
         {pantalla.nombre === "tablero" && <Tablero fecha={fecha} onEditar={editar} />}
         {pantalla.nombre === "calendario" && <Calendario fecha={fecha} onEditar={editar} />}

@@ -29,10 +29,10 @@ export function crearRepo(raiz: string) {
     if (isAbsolute(ruta) || !rel || rel === ".." || rel.startsWith(`..${sep}`)) throw new Error("ruta fuera del repo");
     return destino;
   };
-  // Escribir, mover o borrar nunca toca .git.
+  // Escribir, mover o borrar nunca toca .git (ni .GIT: en macOS es la misma carpeta).
   const absEscritura = (ruta: string): string => {
     const destino = abs(ruta);
-    if (relative(base, destino).split(sep)[0] === ".git") throw new Error("ruta fuera del repo");
+    if (relative(base, destino).split(sep)[0].toLowerCase() === ".git") throw new Error("ruta fuera del repo");
     return destino;
   };
 

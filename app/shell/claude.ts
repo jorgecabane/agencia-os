@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { createInterface } from "node:readline";
 import { parse } from "yaml";
-import type { EventoChat } from "../shared/puente";
+import { type EventoChat, MOTIVO_CONFLICTO } from "../shared/puente";
 
 const BASE = ["Read", "Edit", "Write", "Glob", "Grep", "Skill", "Bash(uv run *)", "Bash(git *)", "Bash(pnpm --dir app *)"];
 // Conectores de claude.ai: solo los que leen. El verbo va primero, o tras el nombre del propio servidor ("notion-fetch").
@@ -85,11 +85,18 @@ export async function permisoEnvio(raiz: string, mensaje: string, herramientas: 
 export function argsClaude({ mensaje, contexto, persona, sesion, envio = [], herramientas = [] }: {
   mensaje: string; contexto: string; persona: string; sesion?: string; envio?: string[]; herramientas?: string[];
 }): string[] {
-  const lista = [...BASE, ...lecturaConectores(herramientas), ...envio].join(",");
+  const permitidas = [...BASE, ...lecturaConectores(herramientas), ...envio];
+  // Negar gana sobre permitir: así un "no volver a preguntar" guardado en otra parte no deja enviar.
+  // Sin `init` previo no se conocen los conectores (y no hay envío posible): ahí protege solo --setting-sources.
+  const negadas = herramientas.filter((h) => h.startsWith("mcp__") && !permitidas.includes(h));
   return [
     "-p", `Estás viendo ${contexto}. Persona: ${persona}.\n\n${mensaje}`,
     "--output-format", "stream-json", "--verbose", "--permission-mode", "acceptEdits",
-    "--allowedTools", lista, ...(sesion ? ["--resume", sesion] : []),
+    // Solo la configuración del repo (ahí viven los hooks): ni ~/.claude ni settings.local.json suman permisos.
+    "--setting-sources", "project",
+    "--allowedTools", permitidas.join(","),
+    ...(negadas.length ? ["--disallowedTools", negadas.join(",")] : []),
+    ...(sesion ? ["--resume", sesion] : []),
   ];
 }
 
@@ -171,9 +178,11 @@ export function crearClaude(deps: Deps) {
       const reanudar = deps.sync.pausar();
       try {
         await deps.sync.enCurso();
+        // En conflicto solo pasa el pedido de mezclarlo, sin sincronizar antes (volvería a chocar).
+        const mezclar = mensaje === MOTIVO_CONFLICTO && deps.sync.estado() === "conflicto";
         // Lo que la persona dejó sin commitear (el sync espera 5 s de calma) entra a la base de Deshacer.
-        await deps.sync.ahora();
-        if (deps.sync.estado() === "conflicto") return fallar(TEXTOS.conflicto);
+        if (!mezclar) await deps.sync.ahora();
+        if (!mezclar && deps.sync.estado() === "conflicto") return fallar(TEXTOS.conflicto);
         const permiso = await permisoEnvio(deps.raiz, mensaje, herramientas); // enviar hacia afuera solo al ejecutar una aprobación
         if ("error" in permiso) return fallar(permiso.error);
         const [persona, commitPrevio] = await Promise.all([deps.persona(), deps.head().catch(() => null)]);
@@ -182,6 +191,7 @@ export function crearClaude(deps: Deps) {
           mensaje, contexto, persona, herramientas, sesion: deps.sesiones.leer(contextoId), envio: permiso.envio,
         });
         await correr(contextoId, args, persona, emitir);
+        if (mezclar) await deps.sync.ahora(); // ver si quedó resuelto
       } finally {
         ocupado = false;
         reanudar();

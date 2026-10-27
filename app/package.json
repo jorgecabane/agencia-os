@@ -9,8 +9,9 @@
     "build:ui": "vite build",
     "build:shell": "tsc -p tsconfig.json",
     "dist": "pnpm build:ui && pnpm build:shell && electron-builder --config electron-builder.yml",
-    "typecheck": "tsc -p tsconfig.ui.json",
-    "test": "pnpm typecheck && vitest run"
+    "typecheck": "tsc -p tsconfig.ui.json && tsc -p tsconfig.json --noEmit",
+    "test": "pnpm typecheck && vitest run",
+    "smoke": "pnpm build:shell && node tests/smoke.mjs"
   },
   "devDependencies": {
     "@milkdown/crepe": "7.22.3",

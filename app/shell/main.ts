@@ -1,5 +1,6 @@
 import { app, BrowserWindow, type BrowserWindowConstructorOptions, dialog, ipcMain, Menu, Notification, shell } from "electron";
-import { existsSync, watch } from "node:fs";
+import { existsSync, mkdtempSync, watch } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { type PedidoApp, SHELL_VERSION } from "../shared/puente";
 import { debeAvisar, esAviso, esHttps, recordar } from "./avisos";
@@ -13,6 +14,16 @@ import { crearRepo } from "./repo";
 import { correrSyncSh, crearPausas, crearSync, guardarPersona, leerPersona, personaGuardada } from "./sync";
 
 const ESPERA_RECARGA_MS = 300;
+const HUMO_MAX_MS = 20_000;
+const HUMO_CADA_MS = 200;
+// Prueba de humo (`pnpm smoke`): config y datos de Electron en una carpeta temporal, nunca los de la persona.
+const HUMO = process.env.AOS_SMOKE === "1";
+if (HUMO) {
+  process.env.AOS_DATOS ??= mkdtempSync(join(tmpdir(), "aos-humo-"));
+  app.setPath("userData", process.env.AOS_DATOS);
+  setTimeout(() => app.exit(1), HUMO_MAX_MS).unref();
+  process.on("unhandledRejection", () => app.exit(1));
+}
 const MENSAJE_APP = /^app: [^\n]{1,80}$/;
 
 type Sync = ReturnType<typeof crearSync>;
@@ -46,6 +57,8 @@ async function pedirRepo(): Promise<string | null> {
   }
 }
 
+const sinExtra = (url: string) => url.split(/[?#]/)[0];
+
 function nuevaVentana(o: BrowserWindowConstructorOptions): BrowserWindow {
   const ventana = new BrowserWindow({
     backgroundColor: "#242322",
@@ -59,9 +72,9 @@ function nuevaVentana(o: BrowserWindowConstructorOptions): BrowserWindow {
       ...o.webPreferences,
     },
   });
-  // Solo archivos locales: nunca navegar ni abrir ventanas hacia URLs remotas (los links van por sistema:abrir).
+  // Solo la página que cargó el shell: nunca navegar a otra (ni remota ni local); los links van por sistema:abrir.
   ventana.webContents.on("will-navigate", (e, url) => {
-    if (!url.startsWith("file://")) e.preventDefault();
+    if (sinExtra(url) !== sinExtra(ventana.webContents.getURL())) e.preventDefault();
   });
   ventana.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
   return ventana;
@@ -73,13 +86,14 @@ function cargar(ventana: BrowserWindow, repo: string, hash?: string): void {
   void ventana.loadFile(ruta, { hash, ...(aviso ? { query: { aviso } } : {}) });
 }
 
-function vigilarUI(ventana: BrowserWindow, repo: string, hash?: string): void {
+/** Avisa a la UI que llegó otra versión: ella recarga cuando no pierde nada (texto sin guardar, revisión de Claude). */
+function vigilarUI(ventana: BrowserWindow, repo: string): void {
   const dist = join(repo, "app", "ui-dist");
   if (!existsSync(dist)) return;
   let pendiente: NodeJS.Timeout | undefined;
   const vigia = watch(dist, { recursive: true }, () => {
     clearTimeout(pendiente);
-    pendiente = setTimeout(() => cargar(ventana, repo, hash), ESPERA_RECARGA_MS);
+    pendiente = setTimeout(() => !ventana.isDestroyed() && ventana.webContents.send("app:nueva-ui"), ESPERA_RECARGA_MS);
   });
   vigia.on("error", () => vigia.close());
   ventana.on("closed", () => vigia.close());
@@ -200,8 +214,24 @@ function cablearSistema(raiz: string, barra: Barra, claude: Claude, mostrar: () 
     app.exit(0);
     return true;
   });
+  ipcMain.on("sistema:recargar", (e) => {
+    if (e.sender === barra.ventana.webContents) cargar(barra.ventana, raiz, "barra");
+    else if (principal && e.sender === principal.webContents) cargar(principal, raiz);
+  });
   ipcMain.on("sistema:alto", (e, px: unknown) => {
     if (e.sender === barra.ventana.webContents && typeof px === "number") barra.alto(px);
+  });
+}
+
+/** Humo: sale con 0 cuando la ventana cargó y React pintó la app (la barra lateral); el plazo de arriba sale con 1. */
+function humo(ventana: BrowserWindow): void {
+  ventana.webContents.once("did-fail-load", () => app.exit(1));
+  ventana.webContents.once("did-finish-load", async () => {
+    for (;;) {
+      const pinto = await ventana.webContents.executeJavaScript('Boolean(document.querySelector("#raiz nav.lateral"))').catch(() => false);
+      if (pinto) return app.exit(0);
+      await new Promise((r) => setTimeout(r, HUMO_CADA_MS));
+    }
   });
 }
 
@@ -213,6 +243,7 @@ function crearPrincipal(raiz: string, sync: Sync, pausas: Pausas, claude: Claude
     claude.cancelarTodo(); // el chat vive en esta ventana: ningún `claude` queda corriendo sin quien lo mire
     principal = null;
   });
+  if (HUMO) humo(ventana);
   cargar(ventana, raiz);
   vigilarUI(ventana, raiz);
   void sync.ahora(); // al abrir: traer lo del equipo
@@ -242,7 +273,7 @@ function arrancar(raiz: string): void {
   const barra = crearBarra(nuevaVentana);
   soltarPausas(barra.ventana, pausas);
   cargar(barra.ventana, raiz, "barra");
-  vigilarUI(barra.ventana, raiz, "barra");
+  vigilarUI(barra.ventana, raiz);
   cablearSistema(raiz, barra, claude, mostrar);
   Menu.setApplicationMenu(menu(mostrar));
   app.on("activate", () => mostrar());

@@ -52,7 +52,7 @@ export const useConversacion = (id: string): Turno[] => useSyncExternalStore(sus
 export const useRevision = (): Revision | null => useSyncExternalStore(suscribir, () => revision);
 export const useOmitidos = (): string[] => useSyncExternalStore(suscribir, () => (omitidos.length ? omitidos : SIN_OMITIDOS));
 export const olvidarOmitidos = () => { omitidos = []; avisar(); };
-const algunoEnCurso = () => [...conversaciones.values()].some((ts) => ts.at(-1)?.enCurso);
+export const algunoEnCurso = (): boolean => [...conversaciones.values()].some((ts) => ts.at(-1)?.enCurso);
 export const useAlgunoEnCurso = (): boolean => useSyncExternalStore(suscribir, algunoEnCurso);
 
 export function enviar(id: string, mensaje: string, contexto: string): void {

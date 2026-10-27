@@ -8,8 +8,8 @@ type Principal =
 export type Pantalla = Principal | { nombre: "editar"; ruta: string; desde: Principal };
 
 /** Barra lateral común. */
-export function Lateral({ pantalla, ir, fecha, onCambiarPersona }: {
-  pantalla: Pantalla; ir: (p: Pantalla) => void; fecha: string; onCambiarPersona: () => void;
+export function Lateral({ pantalla, ir, fecha, onCambiarPersona, onMezclar }: {
+  pantalla: Pantalla; ir: (p: Pantalla) => void; fecha: string; onCambiarPersona: () => void; onMezclar: () => void;
 }) {
   const { indice, persona } = useSesion();
   const h = hoy(indice, persona, fecha);
@@ -48,7 +48,7 @@ export function Lateral({ pantalla, ir, fecha, onCambiarPersona }: {
             <ul>{rotos.map((r) => <li key={r.ruta + r.error}>{r.ruta}: {r.error}</li>)}</ul>
           </details>
         )}
-        <IndicadorSync />
+        <IndicadorSync onMezclar={onMezclar} />
         <button className="nav-it" aria-current={actual("config")} onClick={() => ir({ nombre: "config" })}>
           <span aria-hidden>⚙</span>Configuración
         </button>

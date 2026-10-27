@@ -29,10 +29,10 @@ describe("puente de archivos", () => {
 
   it("rechaza rutas fuera del repo en todas las operaciones", async () => {
     const repo = crearRepo(fixtureRepo({ "x.md": "x" }));
-    const malas = ["../x", "/etc/x", ".", "", ".git", ".git/config"];
+    const malas = ["../x", "/etc/x", ".", "", ".git", ".git/config", ".GIT/hooks/x"];
     for (const ruta of malas) {
       await expect(repo.write(ruta, "")).rejects.toThrow("ruta fuera del repo");
-      if (!ruta.startsWith(".git")) await expect(repo.read(ruta)).rejects.toThrow("ruta fuera del repo");
+      if (!ruta.toLowerCase().startsWith(".git")) await expect(repo.read(ruta)).rejects.toThrow("ruta fuera del repo");
       await expect(repo.delete(ruta)).rejects.toThrow("ruta fuera del repo");
       await expect(repo.move("x.md", ruta)).rejects.toThrow("ruta fuera del repo");
       await expect(repo.move(ruta, "y.md")).rejects.toThrow("ruta fuera del repo");

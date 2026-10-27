@@ -74,7 +74,7 @@ export function Cliente({ slug, fecha, onPedirClaude, onErrorFuera }: Props) {
   const { indice } = useSesion();
   const ficha = indice.clientes.find((c) => c.slug === slug);
   const [datos, recargar] = useDatos(slug);
-  const [vistas, guardarVistas] = useVistas();
+  const [vistas, guardarVistas, errorVistas] = useVistas();
   const [tab, setTab] = useState<Tab>({ k: "resumen" });
   const [abierto, setAbierto] = useState<string | null>(null); // página abierta desde una lista o el resumen
   const [historial, setHistorial] = useState(false);
@@ -113,7 +113,7 @@ export function Cliente({ slug, fecha, onPedirClaude, onErrorFuera }: Props) {
       <main className="principal cliente">
         <Cabecera ficha={ficha} compacta={tab.k !== "resumen" || abierto !== null} />
         <Pestanas tab={tab} elegir={elegir} slug={slug} paginas={datos?.paginas ?? []} vistas={mias} acciones={acciones} nombre={ficha.nombre} />
-        {error && <p className="error" role="alert">⚠ {error}</p>}
+        {(error ?? errorVistas) && <p className="error" role="alert">⚠ {error ?? errorVistas}</p>}
         {contenido()}
       </main>
       {panel && <Panel key={panel.ruta} ruta={panel.ruta} animar={panel.animar} onCerrar={cerrarPanel} onEditar={(r) => { setPanel(null); setAbierto(r); }} />}
@@ -145,8 +145,11 @@ function armarAcciones({ ficha, vistas, guardarVistas, recargar, elegir, fallo, 
     claude: onPedirClaude && (async (t) => onPedirClaude(`Créame una pestaña de ${t} para ${ficha.nombre}: una página en ${base}/paginas/.`)),
   };
   const crear = async (archivo: string, etiqueta: string) => {
+    const ruta = `${base}/${archivo}`;
     const plantilla = await window.aos.repo.read(`plantillas/cliente/${archivo}`).catch(() => `# ${etiqueta}\n`);
-    await window.aos.repo.write(`${base}/${archivo}`, plantilla.replaceAll("cliente-ejemplo", slug)).then(recargar, fallo(`No pude crear ${etiqueta}.`));
+    // Alguien (o Claude) pudo crearlo recién: nunca se pisa, se muestra el que hay.
+    if ((await window.aos.repo.list(ruta)).length) return recargar();
+    await window.aos.repo.write(ruta, plantilla.replaceAll("cliente-ejemplo", slug)).then(recargar, fallo(`No pude crear ${etiqueta}.`));
   };
   return { ...acciones, crear };
 }
