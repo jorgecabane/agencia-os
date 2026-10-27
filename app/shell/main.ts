@@ -1,9 +1,10 @@
-import { app, BrowserWindow, dialog } from "electron";
+import { app, BrowserWindow, dialog, ipcMain } from "electron";
 import { existsSync, watch } from "node:fs";
 import { join } from "node:path";
 import { SHELL_VERSION } from "../shared/puente";
 import { elegirUI } from "./cargar-ui";
 import { guardarConfig, leerConfig } from "./config";
+import { crearRepo } from "./repo";
 
 const ESPERA_RECARGA_MS = 300;
 
@@ -36,7 +37,19 @@ function vigilarUI(ventana: BrowserWindow, repo: string): void {
     clearTimeout(pendiente);
     pendiente = setTimeout(() => cargar(ventana, repo), ESPERA_RECARGA_MS);
   });
+  vigia.on("error", () => vigia.close());
   ventana.on("closed", () => vigia.close());
+}
+
+function cablearRepo(ventana: BrowserWindow, raiz: string): void {
+  const repo = crearRepo(raiz);
+  ipcMain.handle("repo:list", (_e, glob: string) => repo.list(glob));
+  ipcMain.handle("repo:read", (_e, ruta: string) => repo.read(ruta));
+  ipcMain.handle("repo:write", (_e, ruta: string, contenido: string) => repo.write(ruta, contenido));
+  ipcMain.handle("repo:move", (_e, de: string, a: string) => repo.move(de, a));
+  ipcMain.handle("repo:delete", (_e, ruta: string) => repo.delete(ruta));
+  const parar = repo.onCambio((rutas) => ventana.webContents.send("repo:cambio", rutas));
+  ventana.on("closed", parar);
 }
 
 function crearVentana(repo: string): void {
@@ -58,6 +71,7 @@ function crearVentana(repo: string): void {
     if (!url.startsWith("file://")) e.preventDefault();
   });
   ventana.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+  cablearRepo(ventana, repo);
   cargar(ventana, repo);
   vigilarUI(ventana, repo);
 }
