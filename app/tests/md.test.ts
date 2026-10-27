@@ -32,4 +32,15 @@ describe("md", () => {
     const { fm, cuerpo } = separar(ARCHIVO);
     expect(unir(fm, { responsable: "jorge" }, cuerpo)).toContain("estado: brief\nresponsable: jorge\n---\n");
   });
+
+  it("no toca claves intactas: valor largo, lista en flujo y CRLF", () => {
+    const largo = "x ".repeat(80).trim();
+    const fm = `tipo: cliente\r\nnota: ${largo}\r\nemails: [a,   b]\r\nvence: 2026-10-01`;
+    const salida = unir(fm, { vence: "2026-10-30" }, "c\n");
+    expect(salida).toBe(`---\r\n${fm.replace("10-01", "10-30")}\r\n---\r\nc\n`);
+  });
+
+  it("unir sin frontmatter previo escribe mapa en bloque", () => {
+    expect(unir(null, { x: 1 }, "c\n")).toBe("---\nx: 1\n---\nc\n");
+  });
 });

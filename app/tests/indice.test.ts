@@ -21,13 +21,30 @@ describe("índice", () => {
     expect(i.rotos).toEqual([]);
   });
 
-  it("un archivo roto va a rotos sin lanzar", () => {
+  it("archivos en rutas rastreadas nunca desaparecen en silencio", () => {
+    const fm = (t: string) => `---\ntipo: ${t}\ncliente: acme\nfecha: 2026-10-01\n---\n`;
     const i = construirIndice(new Map([
       ["clientes/x/_ficha.md", "---\ntipo: cliente\nnombre: X\n"],
-      ["clientes/y/_ficha.md", "---\ntipo: cliente\nnombre: Y\n---\n"],
+      ["clientes/a/decisiones/sin.md", "hola"],
+      ["clientes/a/decisiones/typo.md", fm("decison")],
+      ["clientes/a/decisiones/mal.md", fm("entregable")],
+      ["bandeja/nota.md", "texto libre"],
+      ["clientes/a/reuniones/2026-10-01-r.md", "---\ntipo: reunion\nfecha: 2026-10-01\n---\n"],
     ]));
-    expect(i.clientes).toEqual([]);
-    expect(i.rotos.map((r) => r.ruta)).toEqual(["clientes/x/_ficha.md", "clientes/y/_ficha.md"]);
+    expect(i.rotos.map((r) => `${r.ruta}: ${r.error}`)).toEqual([
+      "clientes/a/decisiones/mal.md: tipo 'entregable' no corresponde a esta carpeta",
+      "clientes/a/decisiones/sin.md: sin frontmatter",
+      "clientes/a/decisiones/typo.md: tipo desconocido 'decison'",
+      "clientes/a/reuniones/2026-10-01-r.md: falta 'cliente'",
+      "clientes/x/_ficha.md: frontmatter sin cerrar (falta ---)",
+    ].sort());
+    expect(i.reuniones).toHaveLength(1); // incompleta pero visible
+  });
+
+  it("falta un campo requerido: queda en su colección y en rotos", () => {
+    const i = construirIndice(new Map([["clientes/y/_ficha.md", "---\ntipo: cliente\nnombre: Y\n---\n"]]));
+    expect(i.clientes[0].nombre).toBe("Y");
+    expect(i.rotos.map((r) => r.error)).toContain("falta 'slug'");
   });
 
   it("actualizar reemplaza, agrega y borra sin mutar el original", () => {

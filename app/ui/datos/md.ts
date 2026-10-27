@@ -1,4 +1,4 @@
-import { parse, parseDocument, stringify } from "yaml";
+import { Document, isMap, isNode, isScalar, parse, parseDocument } from "yaml";
 
 export type Separado = {
   fm: string | null;
@@ -29,10 +29,26 @@ export function separar(texto: string): Separado {
   }
 }
 
-/** Aplica `cambios` al frontmatter original tocando solo esas claves (conserva orden y comentarios). */
+/** Aplica `cambios` al frontmatter original reemplazando solo el texto de esas claves; el resto queda byte a byte. */
 export function unir(fmOriginal: string | null, cambios: Record<string, unknown>, cuerpo: string): string {
-  const doc = parseDocument(fmOriginal ?? stringify({}));
-  for (const [clave, valor] of Object.entries(cambios)) doc.set(clave, valor);
-  const fm = Object.keys(cambios).length === 0 && fmOriginal === null ? "" : doc.toString();
-  return fm === "" ? cuerpo : `---\n${fm.replace(/\n?$/, "\n")}---\n${cuerpo}`;
+  const texto = (obj: unknown) => new Document(obj).toString({ lineWidth: 0 }).trimEnd();
+  const eol = fmOriginal?.includes("\r\n") ? "\r\n" : "\n";
+  const lf = (t: string) => t.replace(/\n/g, eol);
+  let fm = fmOriginal ?? "";
+  const nuevas: string[] = [];
+  const ediciones: { ini: number; fin: number; txt: string }[] = [];
+  const mapa = fmOriginal === null ? null : parseDocument(fmOriginal).contents;
+  for (const [clave, valor] of Object.entries(cambios)) {
+    const txt = lf(texto({ [clave]: valor }));
+    const par = isMap(mapa) ? mapa.items.find((p) => isScalar(p.key) && p.key.value === clave) : undefined;
+    const k = par && isScalar(par.key) ? par.key.range : null;
+    if (!par || !k) { nuevas.push(txt); continue; }
+    const v = isNode(par.value) ? par.value.range : null;
+    let fin = v ? v[1] : fm.indexOf(":", k[1]) + 1;
+    while (v && /\s/.test(fm[fin - 1] ?? "")) fin--;
+    ediciones.push({ ini: k[0], fin, txt });
+  }
+  for (const { ini, fin, txt } of ediciones.sort((a, b) => b.ini - a.ini)) fm = fm.slice(0, ini) + txt + fm.slice(fin);
+  fm = [fm, ...nuevas].filter((x) => x !== "").join(eol);
+  return fm === "" ? cuerpo : `---${eol}${fm}${eol}---${eol}${cuerpo}`;
 }

@@ -18,10 +18,6 @@ const COLECCION: Record<string, Coleccion> = {
   cliente: "clientes", entregable: "entregables", reunion: "reuniones", "brief-reunion": "reuniones",
   decision: "decisiones", persona: "personas", aprobacion: "aprobaciones",
 };
-const RUTAS = [
-  /^clientes\/[^/]+\/_ficha\.md$/, /^clientes\/[^/]+\/(entregables|reuniones|decisiones)\/[^/]+\.md$/,
-  /^equipo\/personas\/[^/]+\.md$/, /^bandeja\/[^/]+\.md$/,
-];
 
 const vacio = (): Indice => ({
   clientes: [], entregables: [], reuniones: [], decisiones: [], personas: [], aprobaciones: [], rotos: [],
@@ -34,20 +30,33 @@ function iso(v: unknown): unknown {
   return s.endsWith("T00:00:00.000Z") ? s.slice(0, 10) : s;
 }
 
-type Entrada = { coleccion: Coleccion; obj: { ruta: string } } | { error: string } | null;
+type Entrada = { coleccion?: Coleccion; obj?: { ruta: string }; errores: string[] };
 
-function leer(ruta: string, texto: string): Entrada {
-  if (!RUTAS.some((r) => r.test(ruta))) return null;
+const CARPETA: [RegExp, string[]][] = [
+  [/^clientes\/[^/]+\/_ficha\.md$/, ["cliente"]],
+  [/^clientes\/[^/]+\/entregables\/[^/]+\.md$/, ["entregable"]],
+  [/^clientes\/[^/]+\/reuniones\/[^/]+\.md$/, ["reunion", "brief-reunion"]],
+  [/^clientes\/[^/]+\/decisiones\/[^/]+\.md$/, ["decision"]],
+  [/^equipo\/personas\/[^/]+\.md$/, ["persona"]],
+  [/^bandeja\/[^/]+\.md$/, ["aprobacion"]],
+];
+
+function leer(ruta: string, texto: string): Entrada | null {
+  const esperados = CARPETA.find(([r]) => r.test(ruta))?.[1];
+  if (!esperados) return null;
+  const bandeja = ruta.startsWith("bandeja/");
   const { meta, error } = separar(texto);
-  if (error) return { error };
-  if (!meta) return null;
-  const tipo = meta.tipo;
-  if (typeof tipo !== "string" || !(tipo in COLECCION)) return null;
-  const falta = REQUERIDOS[tipo]?.find((c) => meta[c] == null);
-  if (falta) return { error: `falta '${falta}'` };
+  if (error) return { errores: [error] };
+  const tipo = meta?.tipo;
+  if (bandeja && tipo !== "aprobacion") return null; // la bandeja también guarda notas libres
+  if (!meta) return { errores: ["sin frontmatter"] };
+  if (typeof tipo !== "string") return { errores: ["falta 'tipo'"] };
+  if (!(tipo in COLECCION)) return { errores: [`tipo desconocido '${tipo}'`] };
+  if (!esperados.includes(tipo)) return { errores: [`tipo '${tipo}' no corresponde a esta carpeta`] };
   const obj = { ...meta, ruta } as Record<string, unknown>;
   for (const c of ["fecha", "vence", "proximo_contacto"]) if (c in obj) obj[c] = iso(obj[c]);
-  return { coleccion: COLECCION[tipo], obj: obj as { ruta: string } };
+  const errores = REQUERIDOS[tipo].filter((c) => meta[c] == null).map((c) => `falta '${c}'`);
+  return { coleccion: COLECCION[tipo], obj: obj as { ruta: string }, errores };
 }
 
 /** Aplica cambios (ruta → contenido nuevo, o null si se borró) sin mutar el índice anterior. */
@@ -59,8 +68,8 @@ export function actualizarIndice(i: Indice, cambios: Map<string, string | null>)
   for (const [ruta, texto] of cambios) {
     const e = texto === null ? null : leer(ruta, texto);
     if (!e) continue;
-    if ("error" in e) nuevo.rotos.push({ ruta, error: e.error });
-    else (nuevo[e.coleccion] as { ruta: string }[]).push(e.obj);
+    for (const error of e.errores) nuevo.rotos.push({ ruta, error });
+    if (e.coleccion && e.obj) (nuevo[e.coleccion] as { ruta: string }[]).push(e.obj);
   }
   for (const k of Object.keys(nuevo) as (keyof Indice)[]) {
     (nuevo[k] as { ruta: string }[]).sort((a, b) => a.ruta.localeCompare(b.ruta));
