@@ -12,6 +12,8 @@ const POR_DEFECTO: Config = {
   ultimoVisto: null,
   sesiones: {},
   avisos: { reuniones: true, actas: true, dia: true },
+  yaAvisados: [],
+  pausaHasta: null,
 };
 
 export function leerConfig(ruta = RUTA_CONFIG): Config {

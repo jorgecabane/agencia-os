@@ -5,6 +5,7 @@ directories:
 files:
   - out/**
   - ui-dist/**
+  - shell/assets/**
 mac:
   target: dir
   identity: null

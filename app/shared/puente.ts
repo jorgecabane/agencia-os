@@ -24,7 +24,17 @@ export interface Config {
   ultimoVisto: string | null;
   sesiones: Record<string, string>;
   avisos: { reuniones: boolean; actas: boolean; dia: boolean };
+  /** Ids de avisos ya mostrados (para no repetirlos al reiniciar). */
+  yaAvisados: string[];
+  /** "Pausar avisos 1 h": ISO hasta cuándo no se avisa nada. */
+  pausaHasta: string | null;
 }
+
+/** Un aviso del sistema. `id` empieza con su clase (`reunion:`, `acta:`, `dia:`); `ruta` es lo que abre al hacer clic. */
+export type Aviso = { id: string; titulo: string; texto: string; ruta: string };
+
+/** Lo que la barra o un aviso le piden a la ventana principal: abrir un archivo o mandar una captura al chat. */
+export type PedidoApp = { ruta: string } | { captura: string };
 
 /** Lo que el shell expone a la UI como `window.aos`. Las tareas siguientes lo completan. */
 export interface Puente {
@@ -77,6 +87,25 @@ export interface Puente {
     show(hash: string, ruta: string): Promise<string>;
     /** Nombre y correo de `git config`. */
     yo(): Promise<{ nombre: string; email: string }>;
+  };
+  /** Lo que toca el sistema: links, avisos, la barra de menú y la ventana principal. */
+  sistema: {
+    /** Abre `url` en el navegador; rechaza todo lo que no sea https. */
+    abrir(url: string): Promise<void>;
+    /** Muestra el aviso salvo que ya se mostró, su clase esté apagada o los avisos estén en pausa. */
+    notificar(a: Aviso): void;
+    /** Número junto al ícono de la barra; con `atrasado` agrega "▲". */
+    icono(pendientes: number, atrasado: boolean): void;
+    /** Muestra la ventana principal (la crea si estaba cerrada); con `ruta`, abre ese archivo. */
+    principal(ruta?: string): void;
+    /** Manda `texto` al chat de "Todo el espacio" en la ventana principal; false si Claude está ocupado. */
+    capturar(texto: string): Promise<boolean>;
+    /** Ventana principal: pedidos de la barra o de un aviso (incluye los que llegaron antes de escuchar). */
+    onPedido(cb: (p: PedidoApp) => void): () => void;
+    /** Ventana de la barra: se apretó ⌥Espacio. */
+    onCaptura(cb: () => void): () => void;
+    /** Ventana de la barra: alto de su contenido. */
+    alto(px: number): void;
   };
 }
 

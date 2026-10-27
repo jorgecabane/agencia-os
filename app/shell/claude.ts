@@ -140,6 +140,8 @@ export function crearClaude(deps: Deps) {
         reanudar();
       }
     },
+    /** Hay un turno corriendo (en cualquier contexto). */
+    ocupado: (): boolean => ocupado,
     cancelar(contextoId: string): void {
       vivos.get(contextoId)?.kill();
     },

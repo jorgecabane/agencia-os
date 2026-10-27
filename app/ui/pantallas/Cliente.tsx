@@ -153,11 +153,14 @@ function armarAcciones({ ficha, vistas, guardarVistas, recargar, elegir, fallo, 
 
 function Cabecera({ ficha, compacta }: { ficha: Ficha; compacta: boolean }) {
   const { indice } = useSesion();
-  const [copiado, setCopiado] = useState(false);
+  const [copiado, setCopiado] = useState<string | null>(null);
   const resp = ficha.responsable === "ia" ? "Claude" : indice.personas.find((p) => p.slug === ficha.responsable)?.nombre ?? ficha.responsable;
   const marca = <span className="marca" style={{ background: colorPara(ficha.slug) }} aria-hidden>{ficha.nombre[0]}</span>;
   if (compacta) return <div className="cliente-cabeza compacta">{marca}<h1 className="titulo">{ficha.nombre}</h1></div>;
-  const copiar = (url: string) => void navigator.clipboard.writeText(url).then(() => setCopiado(true), () => {});
+  // El shell solo abre https; cualquier otro link se copia para que la persona decida.
+  const copiar = (url: string, nombre: string) => void navigator.clipboard.writeText(url).then(() => setCopiado(nombre), () => {});
+  const links = ([["Drive", ficha.drive], ["ClickUp", ficha.clickup]] as [string, string | undefined][])
+    .filter((l): l is [string, string] => Boolean(l[1]));
   return (
     <div className="cliente-cabeza">
       {marca}
@@ -168,11 +171,11 @@ function Cabecera({ ficha, compacta }: { ficha: Ficha; compacta: boolean }) {
           <span className="chip">{ficha.modalidad[0].toUpperCase() + ficha.modalidad.slice(1)}</span>
           <span className="chip"><span className="k">Responsable</span>{resp}</span>
           {ficha.dominios_email?.[0] && <span className="chip">{ficha.dominios_email[0]}</span>}
-          {ficha.drive && (
-            <button className="chip boton" onClick={() => copiar(ficha.drive!)} title={ficha.drive}>
-              {copiado ? "✓ Link de Drive copiado" : "Copiar link de Drive"}
+          {links.map(([nombre, url]) => (
+            <button key={nombre} className="chip boton" title={url} onClick={() => void window.aos.sistema.abrir(url).catch(() => copiar(url, nombre))}>
+              {copiado === nombre ? `✓ Link de ${nombre} copiado` : <><span aria-hidden>↗</span>{nombre}</>}
             </button>
-          )}
+          ))}
         </div>
       </div>
     </div>

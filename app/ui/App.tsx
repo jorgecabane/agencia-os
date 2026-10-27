@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Barra, BarraSinPersona } from "./barra/Barra";
 import { Chat, type Pedido } from "./componentes/Chat";
 import { Editor } from "./componentes/Editor";
 import { ElegirPersona } from "./componentes/ElegirPersona";
@@ -10,6 +11,8 @@ import { Hoy } from "./pantallas/Hoy";
 import { Tablero } from "./pantallas/Tablero";
 
 const aviso = new URLSearchParams(location.search).get("aviso");
+// La ventana de la barra de menú carga la misma UI con #barra.
+const BARRA = location.hash === "#barra";
 const GLOBAL = { contextoId: "global", contexto: "Todo el espacio" };
 
 type Cajon = { contextoId: string; contexto: string; pedido?: Pedido };
@@ -39,7 +42,8 @@ function useCajon() {
     return () => window.removeEventListener("keydown", tecla);
   }, []);
   const pedir = (texto: string, contexto: string) => abrir({ contextoId: contexto, contexto, pedido: { texto } });
-  return { cajon, cerrar, pedir };
+  const capturar = (texto: string) => abrir({ ...GLOBAL, pedido: { texto } });
+  return { cajon, cerrar, pedir, capturar };
 }
 
 export function App() {
@@ -49,8 +53,22 @@ export function App() {
   const [eligiendo, setEligiendo] = useState(false);
   const [pantalla, ir] = useState<Pantalla>({ nombre: "hoy" });
   const [errorGuardar, setErrorGuardar] = useState<string | null>(null);
-  const { cajon, cerrar, pedir } = useCajon();
-  useEffect(() => void window.aos.persona().then(setPersona, () => setPersona(null)), []);
+  const { cajon, cerrar, pedir, capturar } = useCajon();
+  useEffect(() => {
+    const leer = () => void window.aos.persona().then(setPersona, () => setPersona(null));
+    leer();
+    if (!BARRA) return;
+    window.addEventListener("focus", leer); // la persona se elige en la ventana principal
+    return () => window.removeEventListener("focus", leer);
+  }, []);
+  // Lo que piden la barra o un aviso: abrir un archivo o mandar una captura rápida al chat.
+  useEffect(() => {
+    if (BARRA) return;
+    return window.aos.sistema.onPedido((p) => {
+      if ("captura" in p) return capturar(p.captura);
+      ir((actual) => ({ nombre: "editar", ruta: p.ruta, desde: actual.nombre === "editar" ? actual.desde : actual }));
+    });
+  }, []);
 
   if (error) {
     return (
@@ -64,6 +82,9 @@ export function App() {
     );
   }
   if (!indice || persona === undefined) return null;
+  if (BARRA) {
+    return persona ? <SesionCtx.Provider value={{ indice, persona }}><Barra /></SesionCtx.Provider> : <BarraSinPersona />;
+  }
   if (!persona || eligiendo) {
     return (
       <ElegirPersona

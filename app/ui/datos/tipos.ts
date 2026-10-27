@@ -2,6 +2,8 @@
 export type Cliente = {
   ruta: string; nombre: string; slug: string; etapa: string; modalidad: string; responsable: string;
   dominios_email?: string[]; emails?: string[]; proximo_contacto?: string; drive?: string;
+  /** Link (https) al espacio del cliente en ClickUp. */
+  clickup?: string;
 };
 export type Entregable = {
   ruta: string; cliente: string; formato: string; vence: string; estado: string; responsable: string;

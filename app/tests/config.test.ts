@@ -12,6 +12,8 @@ test("config por defecto y guardado parcial", () => {
     ultimoVisto: null,
     sesiones: {},
     avisos: { reuniones: true, actas: true, dia: true },
+    yaAvisados: [],
+    pausaHasta: null,
   });
 
   guardarConfig({ ultimoVisto: "abc123", avisos: { reuniones: false, actas: true, dia: true } }, ruta);
@@ -22,6 +24,8 @@ test("config por defecto y guardado parcial", () => {
     ultimoVisto: "abc123",
     sesiones: {},
     avisos: { reuniones: false, actas: true, dia: true },
+    yaAvisados: [],
+    pausaHasta: null,
   });
   expect(JSON.parse(readFileSync(ruta, "utf8")).repo).toBe("/tmp/agencia");
 });

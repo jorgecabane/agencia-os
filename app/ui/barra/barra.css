@@ -1,0 +1,56 @@
+/* Ventana de la barra de menú (mockups-app/barra.html). Colores: tokens de tokens.css. */
+.mb { display: flex; flex-direction: column; padding: 6px; user-select: none; }
+.mb .sec { color: var(--tenue); font-size: 12px; font-weight: 400; margin: 0; padding: 8px 10px 4px; }
+.mb p { margin: 0; }
+.mb kbd { font: inherit; font-size: 12px; border: 1px solid var(--linea); border-radius: 4px; padding: 0 4px; color: var(--tenue); }
+
+.next { background: var(--elevado); border-radius: var(--radio); padding: 10px 12px; margin: 0 4px 4px; }
+.next .when { color: var(--foco); font-size: 13px; font-weight: 550; }
+.next .t { font-weight: 600; font-size: 14px; margin: 2px 0; }
+.next .s { color: var(--apagado); font-size: 13px; }
+.acts { display: flex; gap: 6px; margin-top: 8px; }
+
+.mb .b, .mb .row, .mb .link, .mb .chk { all: unset; cursor: pointer; box-sizing: border-box; }
+.mb .b {
+  height: 28px; padding: 0 10px; border-radius: 7px; font-size: 14px; display: inline-flex; align-items: center;
+  border: 1px solid var(--linea); color: var(--texto); transition: transform 160ms var(--ease-out);
+}
+.mb .b:active { transform: scale(0.97); }
+.mb .b.pri { background: var(--foco); color: var(--sobre-foco); border-color: var(--foco); font-weight: 550; }
+
+.mb .row { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 7px; font-size: 14px; min-height: 32px; }
+.mb button.row:hover, .mb .row.ent:hover { background: var(--resaltado); }
+.mb .row .h { color: var(--apagado); font-size: 13px; width: 40px; flex: none; font-variant-numeric: tabular-nums; }
+.mb .row .txt { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mb .row .r { margin-left: auto; color: var(--tenue); font-size: 13px; flex: none; }
+.mb .row .r.tarde { color: var(--atraso); }
+.mb .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+.mb .chk {
+  width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid var(--tenue); flex: none;
+  transition: border-color 150ms ease, transform 160ms var(--ease-out);
+}
+.mb .chk:hover { border-color: var(--avance); }
+.mb .chk:active { transform: scale(0.9); }
+.mb .txt.link { text-align: left; }
+
+.mb .sep { border: 0; height: 1px; background: var(--linea-suave); margin: 6px 4px; }
+.vacio-mb { color: var(--tenue); padding: 4px 10px 6px; font-size: 13px; }
+
+.cap {
+  margin: 4px; border: 1px solid var(--linea); border-radius: var(--radio); padding: 6px 10px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+}
+.cap:focus-within { border-color: var(--foco); }
+.cap input { all: unset; flex: 1; min-width: 0; font-size: 14px; color: var(--texto); user-select: text; }
+.cap input::placeholder { color: var(--tenue); }
+.cap .espera { flex-basis: 100%; color: var(--apagado); font-size: 13px; }
+
+.foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 10px 4px; color: var(--tenue); font-size: 13px; }
+.foot .ok { color: var(--avance); }
+.foot .tarde { color: var(--atraso); }
+.mb .link { font-size: 14px; color: var(--apagado); border-radius: 4px; }
+.mb .link:hover { color: var(--texto); }
+
+.mb .b:focus-visible, .mb .row:focus-visible, .mb .link:focus-visible, .mb .chk:focus-visible {
+  outline: 2px solid var(--foco); outline-offset: 2px;
+}

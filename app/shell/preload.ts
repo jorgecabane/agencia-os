@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
-import type { Estado, EventoChat, Puente } from "../shared/puente";
+import type { Estado, EventoChat, PedidoApp, Puente } from "../shared/puente";
 
 // El preload corre en sandbox (solo puede requerir "electron"): la versión llega por argv desde main.
 const shellVersion = Number(process.argv.find((a) => a.startsWith("--aos-shell="))?.split("=")[1]);
@@ -57,6 +57,26 @@ const puente: Puente = {
     log: (opts) => ipcRenderer.invoke("git:log", opts),
     show: (hash, ruta) => ipcRenderer.invoke("git:show", hash, ruta),
     yo: () => ipcRenderer.invoke("git:yo"),
+  },
+  sistema: {
+    abrir: (url) => ipcRenderer.invoke("sistema:abrir", url),
+    notificar: (a) => ipcRenderer.send("sistema:notificar", a),
+    icono: (pendientes, atrasado) => ipcRenderer.send("sistema:icono", pendientes, atrasado),
+    principal: (ruta) => ipcRenderer.send("sistema:principal", ruta),
+    capturar: (texto) => ipcRenderer.invoke("sistema:capturar", texto),
+    onPedido: (cb) => {
+      // El shell guarda los pedidos hasta que esta ventana los toma: al empezar a escuchar y con cada aviso.
+      const tomar = () => void ipcRenderer.invoke("app:tomar").then((ps: PedidoApp[]) => ps.forEach(cb));
+      ipcRenderer.on("app:pedido", tomar);
+      tomar();
+      return () => ipcRenderer.removeListener("app:pedido", tomar);
+    },
+    onCaptura: (cb) => {
+      const escucha = () => cb();
+      ipcRenderer.on("barra:captura", escucha);
+      return () => ipcRenderer.removeListener("barra:captura", escucha);
+    },
+    alto: (px) => ipcRenderer.send("sistema:alto", px),
   },
 };
 contextBridge.exposeInMainWorld("aos", puente);
