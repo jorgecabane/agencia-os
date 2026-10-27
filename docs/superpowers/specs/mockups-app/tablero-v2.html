@@ -1,0 +1,130 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
+<style>
+  .os{
+    --bg:#242322; --surface:#2b2a28; --raised:#343230; --line:#3f3d39; --line-soft:#36342f;
+    --text:#ece9e2; --muted:#a39f96; --faint:#7c786f;
+    --focus:#a7b0ff; --moving:#8fc79a; --stale:#e58b7b;
+    --ease-out:cubic-bezier(0.23,1,0.32,1);
+    --donna:#e0a060; --pilates:#7fb38a; --clima:#9a8ad8; --musgo:#d78aa8; --noema:#6fa8d8;
+    background:var(--bg); color:var(--text); border-radius:14px; border:1px solid var(--line);
+    font:13px/1.45 -apple-system,"SF Pro Text",system-ui,sans-serif; padding:26px 28px 22px; position:relative;
+  }
+  .os *{box-sizing:border-box}
+  .top{display:flex;align-items:baseline;gap:22px;margin-bottom:14px}
+  .title{font-family:Newsreader,Georgia,serif;font-size:30px;font-weight:400;letter-spacing:-.01em;margin:0}
+  .views{display:flex;gap:2px}
+  .views button{all:unset;cursor:pointer;padding:5px 10px;border-radius:7px;color:var(--muted);font-size:13px;transition:background-color 150ms ease,color 150ms ease}
+  .views button:hover{background:var(--surface);color:var(--text)}
+  .views button.on{background:var(--raised);color:var(--text)}
+  .views .add{color:var(--faint)}
+
+  .bar{display:flex;align-items:center;gap:10px;padding:8px 0 14px;border-bottom:1px solid var(--line-soft);margin-bottom:14px;position:relative}
+  .people{display:flex;align-items:center}
+  .av{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:650;color:#1d1c1a;border:2px solid var(--bg);margin-left:-6px;cursor:pointer;transition:transform 160ms var(--ease-out),opacity 150ms ease}
+  .people .av:first-child{margin-left:0}
+  .people .av:active{transform:scale(.94)}
+  .people .av.off{opacity:.35}
+  .people .av.on{box-shadow:0 0 0 2px var(--focus)}
+  .sep{width:1px;height:18px;background:var(--line)}
+  .chip{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 4px 0 9px;border-radius:7px;background:var(--surface);border:1px solid var(--line);font-size:12.5px}
+  .chip .k{color:var(--muted)}
+  .chip .x{all:unset;cursor:pointer;width:18px;height:18px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;color:var(--faint)}
+  .chip .x:hover{background:var(--raised);color:var(--text)}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+  .btn{all:unset;cursor:pointer;height:26px;padding:0 10px;border-radius:7px;color:var(--muted);font-size:12.5px;display:inline-flex;align-items:center;gap:6px;transition:background-color 150ms ease,color 150ms ease,transform 160ms var(--ease-out)}
+  .btn:hover{background:var(--surface);color:var(--text)}
+  .btn:active{transform:scale(.97)}
+  .btn.open{background:var(--raised);color:var(--text)}
+  .btn:focus-visible,.views button:focus-visible,.chip .x:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+  .kbd{font-size:11px;color:var(--faint);border:1px solid var(--line);border-radius:4px;padding:0 4px}
+  .right{margin-left:auto;display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12.5px}
+
+  .pop{position:absolute;top:44px;left:96px;width:250px;background:var(--raised);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.35);padding:6px;z-index:5;
+       transform-origin:top left;animation:pop 180ms var(--ease-out)}
+  @keyframes pop{from{opacity:0;transform:scale(.96) translateY(-2px)}}
+  .pop input{all:unset;display:block;width:100%;padding:7px 8px 9px;border-bottom:1px solid var(--line);margin-bottom:4px;color:var(--text);font-size:12.5px}
+  .pop input::placeholder{color:var(--faint)}
+  .pop .head{display:flex;align-items:center;gap:6px;padding:4px 8px;color:var(--faint);font-size:12px}
+  .opt{display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:6px;font-size:12.5px;cursor:pointer}
+  .opt:hover,.opt.hl{background:#3d3b37}
+  .opt .n{margin-left:auto;color:var(--faint);font-size:11.5px}
+  .box{width:14px;height:14px;border-radius:4px;border:1.5px solid var(--faint);display:inline-flex;align-items:center;justify-content:center;font-size:10px}
+  .box.on{background:var(--focus);border-color:var(--focus);color:#1d1c1a}
+
+  .board{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+  .col h3{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:12.5px;font-weight:550;color:var(--muted)}
+  .col h3 .c{color:var(--faint);font-weight:400}
+  .col h3 .ring{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--faint)}
+  .card{background:var(--surface);border:1px solid var(--line-soft);border-radius:9px;padding:10px 11px 9px;margin-bottom:8px;cursor:grab;transition:border-color 150ms ease,transform 160ms var(--ease-out)}
+  @media (hover:hover) and (pointer:fine){.card:hover{border-color:var(--line)}}
+  .card:active{transform:scale(.985)}
+  .card .t{font-size:13px;font-weight:550;line-height:1.35}
+  .card .cl{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12px;margin-top:3px}
+  .card .ft{display:flex;align-items:center;justify-content:space-between;margin-top:9px;font-size:11.5px;color:var(--muted)}
+  .card .ft .av{width:20px;height:20px;font-size:9.5px;margin:0;border:0}
+  .act{display:flex;align-items:center;gap:5px;font-size:11.5px;margin-top:7px;color:var(--faint)}
+  .act.moving{color:var(--moving)} .act.stale{color:var(--stale)}
+  .due-late{color:var(--stale)}
+  .ghost{opacity:.55}
+  .note{color:var(--faint);font-size:12px;margin-top:14px}
+</style>
+
+<h2>Tablero del equipo · borrador 2</h2>
+<p class="subtitle">Filtros rehechos al estilo Linear: vistas guardadas arriba, caras del equipo para filtrar con un clic, filtros como etiquetas que se quitan con ×, y un menú que busca. Aquí el menú de "Filtrar" está abierto en "Cliente".</p>
+
+<div class="os">
+  <div class="top">
+    <h1 class="title">Tablero</h1>
+    <div class="views">
+      <button class="on">Esta semana</button><button>Todo</button><button>Atrasado</button><button>Esperando al cliente</button><button class="add">+ Vista</button>
+    </div>
+  </div>
+
+  <div class="bar">
+    <div class="people" title="Filtrar por persona">
+      <span class="av on" style="background:#a8c8f0" title="Jorge">J</span>
+      <span class="av on" style="background:#f0b0c8" title="Cami">C</span>
+      <span class="av off" style="background:#b8e0a8" title="Seba">S</span>
+      <span class="av off" style="background:#d9d4c7" title="Claude">✦</span>
+    </div>
+    <span class="sep"></span>
+    <button class="btn open">Filtrar <span class="kbd">F</span></button>
+    <span class="chip"><span class="k">Cliente</span><span class="dot" style="background:var(--donna)"></span>Donna's<span class="dot" style="background:var(--pilates)"></span>Casa Pilates<button class="x" aria-label="Quitar filtro de cliente">×</button></span>
+    <span class="chip"><span class="k">Vence</span>esta semana<button class="x" aria-label="Quitar filtro de fecha">×</button></span>
+    <div class="right"><span>9 tareas</span><span class="sep"></span><button class="btn">Agrupar por estado</button></div>
+
+    <div class="pop" role="dialog" aria-label="Filtrar por cliente">
+      <input placeholder="Buscar cliente…" aria-label="Buscar cliente">
+      <div class="head">‹ Cliente</div>
+      <div class="opt hl"><span class="box on">✓</span><span class="dot" style="background:var(--donna)"></span>Donna's<span class="n">6</span></div>
+      <div class="opt"><span class="box on">✓</span><span class="dot" style="background:var(--pilates)"></span>Casa Pilates SD<span class="n">3</span></div>
+      <div class="opt"><span class="box"></span><span class="dot" style="background:var(--clima)"></span>Clima Simple<span class="n">2</span></div>
+      <div class="opt"><span class="box"></span><span class="dot" style="background:var(--musgo)"></span>Como el Musguito<span class="n">1</span></div>
+      <div class="opt"><span class="box"></span><span class="dot" style="background:var(--noema)"></span>Noema<span class="n">1</span></div>
+    </div>
+  </div>
+
+  <div class="board">
+    <div class="col"><h3><span class="ring"></span>Brief <span class="c">3</span></h3>
+      <div class="card"><div class="t">Post jueves</div><div class="cl"><span class="dot" style="background:var(--donna)"></span>Donna's</div><div class="act">◌ 3 propuestas listas, sin abrir</div><div class="ft"><span>jue 29</span><span class="av" style="background:#f0b0c8">C</span></div></div>
+      <div class="card"><div class="t">Cotización del evento</div><div class="cl"><span class="dot" style="background:var(--donna)"></span>Donna's</div><div class="act stale">▲ Quieta hace 4 días</div><div class="ft"><span class="due-late">Vencía ayer</span><span class="av" style="background:#a8c8f0">J</span></div></div>
+      <div class="card"><div class="t">Post sábado</div><div class="cl"><span class="dot" style="background:var(--donna)"></span>Donna's</div><div class="act">◌ Creada por el plan</div><div class="ft"><span>sáb 31</span><span class="av" style="background:#f0b0c8">C</span></div></div>
+    </div>
+    <div class="col"><h3><span class="ring" style="border-color:#c9b46a"></span>En curso <span class="c">2</span></h3>
+      <div class="card"><div class="t">Calendario de noviembre</div><div class="cl"><span class="dot" style="background:var(--pilates)"></span>Casa Pilates SD</div><div class="act moving">● Cami subió la v2 hace 2 h</div><div class="ft"><span>Hoy</span><span class="av" style="background:#f0b0c8">C</span></div></div>
+      <div class="card"><div class="t">Responder DMs de la semana</div><div class="cl"><span class="dot" style="background:var(--donna)"></span>Donna's</div><div class="act">◌ 12 borradores de respuesta listos</div><div class="ft"><span class="due-late">Ayer</span><span class="av" style="background:#f0b0c8">C</span></div></div>
+    </div>
+    <div class="col"><h3><span class="ring" style="border-color:var(--focus)"></span>Revisión <span class="c">2</span></h3>
+      <div class="card"><div class="t">Carrusel de lanzamiento</div><div class="cl"><span class="dot" style="background:var(--donna)"></span>Donna's</div><div class="act moving">● El cliente pidió menos texto</div><div class="ft"><span>vie 30</span><span class="av" style="background:#a8c8f0">J</span></div></div>
+      <div class="card"><div class="t">Post martes</div><div class="cl"><span class="dot" style="background:var(--pilates)"></span>Casa Pilates SD</div><div class="act">◌ Esperando tu OK para publicar</div><div class="ft"><span>Hoy</span><span class="av" style="background:#f0b0c8">C</span></div></div>
+    </div>
+    <div class="col"><h3><span class="ring" style="border-color:var(--moving)"></span>Aprobado <span class="c">1</span></h3>
+      <div class="card"><div class="t">Reel del evento</div><div class="cl"><span class="dot" style="background:var(--donna)"></span>Donna's</div><div class="act">◌ Listo para publicar el lunes</div><div class="ft"><span>lun 2</span><span class="av" style="background:#a8c8f0">J</span></div></div>
+    </div>
+    <div class="col"><h3><span class="ring" style="border-color:var(--faint);background:var(--faint)"></span>Publicado <span class="c">1</span></h3>
+      <div class="card ghost"><div class="t">Post sábado 24</div><div class="cl"><span class="dot" style="background:var(--donna)"></span>Donna's</div><div class="act">2× guardados sobre el promedio</div><div class="ft"><span>sáb 24</span><span class="av" style="background:#f0b0c8">C</span></div></div>
+    </div>
+  </div>
+  <p class="note">Las caras de arriba son el filtro más rápido: clic en una para ver solo lo suyo, otro clic para sumar a alguien. Cada vista guardada recuerda sus filtros. La actividad usa ícono y texto, no solo color.</p>
+</div>

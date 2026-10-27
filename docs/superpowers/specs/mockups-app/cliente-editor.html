@@ -1,0 +1,107 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
+<style>
+  .os{
+    --bg:#242322; --side:#1f1e1d; --surface:#2b2a28; --raised:#343230; --line:#3f3d39; --line-soft:#36342f;
+    --text:#ece9e2; --muted:#a39f96; --faint:#7c786f; --focus:#a7b0ff; --stale:#e58b7b; --moving:#8fc79a;
+    --ease-out:cubic-bezier(0.23,1,0.32,1); --donna:#e0a060;
+    display:grid;grid-template-columns:196px 1fr;background:var(--bg);color:var(--text);border-radius:14px;border:1px solid var(--line);overflow:hidden;
+    font:13px/1.45 -apple-system,"SF Pro Text",system-ui,sans-serif;min-height:720px;
+  }
+  .os *{box-sizing:border-box}
+  .side{background:var(--side);border-right:1px solid var(--line-soft);padding:14px 8px}
+  .side a{display:flex;align-items:center;gap:9px;padding:6px 10px;border-radius:7px;color:var(--muted);font-size:13px}
+  .side a.on{background:var(--raised);color:var(--text)}
+  .side .g{color:var(--faint);font-size:12px;margin:16px 10px 6px}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
+  .main{padding:22px 32px 300px;position:relative}
+  .crumb{display:flex;align-items:center;gap:10px}
+  .mark{width:30px;height:30px;border-radius:8px;background:var(--donna);color:#2a1d10;display:flex;align-items:center;justify-content:center;font-family:Newsreader,Georgia,serif;font-size:17px}
+  .crumb .n{font-family:Newsreader,Georgia,serif;font-size:22px}
+  .tabs{display:flex;align-items:center;gap:2px;margin:14px 0 0;border-bottom:1px solid var(--line-soft);position:relative}
+  .tabs span{padding:7px 11px;color:var(--muted);font-size:13px;border-bottom:2px solid transparent;margin-bottom:-1px;display:inline-flex;align-items:center;gap:6px}
+  .tabs span.on{color:var(--text);border-color:var(--text)}
+  .tabs .auto{color:var(--faint);font-size:11px}
+  .tabs .plus{color:var(--faint);border-radius:6px;padding:4px 8px;margin-left:4px;background:var(--surface)}
+  .tabmenu{position:absolute;top:36px;right:0;width:260px;background:var(--raised);border:1px solid var(--line);border-radius:10px;padding:6px;box-shadow:0 12px 32px rgba(0,0,0,.35);transform-origin:top right;z-index:4}
+  .tabmenu .o{padding:7px 9px;border-radius:6px;font-size:12.5px}
+  .tabmenu .o small{display:block;color:var(--faint);font-size:11.5px}
+  .tabmenu .o.hl{background:#3d3b37}
+  .doc{max-width:680px;margin:26px auto 0;position:relative}
+  .doc h1{font-family:Newsreader,Georgia,serif;font-weight:400;font-size:30px;margin:0 0 4px;letter-spacing:-.01em}
+  .saved{color:var(--faint);font-size:12px;margin-bottom:20px;display:flex;gap:10px;align-items:center}
+  .saved .ok{color:var(--moving)}
+  .doc h2{font-size:17px;font-weight:600;margin:22px 0 8px}
+  .doc p{margin:0 0 10px;line-height:1.6;font-size:14px;color:#dcd8cf}
+  .blk{position:relative}
+  .handle{position:absolute;left:-30px;top:2px;color:var(--faint);font-size:13px;letter-spacing:-2px;opacity:.9}
+  table{border-collapse:collapse;width:100%;font-size:13px;margin:6px 0 14px}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left}
+  th{color:var(--muted);font-weight:500;background:var(--surface)}
+  .img{height:120px;border-radius:10px;background:linear-gradient(135deg,#a3795b 0%,#e9cfae 60%,#d9b48c 100%);margin:8px 0 4px}
+  .cap{color:var(--faint);font-size:12px;margin-bottom:14px}
+  .typing{border-left:2px solid var(--focus);padding-left:2px;color:var(--muted)}
+  .slash{position:absolute;left:0;top:calc(100% + 6px);width:270px;background:var(--raised);border:1px solid var(--line);border-radius:10px;padding:6px;box-shadow:0 12px 32px rgba(0,0,0,.35);transform-origin:top left;z-index:4;animation:pop 180ms var(--ease-out)}
+  @keyframes pop{from{opacity:0;transform:scale(.96) translateY(-2px)}}
+  .slash .h{color:var(--faint);font-size:11.5px;padding:4px 8px}
+  .slash .o{display:flex;gap:10px;align-items:center;padding:6px 8px;border-radius:6px;font-size:12.5px}
+  .slash .o.hl{background:#3d3b37}
+  .slash .ic{width:26px;height:26px;border-radius:6px;background:var(--surface);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted)}
+  .slash .o small{display:block;color:var(--faint);font-size:11px}
+</style>
+
+<h2>Página de cliente, pestaña editable · borrador 1</h2>
+<p class="subtitle">"Resumen" se arma solo (no se toca). El resto son páginas tipo Notion: escribes, "/" para insertar bloques, y "+" agrega pestañas nuevas. Todo se guarda como markdown en la carpeta del cliente.</p>
+
+<div class="os">
+  <nav class="side" aria-label="Navegación">
+    <a>Hoy</a><a>Aprobaciones</a><a>Calendario</a><a>Tablero</a><a>Equipo</a>
+    <div class="g">Clientes</div>
+    <a class="on"><span class="dot" style="background:var(--donna)"></span>Donna's</a>
+    <a><span class="dot" style="background:#7fb38a"></span>Casa Pilates SD</a>
+    <a><span class="dot" style="background:#9a8ad8"></span>Clima Simple</a>
+  </nav>
+
+  <main class="main">
+    <div class="crumb"><div class="mark">D</div><span class="n">Donna's</span></div>
+    <div class="tabs">
+      <span>Resumen <span class="auto">automático</span></span><span>Entregables</span><span>Reuniones</span><span>Decisiones</span><span class="on">Contexto</span><span>Brandbook</span><span>Plan</span><span>Campaña Navidad</span>
+      <span class="plus">+</span>
+      <div class="tabmenu">
+        <div class="o hl">Página en blanco<small>Texto, tablas, imágenes; como Notion</small></div>
+        <div class="o">Vista de tareas<small>Tabla, tablero o calendario solo de Donna's</small></div>
+        <div class="o">Pedírsela a Claude<small>"Una pestaña con los influencers que hemos contactado"</small></div>
+      </div>
+    </div>
+
+    <article class="doc">
+      <h1>Contexto</h1>
+      <div class="saved"><span class="ok">Guardado</span> Editado por Cami hace 5 min · historial</div>
+
+      <div class="blk"><span class="handle">⋮⋮</span><h2>Negocio</h2></div>
+      <div class="blk"><p>Tienda online de productos para mascotas con foco en adopción responsable. Vende por Shopify y tiene una tienda física en Providencia.</p></div>
+
+      <div class="blk"><span class="handle">⋮⋮</span><h2>Audiencia</h2></div>
+      <div class="blk"><span class="handle">⋮⋮</span>
+        <table>
+          <tr><th>Segmento</th><th>Qué le importa</th><th>Dónde está</th></tr>
+          <tr><td>Adoptantes primerizos</td><td>Qué comprar, cómo empezar</td><td>Instagram, TikTok</td></tr>
+          <tr><td>Dueños de perros grandes</td><td>Durabilidad, precio</td><td>Instagram, Google</td></tr>
+        </table>
+      </div>
+
+      <div class="blk"><span class="handle">⋮⋮</span><div class="img" role="img" aria-label="Foto del casting de septiembre"></div><div class="cap">Casting de septiembre, la estética que mejor funciona</div></div>
+
+      <div class="blk"><p class="typing">/tab</p>
+        <div class="slash">
+          <div class="h">Insertar</div>
+          <div class="o hl"><span class="ic">▦</span><span>Tabla<small>Filas y columnas</small></span></div>
+          <div class="o"><span class="ic">H</span><span>Título</span></div>
+          <div class="o"><span class="ic">☐</span><span>Lista de tareas</span></div>
+          <div class="o"><span class="ic">▣</span><span>Imagen<small>Arrastra un archivo o pega un link de Drive</small></span></div>
+          <div class="o"><span class="ic">✦</span><span>Pedirle a Claude<small>Escribe o completa esta sección</small></span></div>
+        </div>
+      </div>
+    </article>
+  </main>
+</div>

@@ -1,0 +1,169 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
+<style>
+  .os{
+    --bg:#242322; --side:#1f1e1d; --surface:#2b2a28; --raised:#343230; --line:#3f3d39; --line-soft:#36342f;
+    --text:#ece9e2; --muted:#a39f96; --faint:#7c786f;
+    --focus:#a7b0ff; --moving:#8fc79a; --stale:#e58b7b;
+    --ease-out:cubic-bezier(0.23,1,0.32,1);
+    --donna:#e0a060;
+    display:grid;grid-template-columns:196px 1fr;background:var(--bg);color:var(--text);border-radius:14px;border:1px solid var(--line);overflow:hidden;
+    font:13px/1.45 -apple-system,"SF Pro Text",system-ui,sans-serif;min-height:700px;
+  }
+  .os *{box-sizing:border-box}
+  .side{background:var(--side);border-right:1px solid var(--line-soft);padding:14px 8px}
+  .side a{display:flex;align-items:center;gap:9px;padding:6px 10px;border-radius:7px;color:var(--muted);text-decoration:none;font-size:13px}
+  .side a.on{background:var(--raised);color:var(--text)}
+  .side .g{color:var(--faint);font-size:12px;margin:16px 10px 6px}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
+  .main{padding:26px 32px}
+  .hero{display:flex;align-items:flex-start;gap:16px;margin-bottom:6px}
+  .mark{width:44px;height:44px;border-radius:11px;background:var(--donna);color:#2a1d10;display:flex;align-items:center;justify-content:center;font-family:Newsreader,Georgia,serif;font-size:24px}
+  h1{font-family:Newsreader,Georgia,serif;font-weight:400;font-size:32px;letter-spacing:-.01em;margin:0;line-height:1.1}
+  .facts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .tag{height:24px;display:inline-flex;align-items:center;gap:6px;padding:0 9px;border-radius:7px;background:var(--surface);border:1px solid var(--line-soft);font-size:12px;color:var(--muted)}
+  .tag b{color:var(--text);font-weight:500}
+  .av{width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:650;color:#1d1c1a}
+  .tabs{display:flex;gap:2px;margin:20px 0 18px;border-bottom:1px solid var(--line-soft)}
+  .tabs span{padding:7px 11px;color:var(--muted);font-size:13px;border-bottom:2px solid transparent;margin-bottom:-1px}
+  .tabs span.on{color:var(--text);border-color:var(--text)}
+  .grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:28px}
+  h2.s{font-size:13.5px;font-weight:600;margin:0 0 10px;display:flex;justify-content:space-between;align-items:baseline}
+  h2.s small{font-weight:400;color:var(--faint);font-size:12px}
+  .block{margin-bottom:24px}
+  .next{background:var(--surface);border:1px solid var(--line-soft);border-radius:11px;padding:14px 16px}
+  .next .when{color:var(--muted);font-size:12px}
+  .next .what{font-size:15px;font-weight:550;margin:2px 0 8px}
+  .next ul{margin:0;padding-left:18px;color:var(--muted);font-size:12.5px}
+  .next li{margin:2px 0}
+  .btn{all:unset;cursor:pointer;height:28px;padding:0 11px;border-radius:7px;font-size:12.5px;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);color:var(--text);margin-top:10px;transition:transform 160ms var(--ease-out),background-color 150ms ease}
+  .btn:active{transform:scale(.97)}
+  .btn.pri{background:var(--focus);border-color:var(--focus);color:#1d1c1a;font-weight:550}
+  .list{border:1px solid var(--line-soft);border-radius:11px;overflow:hidden}
+  .li{display:grid;grid-template-columns:68px 1fr auto;gap:12px;align-items:center;padding:10px 14px;border-top:1px solid var(--line-soft)}
+  .li:first-child{border-top:0}
+  .li .d{color:var(--muted);font-size:12px}
+  .li .d.late{color:var(--stale)}
+  .li .t{font-weight:500}
+  .li .sub{color:var(--faint);font-size:12px}
+  .st{font-size:11.5px;color:var(--muted);display:inline-flex;align-items:center;gap:5px}
+  .ring{width:9px;height:9px;border-radius:50%;border:1.5px solid currentColor}
+  .owe .li{grid-template-columns:68px 1fr auto}
+  .tl{position:relative;padding-left:16px}
+  .tl::before{content:"";position:absolute;left:4px;top:6px;bottom:6px;width:1px;background:var(--line)}
+  .ev{position:relative;margin-bottom:13px}
+  .ev::before{content:"";position:absolute;left:-15px;top:6px;width:7px;height:7px;border-radius:50%;background:var(--faint)}
+  .ev.k::before{background:var(--donna)}
+  .ev .when{color:var(--faint);font-size:11.5px}
+  .ev .txt{font-size:12.5px}
+  .ev .who{color:var(--muted)}
+  .learn{background:var(--surface);border:1px solid var(--line-soft);border-radius:11px;padding:12px 14px;font-size:12.5px}
+  .learn p{margin:0 0 7px}
+  .learn p:last-child{margin:0}
+  .learn .src{color:var(--faint)}
+  .health{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .h{background:var(--surface);border:1px solid var(--line-soft);border-radius:10px;padding:10px 12px}
+  .h .v{font-size:18px;font-weight:550}
+  .h .l{color:var(--muted);font-size:11.5px}
+  .h .v.ok{color:var(--moving)}
+</style>
+
+<h2>Página de cliente · borrador 1</h2>
+<p class="subtitle">Todo lo de Donna's en un lugar, con el norte de diseño del tablero. Pestaña "Resumen" abierta; las demás son las secciones que hoy viven como archivos.</p>
+
+<div class="os">
+  <nav class="side" aria-label="Navegación">
+    <a>Hoy</a><a>Aprobaciones</a><a>Calendario</a><a>Tablero</a><a>Equipo</a>
+    <div class="g">Clientes</div>
+    <a class="on"><span class="dot" style="background:var(--donna)"></span>Donna's</a>
+    <a><span class="dot" style="background:#7fb38a"></span>Casa Pilates SD</a>
+    <a><span class="dot" style="background:#9a8ad8"></span>Clima Simple</a>
+    <a><span class="dot" style="background:#d78aa8"></span>Como el Musguito</a>
+    <a><span class="dot" style="background:#6fa8d8"></span>Noema</a>
+  </nav>
+
+  <main class="main">
+    <div class="hero">
+      <div class="mark">D</div>
+      <div>
+        <h1>Donna's</h1>
+        <div class="facts">
+          <span class="tag"><b>Activo</b></span>
+          <span class="tag">Retainer growth</span>
+          <span class="tag">Responsable <span class="av" style="background:#a8c8f0">J</span> <b>Jorge</b></span>
+          <span class="tag">donnapet.cl</span>
+          <span class="tag">Drive</span>
+          <span class="tag">ClickUp</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabs" role="tablist">
+      <span class="on">Resumen</span><span>Entregables 14</span><span>Reuniones 9</span><span>Decisiones 6</span><span>Contexto</span><span>Brandbook</span><span>Plan</span><span>Material</span><span>Métricas</span>
+    </div>
+
+    <div class="grid">
+      <div>
+        <section class="block">
+          <h2 class="s">Lo próximo</h2>
+          <div class="next">
+            <div class="when">Hoy, 17:00 · revisión mensual con Ana y Pablo</div>
+            <div class="what">El brief de la reunión está listo</div>
+            <ul>
+              <li>Mostrar la v2 del carrusel (pidieron menos texto)</li>
+              <li>Falta la cotización del evento, vencía ayer</li>
+              <li>Propuesta: repetir el formato del reel del casting, que convirtió el doble</li>
+            </ul>
+            <button class="btn pri">Abrir brief</button> <button class="btn">Preguntarle a Claude</button>
+          </div>
+        </section>
+
+        <section class="block">
+          <h2 class="s">Entregables abiertos <small>ver todos</small></h2>
+          <div class="list">
+            <div class="li"><span class="d late">Ayer</span><div><div class="t">Cotización del evento</div><div class="sub">Jorge · salió de la reunión del 21</div></div><span class="st" style="color:var(--stale)"><span class="ring"></span>Quieta 4 días</span></div>
+            <div class="li"><span class="d">vie 30</span><div><div class="t">Carrusel de lanzamiento</div><div class="sub">Jorge · v2 en curso</div></div><span class="st" style="color:var(--focus)"><span class="ring"></span>Revisión</span></div>
+            <div class="li"><span class="d">jue 29</span><div><div class="t">Post jueves</div><div class="sub">Cami · 3 propuestas listas</div></div><span class="st"><span class="ring"></span>Brief</span></div>
+            <div class="li"><span class="d">lun 3</span><div><div class="t">Reporte semana 44</div><div class="sub">Claude · lo arma el domingo</div></div><span class="st" style="color:#c9b46a"><span class="ring"></span>En curso</span></div>
+          </div>
+        </section>
+
+        <section class="block owe">
+          <h2 class="s">Lo que nos debe</h2>
+          <div class="list">
+            <div class="li"><span class="d late">vie 23</span><div><div class="t">Fotos del casting</div><div class="sub">Ana lo prometió en la reunión del 21</div></div><button class="btn" style="margin:0">Ver recordatorio</button></div>
+          </div>
+        </section>
+      </div>
+
+      <aside>
+        <section class="block">
+          <h2 class="s">Esta semana</h2>
+          <div class="health">
+            <div class="h"><div class="v ok">+18%</div><div class="l">Seguidores vs. mes pasado</div></div>
+            <div class="h"><div class="v">7 de 12</div><div class="l">Posts del mes</div></div>
+            <div class="h"><div class="v" style="color:var(--stale)">1</div><div class="l">Promesa atrasada</div></div>
+          </div>
+        </section>
+
+        <section class="block">
+          <h2 class="s">Lo que aprendimos <small>editar</small></h2>
+          <div class="learn">
+            <p>Prefieren carruseles con poco texto; lo pidieron 3 veces. <span class="src">21 oct</span></p>
+            <p>Los reels con perros reales convierten el doble que los de producto. <span class="src">14 oct</span></p>
+          </div>
+        </section>
+
+        <section class="block">
+          <h2 class="s">Línea de tiempo</h2>
+          <div class="tl">
+            <div class="ev k"><div class="when">Hoy, 9:12</div><div class="txt">Claude preparó el brief de la revisión mensual <span class="who">· Claude</span></div></div>
+            <div class="ev"><div class="when">Ayer</div><div class="txt">Carrusel movido del 27 al 30 <span class="who">· Jorge</span></div></div>
+            <div class="ev k"><div class="when">21 oct</div><div class="txt">Reunión de colección: 2 decisiones, 3 tareas nuevas <span class="who">· Claude</span></div></div>
+            <div class="ev"><div class="when">20 oct</div><div class="txt">Post sábado publicado <span class="who">· Cami</span></div></div>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </main>
+</div>

@@ -1,0 +1,111 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
+<style>
+  .os{
+    --bg:#242322; --side:#1f1e1d; --surface:#2b2a28; --raised:#343230; --line:#3f3d39; --line-soft:#36342f;
+    --text:#ece9e2; --muted:#a39f96; --faint:#7c786f; --focus:#a7b0ff; --stale:#e58b7b; --moving:#8fc79a;
+    --ease-out:cubic-bezier(0.23,1,0.32,1); --donna:#e0a060;
+    display:grid;grid-template-columns:1fr 380px;background:var(--bg);color:var(--text);border-radius:14px;border:1px solid var(--line);overflow:hidden;
+    font:13px/1.45 -apple-system,"SF Pro Text",system-ui,sans-serif;min-height:760px;
+  }
+  .os *{box-sizing:border-box}
+  .doc{padding:24px 40px}
+  .crumb{color:var(--muted);font-size:12.5px;display:flex;gap:8px;align-items:center}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+  h1{font-family:Newsreader,Georgia,serif;font-weight:400;font-size:30px;margin:8px 0 10px;letter-spacing:-.01em}
+  .props{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+  .tag{height:24px;display:inline-flex;align-items:center;gap:6px;padding:0 9px;border-radius:7px;background:var(--surface);border:1px solid var(--line-soft);font-size:12px;color:var(--muted)}
+  .tag.ch{border-color:var(--moving);color:var(--moving)}
+  h2{font-size:15px;font-weight:600;margin:18px 0 8px}
+  p{margin:0 0 8px;color:#dcd8cf;font-size:13.5px;line-height:1.6}
+  .new{background:rgba(143,199,154,.10);box-shadow:inset 2px 0 0 var(--moving);border-radius:4px;padding:2px 8px;margin-left:-8px}
+  .slides{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:6px 0 4px}
+  .sl{aspect-ratio:4/5;border-radius:9px;padding:10px;display:flex;flex-direction:column;justify-content:flex-end;font-size:11px;font-weight:600;color:#2a1d10;position:relative;
+      background:linear-gradient(160deg,#f1dcc0,#d9a877)}
+  .sl:nth-child(2){background:linear-gradient(160deg,#efe3cf,#c9b08a)}
+  .sl:nth-child(3){background:linear-gradient(160deg,#e9d6bd,#b98b62)}
+  .sl:nth-child(4){background:linear-gradient(160deg,#f3e6d3,#d7b48d)}
+  .sl.wip{background:var(--surface);border:1px dashed var(--line);color:var(--faint);font-weight:400;align-items:center;justify-content:center}
+  .sl .num{position:absolute;top:8px;left:10px;font-size:10px;opacity:.6}
+  .sh{position:relative;overflow:hidden}
+  .sh::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.05),transparent);animation:sh 1.4s linear infinite}
+  @keyframes sh{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+  @media (prefers-reduced-motion:reduce){.sh::after{animation:none}}
+  .cap{color:var(--faint);font-size:12px}
+  .review{position:sticky;bottom:0;margin-top:18px;display:flex;align-items:center;gap:10px;background:var(--raised);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:12.5px}
+  .review .grow{flex:1;color:var(--muted)}
+  .btn{all:unset;cursor:pointer;height:28px;padding:0 11px;border-radius:7px;font-size:12.5px;display:inline-flex;align-items:center;border:1px solid var(--line);color:var(--text);transition:transform 160ms var(--ease-out)}
+  .btn:active{transform:scale(.97)}
+  .btn.pri{background:var(--focus);border-color:var(--focus);color:#1d1c1a;font-weight:550}
+
+  .chat{background:#272625;border-left:1px solid var(--line-soft);display:flex;flex-direction:column}
+  .ch-head{padding:14px 16px 10px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:8px}
+  .ctx{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 9px;border-radius:7px;background:var(--surface);border:1px solid var(--line);font-size:12px}
+  .ch-head .r{margin-left:auto;color:var(--faint);font-size:12px}
+  .msgs{padding:16px;display:flex;flex-direction:column;gap:12px;flex:1}
+  .me{align-self:flex-end;background:var(--raised);border-radius:12px 12px 4px 12px;padding:8px 12px;max-width:85%}
+  .ai{font-size:13px;line-height:1.55;color:#dcd8cf}
+  .steps{border:1px solid var(--line-soft);border-radius:10px;padding:8px 10px;font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:5px}
+  .steps div{display:flex;gap:8px;align-items:center}
+  .ok{color:var(--moving)} .run{color:var(--focus)}
+  .appr{border:1px solid #5d5640;background:#2d2b23;border-radius:10px;padding:10px 12px;font-size:12.5px}
+  .appr b{display:block;margin-bottom:4px}
+  .appr .q{color:var(--muted);margin-bottom:8px}
+  .input{margin:12px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface)}
+  .input .ph{color:var(--faint)}
+  .recs{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+  .recs span{font-size:11.5px;border:1px solid var(--line);border-radius:6px;padding:2px 8px;color:var(--muted)}
+</style>
+
+<h2>Chat con Claude, en contexto · borrador 1</h2>
+<p class="subtitle">Pediste "desarrolla la propuesta 1" desde la tarea. Claude trabaja en el chat (derecha) y el documento cambia en vivo (izquierda): lo nuevo queda marcado hasta que lo aceptes o lo deshagas.</p>
+
+<div class="os">
+  <section class="doc">
+    <div class="crumb"><span class="dot" style="background:var(--donna)"></span>Donna's / Entregables</div>
+    <h1>Post jueves: 5 cosas antes de adoptar</h1>
+    <div class="props">
+      <span class="tag">post-instagram</span><span class="tag">Vence jue 29</span><span class="tag">Cami</span><span class="tag ch">Brief → En curso</span>
+    </div>
+
+    <h2>Brief</h2>
+    <p>Pilar adopción responsable. Carrusel con las fotos del casting de septiembre, poco texto (preferencia de Donna's).</p>
+
+    <h2>Copy</h2>
+    <p class="new">¿Pensando en adoptar? Antes de traer a tu nuevo compañero, revisa estas 5 cosas. Guárdalo para cuando lo necesites 🐾</p>
+
+    <h2>Slides</h2>
+    <div class="slides">
+      <div class="sl"><span class="num">1</span>5 cosas antes de adoptar</div>
+      <div class="sl"><span class="num">2</span>Tu espacio está listo</div>
+      <div class="sl"><span class="num">3</span>Tiempo para paseos</div>
+      <div class="sl sh"><span class="num">4</span>Presupuesto mensual</div>
+      <div class="sl wip sh">generando…</div>
+    </div>
+    <div class="cap">Paleta y tipografía del brandbook de Donna's · fotos de Drive / Casting-sep</div>
+
+    <div class="review">
+      <span class="grow">Claude está editando: copy nuevo, 4 de 5 slides, estado a En curso</span>
+      <button class="btn">Deshacer todo</button><button class="btn pri">Aceptar</button>
+    </div>
+  </section>
+
+  <aside class="chat" aria-label="Chat con Claude">
+    <div class="ch-head"><span class="ctx"><span class="dot" style="background:var(--donna)"></span>Post jueves</span><span class="r">Conversación de esta tarea</span></div>
+    <div class="msgs">
+      <div class="me">Desarrolla la propuesta 1</div>
+      <div class="steps">
+        <div><span class="ok">✓</span>Leí el brandbook y lo que aprendimos de Donna's</div>
+        <div><span class="ok">✓</span>Elegí 5 fotos del casting de septiembre</div>
+        <div><span class="ok">✓</span>Escribí el copy (corto, como lo prefieren)</div>
+        <div><span class="run">◐</span>Armando slides con ig-carousel · 4 de 5</div>
+      </div>
+      <div class="ai">Usé la foto de Luna para la portada porque los posts con perros reales les rinden el doble. ¿Quieres que la slide 5 cierre con un CTA a la tienda o a seguir la cuenta?</div>
+      <div class="appr"><b>Publicar en Instagram requiere tu OK</b><div class="q">Cuando lo apruebes, lo dejo programado para el jueves 10:00.</div><button class="btn">Ver vista previa</button></div>
+    </div>
+    <div class="input">
+      <div class="ph">Responde o pide un cambio…</div>
+      <div class="recs"><span>Más corto</span><span>Otra portada</span><span>Versión reel</span></div>
+    </div>
+  </aside>
+</div>

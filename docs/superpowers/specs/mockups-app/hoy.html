@@ -1,0 +1,103 @@
+<style>
+  .app{display:grid;grid-template-columns:200px 1fr 380px;background:#262626;color:#e8e6e1;border-radius:12px;overflow:hidden;font:13px/1.45 -apple-system,system-ui,sans-serif;min-height:640px;border:1px solid #3a3a3a}
+  .side{background:#1f1f1f;padding:14px 10px;border-right:1px solid #333}
+  .side .it{padding:6px 10px;border-radius:7px;opacity:.85;display:flex;justify-content:space-between}
+  .side .it.on{background:#333;opacity:1}
+  .side .grp{font-size:11px;text-transform:uppercase;opacity:.45;margin:16px 10px 6px}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px}
+  .badge{background:#5b5bd6;border-radius:9px;padding:0 7px;font-size:11px}
+  .main{padding:26px 30px;overflow:auto}
+  .serif{font-family:Georgia,"Times New Roman",serif;font-weight:400}
+  h1.serif{font-size:30px;margin:0 0 4px}
+  .sub{opacity:.55;margin-bottom:20px}
+  .nov{background:#2f3326;border:1px solid #454c35;border-radius:10px;padding:10px 14px;margin-bottom:22px;font-size:12.5px}
+  .sec{font-size:11px;text-transform:uppercase;opacity:.5;margin:18px 0 8px;letter-spacing:.04em}
+  .row{display:grid;grid-template-columns:64px 4px 1fr auto;gap:12px;align-items:center;padding:11px 12px;border-radius:10px;margin-bottom:4px;background:#2c2c2c}
+  .row.sel{outline:1.5px solid #8b8bf0;background:#30304a}
+  .row .t{opacity:.6;font-size:12px}
+  .bar{width:4px;height:34px;border-radius:2px}
+  .row b{font-weight:600}
+  .row small{display:block;opacity:.55}
+  .chip{font-size:11px;border-radius:6px;padding:2px 7px;background:#3a3a3a;white-space:nowrap}
+  .chip.late{background:#5a2b2b;color:#ffb4b4}
+  .chip.ok{background:#2b4a33;color:#a8e6b8}
+  .panel{background:#2a2a2a;border-left:1px solid #383838;padding:20px 18px;display:flex;flex-direction:column;gap:12px}
+  .panel h3{margin:0;font-size:17px}
+  .meta{display:flex;flex-wrap:wrap;gap:6px}
+  .prop{background:#333;border-radius:9px;padding:10px 12px;font-size:12.5px;border:1px solid #3d3d3d}
+  .prop .n{font-size:11px;opacity:.5;text-transform:uppercase}
+  .prop.pick{border-color:#8b8bf0}
+  .insp{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .insp div{aspect-ratio:4/5;border-radius:7px;background:linear-gradient(135deg,#a3795b,#e9cfae);position:relative}
+  .insp div:nth-child(2){background:linear-gradient(135deg,#6b8f71,#d6e5c6)}
+  .insp div:nth-child(3){background:linear-gradient(135deg,#7a6aa8,#e2d6f5)}
+  .insp span{position:absolute;bottom:4px;left:6px;font-size:10px;color:#222;background:#fff8;border-radius:4px;padding:0 4px}
+  .acts{display:flex;gap:6px;flex-wrap:wrap}
+  .btn{border:1px solid #474747;border-radius:7px;padding:5px 10px;font-size:12px;background:#303030}
+  .btn.pri{background:#5b5bd6;border-color:#5b5bd6}
+  .chat{margin-top:auto;border:1px solid #4b5a2d;border-radius:12px;padding:10px 12px;background:#2c2f25}
+  .chat .msg{font-size:12px;opacity:.85;margin-bottom:8px}
+  .chat .in{opacity:.5}
+  .recs{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+  .recs span{font-size:11px;border:1px solid #555;border-radius:6px;padding:2px 7px;opacity:.8}
+</style>
+
+<h2>Pantalla "Hoy" · borrador 1</h2>
+<p class="subtitle">Barra lateral, lo que toca hoy al centro, y al hacer clic en algo se abre a la derecha con propuestas, inspiración, acciones y chat. Contenido inventado con Donna's para que se sienta real.</p>
+
+<div class="app">
+  <div class="side">
+    <div class="it on">◉ Hoy <span class="badge">6</span></div>
+    <div class="it">☑ Aprobaciones <span class="badge">2</span></div>
+    <div class="it">▦ Calendario</div>
+    <div class="it">▤ Tablero</div>
+    <div class="it">◎ Equipo</div>
+    <div class="grp">Clientes</div>
+    <div class="it"><span><span class="dot" style="background:#e0a060"></span>Donna's</span></div>
+    <div class="it"><span><span class="dot" style="background:#7fb38a"></span>Casa Pilates SD</span></div>
+    <div class="it"><span><span class="dot" style="background:#9a8ad8"></span>Clima Simple</span></div>
+    <div class="it"><span><span class="dot" style="background:#d78aa8"></span>Como el Musguito</span></div>
+    <div class="it"><span><span class="dot" style="background:#6fa8d8"></span>Noema</span></div>
+    <div class="grp">Espacio</div>
+    <div class="it">⚙ Skills y conectores</div>
+  </div>
+
+  <div class="main">
+    <h1 class="serif">Martes 27</h1>
+    <div class="sub">Hola, Cami · 4 entregas · 1 reunión · 1 promesa del cliente atrasada</div>
+    <div class="nov"><b>Desde ayer:</b> Jorge movió el carrusel de lanzamiento al 30 · Claude procesó la reunión con Donna's (3 tareas nuevas) · Seba subió el fix del checkout.</div>
+
+    <div class="sec">Reuniones</div>
+    <div class="row"><div class="t">17:00</div><div class="bar" style="background:#e0a060"></div><div><b>Revisión mensual · Donna's</b><small>Brief listo · 2 promesas por mostrar</small></div><span class="chip ok">brief listo</span></div>
+
+    <div class="sec">Entregas</div>
+    <div class="row sel"><div class="t">hoy</div><div class="bar" style="background:#e0a060"></div><div><b>Post martes · Donna's</b><small>post-instagram · recurrente</small></div><span class="chip">3 propuestas</span></div>
+    <div class="row"><div class="t">hoy</div><div class="bar" style="background:#7fb38a"></div><div><b>Calendario de noviembre · Casa Pilates</b><small>documento · en curso</small></div><span class="chip">borrador listo</span></div>
+    <div class="row"><div class="t">ayer</div><div class="bar" style="background:#e0a060"></div><div><b>Responder DMs de la semana · Donna's</b><small>12 DMs sin responder</small></div><span class="chip late">atrasado</span></div>
+    <div class="row"><div class="t">jue 29</div><div class="bar" style="background:#9a8ad8"></div><div><b>Brandbook v1 · Clima Simple</b><small>fecha tentativa · ¿la confirmas?</small></div><span class="chip">confirmar</span></div>
+
+    <div class="sec">Lo que nos debe el cliente</div>
+    <div class="row"><div class="t">vie 23</div><div class="bar" style="background:#e0a060"></div><div><b>Fotos del casting · Donna's</b><small>prometido para el viernes · no ha llegado</small></div><span class="chip">recordatorio listo</span></div>
+  </div>
+
+  <div class="panel">
+    <div class="meta"><span class="chip" style="background:#4a3a2a">Donna's</span><span class="chip">post-instagram</span><span class="chip">vence hoy</span><span class="chip">brief</span></div>
+    <h3>Post martes · Donna's</h3>
+    <div style="opacity:.7;font-size:12.5px">Pilar del mes: adopción responsable. El último post de este pilar tuvo 2x guardados.</div>
+
+    <div class="prop pick"><div class="n">Propuesta 1 · recomendada</div>Carrusel "5 cosas antes de adoptar", con las fotos del casting de septiembre. Copy corto, como le gusta a Donna's.</div>
+    <div class="prop"><div class="n">Propuesta 2</div>Reel de 15 s: un día con Luna, la perrita adoptada en agosto.</div>
+    <div class="prop"><div class="n">Propuesta 3</div>Post único con testimonio de cliente + CTA a la tienda.</div>
+
+    <div class="n" style="font-size:11px;opacity:.5;text-transform:uppercase">Inspiración</div>
+    <div class="insp"><div><span>casting sep</span></div><div><span>ref. competencia</span></div><div><span>paleta</span></div></div>
+
+    <div class="acts"><span class="btn pri">Desarrollar la 1</span><span class="btn">Editar</span><span class="btn">Reagendar</span><span class="btn">Asignar</span><span class="btn">Borrar</span></div>
+
+    <div class="chat">
+      <div class="msg">Claude: ¿Desarrollo la propuesta 1? Te armo los 5 slides con el brandbook y el copy.</div>
+      <div class="in">Conversa sobre esta tarea…</div>
+      <div class="recs"><span>/ig-carousel</span><span>/copywriting</span><span>Más ideas</span></div>
+    </div>
+  </div>
+</div>
