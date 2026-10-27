@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Hook Stop: exige bitácora de sesión y frontmatter válido. Nunca falla (exit 0)."""
+"""Hook Stop (tras cada respuesta): exige bitácora y frontmatter válido; si todo está bien,
+sincroniza con el equipo y, ante un conflicto, le pide a Claude mezclarlo. Nunca falla (exit 0)."""
 import json
 import os
 import subprocess
@@ -20,6 +21,13 @@ MOTIVO_BITACORA = (
     "sesiones/YYYY-MM-DD-<persona>-<slug>.md (tipo: sesion, persona, fecha, "
     "session_id: {id}, clientes: [...]) con: qué se hizo, skill usada, "
     "correcciones del usuario, pendientes."
+)
+MOTIVO_CONFLICTO = (
+    "No pude sincronizar: un compañero cambió lo mismo que tú.\n{archivos}\n"
+    "Corre `git pull --rebase`, y en cada archivo en conflicto conserva lo de ambos (si se "
+    "contradicen, deja lo más reciente y anota la diferencia en la bandeja del dueño). Valida con "
+    "`uv run scripts/validar.py`, `git add` + `git rebase --continue`, `git push`, y cuéntale al "
+    "usuario en una línea qué mezclaste."
 )
 
 
@@ -84,7 +92,12 @@ def _commiteados(raiz: Path, session_id: str) -> list[str]:
         _git(raiz, "merge-base", "--is-ancestor", base, "HEAD")
     except (OSError, subprocess.CalledProcessError):
         return []  # sin base o inalcanzable: solo lo sucio
-    return _git(raiz, "diff", "--name-only", "-z", f"{base}..HEAD").split("\0")
+    # solo commits propios: lo que trae el pull de los compañeros no es de esta sesión
+    autor = subprocess.run(["git", "config", "user.email"], cwd=raiz, capture_output=True,
+                           text=True).stdout.strip()
+    filtro = [f"--author=<{autor}>"] if autor else []
+    return _git(raiz, "log", "--no-merges", "--format=", "--name-only", "-z", *filtro,
+                f"{base}..HEAD").replace("\n", "\0").split("\0")
 
 
 def cambiados(raiz: Path, session_id: str = "") -> list[Path]:
@@ -102,8 +115,18 @@ def main() -> None:
     raiz = Path(raiz).resolve()
     motivo = revisar(raiz, datos.get("session_id", ""), cambiados(raiz, datos.get("session_id", "")),
                      bool(datos.get("stop_hook_active")))
+    if not motivo:
+        motivo = _sincronizar(raiz, bool(datos.get("stop_hook_active")))
     if motivo:
         print(json.dumps({"decision": "block", "reason": motivo}))
+
+
+def _sincronizar(raiz: Path, ya_bloqueado: bool) -> str | None:
+    r = subprocess.run([str(Path(__file__).with_name("sync.sh"))], capture_output=True, text=True,
+                       env={**os.environ, "CLAUDE_PROJECT_DIR": str(raiz)}, timeout=50)
+    if r.returncode == 3 and not ya_bloqueado:
+        return MOTIVO_CONFLICTO.format(archivos=r.stderr.strip())
+    return None
 
 
 if __name__ == "__main__":

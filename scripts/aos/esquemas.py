@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from zoneinfo import available_timezones
 
 DIAS = ("lun", "mar", "mie", "jue", "vie", "sab", "dom")
 _ETAPAS = {"prospecto", "propuesta", "activo", "pausado", "cerrado"}
@@ -78,4 +79,7 @@ def validar(meta: dict) -> list[str]:
         else:
             for i, r in enumerate(rec):
                 errs += _errores_recurrente(i, r)
+    zona = meta.get("zona_horaria")
+    if tipo == "persona" and zona is not None and zona not in available_timezones():
+        errs.append(f"'zona_horaria' no es una zona IANA (ej. America/Santiago): {zona}")
     return errs

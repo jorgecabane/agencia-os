@@ -53,6 +53,7 @@ nombre: <nombre>
 slug: <slug>
 rol: <rol>
 nivel_automatizacion: <alto|medio|bajo>
+zona_horaria: <IANA; detecta con `readlink /etc/localtime`, ej. America/Santiago>
 excluir_remitentes: []
 excluir_calendarios: []
 consentimiento_privacidad: <YYYY-MM-DD de hoy>   # solo si dijo sí; si rechazó, omite esta línea

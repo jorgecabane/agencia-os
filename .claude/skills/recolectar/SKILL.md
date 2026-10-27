@@ -12,7 +12,8 @@ leída ("cuenta de <persona>"). Sigue `CLAUDE.md` (§ Privacidad, § Línea de t
 lectura en los conectores; nunca envíes nada hacia afuera.
 
 **Idempotente**: una pasada repetida sobre la misma ventana no debe cambiar nada. Antes de cada escritura
-comprueba que no exista ya (ver § 4). Horas y fechas, siempre en America/Santiago: `TZ=America/Santiago date +%Y-%m-%dT%H:%M`.
+comprueba que no exista ya (ver § 4). Marcas de tiempo en UTC (`date -u +%Y-%m-%dT%H:%MZ`); "hoy", "mañana" y los horarios de briefs, en la
+`zona_horaria` de la persona (default `America/Santiago`): `TZ=<zona> date`.
 
 ## Consentimiento (antes de todo)
 
@@ -25,8 +26,7 @@ repórtalo en el resumen final. Nunca `--force`.
 
 ## 1. Ventana
 
-Lee `equipo/personas/<persona>.md`. Ventana = desde `ultima_recoleccion` (`YYYY-MM-DDTHH:MM`, hora de
-Santiago) hasta ahora; si falta el campo, últimas 24 h. Guarda la hora de inicio de esta pasada (no la de fin).
+Lee `equipo/personas/<persona>.md`. Ventana = desde `ultima_recoleccion` (`YYYY-MM-DDTHH:MMZ`, UTC) hasta ahora; si falta el campo, últimas 24 h. Guarda la hora de inicio de esta pasada (no la de fin).
 Lee `excluir_remitentes` y `excluir_calendarios` de esa ficha (si existen) y `dominio_email` de `marca/marca.md`.
 
 Conectores (regla del dueño del espacio):
@@ -71,7 +71,7 @@ su bitácora y su respuesta final en el chat las cubre la única bitácora de §
 
 ## 5. Briefs (independientes de la hora del cron)
 
-Hora local de Santiago. `briefs_reunion_hasta` (en `equipo/personas/<persona>.md`) es la última fecha
+Hora local de la persona (`zona_horaria`). `briefs_reunion_hasta` (en `equipo/personas/<persona>.md`) es la última fecha
 para la que ya se corrió `brief-reunion`, hubiera o no reuniones con clientes:
 - Primera pasada a las 06:00 o después, si no existe `bandeja/<hoy>-hoy-<persona>.md` → `brief-del-dia`
   (siempre deja ese archivo, aunque sea con "Nada pendiente hoy").
@@ -86,13 +86,13 @@ para la que ya se corrió `brief-reunion`, hubiera o no reuniones con clientes:
 1. `uv run scripts/validar.py` → corrige hasta que no imprima nada.
 2. Si tocaste `clientes/`, bitácora `sesiones/YYYY-MM-DD-ia-recoleccion-<persona>-HHMM.md` (CLAUDE.md § Antes de
    terminar; persona `ia`, "cuenta de <persona>").
-3. Si no hubo errores de conectores configurados, `ultima_recoleccion` = inicio de la pasada, en hora de
-   Santiago, en `equipo/personas/<persona>.md`; valida de nuevo.
-4. Commit `agente: recolección <persona> <YYYY-MM-DD-HHMM>` (hora de Santiago), luego `git pull --rebase origin main`
+3. Si no hubo errores de conectores configurados, `ultima_recoleccion` = inicio de la pasada, en UTC, en `equipo/personas/<persona>.md`; valida de nuevo.
+4. Commit `agente: recolección <persona> <YYYY-MM-DDTHH:MMZ>` (UTC), luego `git pull --rebase origin main`
    y `git push origin HEAD:main`. Esta es la excepción a "no hagas push a mano" de CLAUDE.md: las pasadas
-   automáticas no tienen hook `SessionEnd`.
-5. Conflicto en el rebase: `git rebase --abort`, no empujes nada y **no dejes nota en el repo** (no se puede
-   empujar de forma segura y el clon es desechable); reporta el fallo en el resumen final, que es lo que le llega a la persona.
+   automáticas no sincronizan por hook.
+5. Conflicto en el rebase: mézclalo conservando lo de ambos (si se contradicen, deja lo más reciente y anótalo
+   en la bandeja del dueño del archivo), valida, `git rebase --continue` y empuja. Nunca `--force`. Si no
+   puedes mezclarlo con seguridad, `git rebase --abort`, no empujes y repórtalo en el resumen final.
 
 Resume en 3-5 líneas qué documentaste, qué quedó en la bandeja, conectores saltados o con error, y los
 próximos pasos con responsable.

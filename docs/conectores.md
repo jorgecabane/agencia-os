@@ -22,7 +22,7 @@ Cada persona conecta sus propias cuentas: la tarea de una persona lee solo sus c
 ## Cadencia
 
 Cualquier cadencia sirve (mínimo 1 h, cron UTC, minuto :07; ej. cada 2 h). Los briefs no dependen de la
-hora del cron: `recolectar` genera el brief del día en la primera pasada desde las 06:00 de Santiago y los
+hora del cron: `recolectar` genera el brief del día en la primera pasada desde las 06:00 de la `zona_horaria` de la persona y los
 briefs de mañana en la primera desde las 17:00. Un conector no configurado se salta; uno con error no
 avanza el cursor `ultima_recoleccion`.
 
@@ -34,7 +34,7 @@ avanza el cursor `ultima_recoleccion`.
 - [ ] Anotar por conector si en la nube puede escribir o solo leer, y qué permisos pidió.
 - [ ] Habilitar push a `main` (no solo a ramas `claude/`) en el entorno de tareas programadas (configuración del entorno/permisos de GitHub de `/schedule`); sin esto el push de `recolectar` falla o queda en una rama que nadie mergea.
 - [ ] Confirmar que la tarea puede hacer `git push origin HEAD:main` (orden explícita en el prompt) y que no queda solo en una rama `claude/`.
-- [ ] Confirmar la cadencia elegida y que el cron en UTC cae donde se espera en hora de Santiago.
+- [ ] Confirmar la cadencia elegida y que el cron en UTC cae donde se espera en la hora local de cada persona.
 - [ ] Actualizar la tabla con sí/no y la fecha de verificación.
 - [ ] Aceptación (Task 8, paso 3): correr `/recolectar <persona>` con una reunión real que incluya el email de un cliente ficticio de la ficha, y comprobar que se crea el acta; con una reunión personal, que no se escribe nada.
 

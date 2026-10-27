@@ -105,3 +105,9 @@ def test_cli_frontmatter_no_dict_sigue_con_los_demas(tmp_path):
     assert r.returncode == 1 and "Traceback" not in r.stderr
     assert "clientes/a.md: frontmatter inválido" in r.stdout
     assert "clientes/b.md: falta 'fecha'" in r.stdout
+
+
+def test_persona_zona_horaria():
+    base = {"tipo": "persona", "nombre": "n", "slug": "n", "rol": "r", "nivel_automatizacion": "alto"}
+    assert validar({**base, "zona_horaria": "America/Santiago"}) == []
+    assert "zona IANA" in validar({**base, "zona_horaria": "Chile"})[0]

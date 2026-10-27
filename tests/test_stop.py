@@ -95,9 +95,11 @@ def test_cwd_subdirectorio(tmp_path, monkeypatch):
     assert r.returncode == 0 and "bitácora" in json.loads(r.stdout)["reason"]
 
 
-def _commit(cwd, msg="x"):
+def _commit(cwd, msg="x", autor="a@b"):
+    _git(cwd, "config", "user.email", "a@b")
     _git(cwd, "add", "-A")
-    _git(cwd, "-c", "user.email=a@b", "-c", "user.name=a", "commit", "-q", "--allow-empty", "-m", msg)
+    _git(cwd, "-c", f"user.email={autor}", "-c", "user.name=a", "commit", "-q", "--allow-empty",
+         "-m", msg)
 
 
 def _inicio(cwd, sid):
@@ -151,3 +153,21 @@ def test_base_inalcanzable_usa_solo_sucios(tmp_path):
     (tmp_path / "clientes/acme/x.md").write_text("hola")
     _commit(tmp_path)
     assert _stop(tmp_path, "s1") is None
+
+
+def test_commit_de_un_companero_no_cuenta(tmp_path):
+    _git(tmp_path, "init", "-q")
+    _commit(tmp_path, "inicial")
+    _inicio(tmp_path, "s1")
+    (tmp_path / "clientes/acme").mkdir(parents=True)
+    (tmp_path / "clientes/acme/x.md").write_text("hola")
+    _commit(tmp_path, "traído con pull", autor="otro@b")
+    assert _stop(tmp_path, "s1") is None
+
+
+def test_conflicto_pide_mezclar(tmp_path, monkeypatch):
+    monkeypatch.setattr(stop.subprocess, "run", lambda *a, **k: subprocess.CompletedProcess(
+        a, 3, "", "agencia-os: conflicto con cambios del equipo en: clientes/acme/contexto.md"))
+    motivo = stop._sincronizar(tmp_path, False)
+    assert "clientes/acme/contexto.md" in motivo and "rebase --continue" in motivo
+    assert stop._sincronizar(tmp_path, True) is None

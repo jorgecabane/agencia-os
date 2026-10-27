@@ -54,9 +54,11 @@ El esquema exacto está en `scripts/aos/esquemas.py`; esto es lo obligatorio:
 | `reunion` / `brief-reunion` | `cliente, fecha` | opcionales `asistentes`, `fuente`, `granola_id` |
 | `decision` | `cliente, fecha` | `origen`; cuerpo: qué se decidió, por qué, alternativas descartadas |
 | `sesion` | `persona, fecha, session_id, clientes` | `clientes`: lista de slugs tocados (puede ser `[]`) |
-| `persona` | `nombre, slug, rol, nivel_automatizacion` | `nivel_automatizacion`: alto, medio, bajo |
+| `persona` | `nombre, slug, rol, nivel_automatizacion` | `nivel_automatizacion`: alto, medio, bajo · `zona_horaria` IANA (default `America/Santiago`) |
 
-Fechas en formato `YYYY-MM-DD` (o `YYYY-MM-DDTHH:MM`). `contexto.md`, `brandbook.md`, `material.md` y
+Fechas en formato `YYYY-MM-DD`. Marcas de tiempo de máquina (`ultima_recoleccion`, `ultimo_indexado`,
+commits) en UTC: `YYYY-MM-DDTHH:MMZ` (`date -u +%Y-%m-%dT%H:%MZ`). Horas de reuniones con su zona
+(`2026-01-20T10:00-03:00`). "Hoy", "mañana" y los horarios de briefs, en la `zona_horaria` de cada persona. `contexto.md`, `brandbook.md`, `material.md` y
 `linea-de-tiempo.md` no llevan `tipo`.
 
 ## Al trabajar para un cliente
@@ -130,5 +132,7 @@ dilo en el momento y **ofrece convertirlo en skill** ahí mismo
    Cuerpo: qué se hizo, skill usada, correcciones del usuario, pendientes (con responsable).
 3. El hook `SessionStart` te muestra `session_id: <id>` al inicio de la sesión; usa ese valor, no lo
    inventes. El hook `Stop` bloquea el cierre si hay frontmatter inválido o si cambió `clientes/` y
-   falta una bitácora con ese `session_id` (su mensaje también trae el id). El hook `SessionEnd` hace commit y sincroniza
-   con el equipo (pull --rebase + push); no hagas push a mano.
+   falta una bitácora con ese `session_id` (su mensaje también trae el id). Si todo está bien, tras
+   **cada respuesta** hace commit y sincroniza con el equipo (pull --rebase + push; `SessionEnd` es la red
+   final); no hagas push a mano. `linea-de-tiempo.md` se une sola (`merge=union`). Si el hook te avisa un
+   conflicto, mézclalo como dice su mensaje: conserva lo de ambos y nunca uses `--force`.

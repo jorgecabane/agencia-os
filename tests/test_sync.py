@@ -59,7 +59,7 @@ def test_conflicto_no_rompe(tmp_path):
     git(b, "push", "-q")
     (a / "f.txt").write_text("1\nA\n3\n")
     r = sync(a)
-    assert r.returncode == 0 and "conflicto" in r.stderr
+    assert r.returncode == 3 and "conflicto" in r.stderr and "f.txt" in r.stderr
     assert not (a / ".git/rebase-merge").exists()
     assert "sesión: jorge" in git(a, "log", "--format=%s")
 
@@ -69,3 +69,22 @@ def test_sin_remoto_silencioso(tmp_path):
     (tmp_path / "f").write_text("x")
     r = sync(tmp_path)
     assert r.returncode == 0 and r.stderr == ""
+
+
+def test_linea_de_tiempo_se_une_sin_conflicto(tmp_path):
+    import shutil
+    remoto, a, b = setup(tmp_path)
+    shutil.copy(SYNC.parent.parent.parent / ".gitattributes", a / ".gitattributes")
+    t = a / "clientes/acme/linea-de-tiempo.md"
+    t.parent.mkdir(parents=True)
+    t.write_text("- 1\n")
+    git(a, "add", "-A")
+    git(a, "commit", "-qm", "t")
+    git(a, "push", "-q")
+    git(b, "pull", "-q")
+    (b / t.relative_to(a)).write_text("- 1\n- de b\n")
+    git(b, "commit", "-qam", "b")
+    git(b, "push", "-q")
+    t.write_text("- 1\n- de a\n")
+    assert sync(a).returncode == 0
+    assert git(remoto, "show", "main:clientes/acme/linea-de-tiempo.md") == "- 1\n- de b\n- de a\n"

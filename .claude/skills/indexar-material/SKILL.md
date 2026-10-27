@@ -30,7 +30,7 @@ Habla en español de Chile (tú). Sigue `CLAUDE.md` (§ Privacidad, § Línea de
 
 ## 3. Escribe `material.md`
 
-Frontmatter: solo `ultimo_indexado: YYYY-MM-DDTHH:MM`, hora local de Santiago de esta corrida (informativo; no decide qué se indexa). No agregues `tipo`.
+Frontmatter: solo `ultimo_indexado: YYYY-MM-DDTHH:MMZ`, en UTC, de esta corrida (informativo; no decide qué se indexa). No agregues `tipo`.
 
 Cuerpo: conserva la tabla de la plantilla (`Pieza | Tipo | Campaña / evento | Descripción | Link`). Una fila por pieza o carpeta, ordenadas por campaña/evento y luego tipo; agrupa con un `##` por campaña o evento si hay varios. En corridas siguientes agrega filas al grupo que corresponda; no reescribas ni borres las existentes. Si quedó material pendiente por el tope, agrega al final una línea `Pendiente: ~N ítems sin indexar (continuar con /indexar-material <slug>)`, reemplazando la anterior si existe.
 
