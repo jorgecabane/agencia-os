@@ -1,0 +1,18 @@
+filters:
+  and:
+    - file.inFolder("clientes")
+    - tipo == "cliente"
+properties:
+  proximo_contacto:
+    displayName: Próximo contacto
+views:
+  - type: kanban-view
+    name: Pipeline
+    groupByProperty: note.etapa
+    columnOrders:
+      note.etapa: [prospecto, propuesta, activo, pausado, cerrado]
+    order:
+      - nombre
+      - modalidad
+      - responsable
+      - proximo_contacto

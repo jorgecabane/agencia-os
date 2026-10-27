@@ -1,0 +1,15 @@
+filters:
+  and:
+    - file.inFolder("clientes")
+    - tipo == "entregable"
+views:
+  - type: kanban-view
+    name: Equipo
+    groupByProperty: note.estado
+    columnOrders:
+      note.estado: [brief, en_curso, revision, aprobado, publicado, cancelado]
+    swimlaneByProperty: note.responsable
+    order:
+      - file.name
+      - cliente
+      - vence

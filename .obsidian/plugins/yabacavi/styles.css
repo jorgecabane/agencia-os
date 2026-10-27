@@ -1,0 +1,801 @@
+.yabacavi {
+	/* Month cells grow with their cards; this is only the floor. */
+	--yabacavi-day-min-height: 120px;
+	/* Accent-bar thickness; the view overwrites this on the root from settings, and
+	   the cards inherit it. */
+	--yabacavi-accent-width: 4px;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	min-height: 0;
+	overflow: hidden;
+}
+
+/* Bases reserves a scrollbar gutter on the view wrapper; the calendar manages
+   its own scroll, so reclaim that space. */
+div.bases-view[data-view-type="calendar-cards"] {
+	scrollbar-gutter: unset !important;
+}
+
+/* An inline ```base``` embed wraps the view with no defined height, which would
+   collapse height:100% down to just the toolbar. */
+.bases-embed .yabacavi {
+	min-height: 400px;
+}
+
+/* --- toolbar ------------------------------------------------------------ */
+
+.yabacavi-toolbar {
+	display: flex;
+	align-items: center;
+	gap: var(--size-4-2);
+	padding: var(--size-4-2) var(--size-4-3);
+	border-bottom: 1px solid var(--background-modifier-border);
+	flex: 0 0 auto;
+}
+
+.yabacavi-nav {
+	display: flex;
+	/* Stretch so the icon buttons match the text button's height. */
+	align-items: stretch;
+	gap: var(--size-2-1);
+}
+
+.yabacavi-title {
+	flex: 1;
+	font-weight: var(--font-semibold);
+	font-size: var(--font-ui-medium);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* Just the first letter, not every word: locales like pt-BR render the month as
+   "julho de 2026", and `capitalize` would turn the "de" into "De". */
+.yabacavi-title::first-letter {
+	text-transform: uppercase;
+}
+
+.yabacavi-modes {
+	display: flex;
+	gap: var(--size-2-1);
+}
+
+/* Day-count stepper — [- N +], shown only in day mode. */
+.yabacavi-daycount {
+	display: flex;
+	align-items: center;
+	gap: var(--size-2-1);
+}
+
+.yabacavi-daycount.is-hidden {
+	display: none;
+}
+
+.yabacavi-daycount-value {
+	min-width: 1.5em;
+	text-align: center;
+	font-variant-numeric: tabular-nums;
+	font-size: var(--font-ui-smaller);
+	font-weight: var(--font-bold);
+	color: var(--text-normal);
+}
+
+/* Keep the +/- bare like the nav icons, even against themes/snippets that style
+   buttons with more specific selectors (same reason the refresh button needs it). */
+.yabacavi-daycount .yabacavi-btn {
+	background-color: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+}
+
+.yabacavi-daycount .yabacavi-btn:hover {
+	background-color: var(--background-modifier-hover) !important;
+}
+
+.yabacavi-btn {
+	box-shadow: none;
+	border: none;
+	background-color: transparent;
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+	padding: var(--size-2-2) var(--size-4-2);
+	height: auto;
+	cursor: pointer;
+}
+
+.yabacavi-btn:hover {
+	background-color: var(--background-modifier-hover);
+	color: var(--text-normal);
+}
+
+.yabacavi-btn--icon {
+	display: flex;
+	align-items: center;
+	padding: var(--size-2-2);
+}
+
+.yabacavi-modes .yabacavi-btn {
+	background-color: var(--background-primary);
+}
+
+.yabacavi-modes .yabacavi-btn.is-active {
+	background-color: var(--background-modifier-hover);
+	color: var(--text-normal);
+}
+
+/* --- layout ------------------------------------------------------------- */
+
+.yabacavi-body {
+	flex: 1;
+	min-height: 0;
+	overflow: auto;
+	padding-left: 6px;
+}
+
+.yabacavi-empty {
+	padding: var(--size-4-8);
+	text-align: center;
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+}
+
+.yabacavi-month {
+	display: flex;
+	flex-direction: column;
+}
+
+.yabacavi-weekdays {
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	background-color: var(--background-primary);
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.yabacavi-weekday {
+	padding: var(--size-2-2) var(--size-4-1);
+	text-align: center;
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+/* Accent text rather than another badge — the day number already wears one,
+   and two badges in the same column shout over each other. */
+.yabacavi-weekday.is-today,
+.yabacavi-day.is-today .yabacavi-day-weekday {
+	color: var(--text-accent);
+	font-weight: var(--font-semibold);
+}
+
+.yabacavi-grid {
+	display: grid;
+}
+
+/* Rows are auto-sized, not 1fr: a 1fr row stretches to fill the pane, so cell
+   height would track the window and the week count instead of the content.
+   align-content keeps the extra space below the grid rather than in the rows. */
+.yabacavi-grid--month {
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+	grid-auto-rows: minmax(var(--yabacavi-day-min-height), auto);
+	align-content: start;
+}
+
+.yabacavi-grid--week {
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+	height: 100%;
+}
+
+.yabacavi-grid--month.is-weekdays-only,
+.yabacavi-grid--week.is-weekdays-only,
+.yabacavi-weekdays.is-weekdays-only {
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.yabacavi-grid--day {
+	/* One column per day shown (the stepper drives the count). */
+	grid-template-columns: repeat(var(--yabacavi-day-count, 1), minmax(0, 1fr));
+	/* Grow with content (min-height, not a hard height) so the masonry columns can
+	   extend and the whole view scrolls, instead of clamping to the pane. */
+	min-height: 100%;
+}
+
+/* --- day cells ---------------------------------------------------------- */
+
+.yabacavi-day {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	min-height: 0;
+	border-right: 1px solid var(--background-modifier-border);
+	border-bottom: 1px solid var(--background-modifier-border);
+	transition:
+		background-color 100ms ease-out,
+		opacity 100ms ease-out;
+}
+
+/* No right border on the last column, whichever column that is. */
+.yabacavi-grid--month:not(.is-weekdays-only) .yabacavi-day:nth-child(7n),
+.yabacavi-grid--month.is-weekdays-only .yabacavi-day:nth-child(5n),
+.yabacavi-grid--week .yabacavi-day:last-child,
+.yabacavi-grid--day .yabacavi-day:last-child {
+	border-right: none;
+}
+
+/* Adjacent-month days are dimmed as a whole; hovering brings one back. */
+.yabacavi-day.is-outside {
+	opacity: 0.5;
+}
+
+.yabacavi-day:hover {
+	opacity: 1;
+}
+
+.yabacavi-day:hover .yabacavi-day-number {
+	font-weight: var(--font-semibold);
+}
+
+/* Drop feedback is the cell itself; the day number is left alone. */
+.yabacavi-day.is-drop-target {
+	background-color: var(--background-modifier-hover);
+	box-shadow: inset 0 0 0 2px var(--interactive-accent);
+}
+
+.yabacavi-day-head {
+	display: flex;
+	align-items: baseline;
+	gap: var(--size-2-2);
+	padding: var(--size-2-2) var(--size-2-3);
+	flex: 0 0 auto;
+}
+
+.yabacavi-day-weekday {
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+	text-transform: uppercase;
+}
+
+/* Consistently sized so the number sits in the same spot in every cell and
+   today (bold) doesn't nudge the row. */
+.yabacavi-day-number {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	min-width: 1.75em;
+	height: 1.75em;
+	padding: 0 0.35em;
+	/* Rounds the number's own box so a snippet (or a theme) that fills it with a
+	   background reads as a badge. No effect while the background is transparent. */
+	border-radius: var(--radius-s);
+	line-height: 1;
+	font-size: var(--font-ui-small);
+	color: var(--text-muted);
+	font-variant-numeric: tabular-nums;
+}
+
+/* Today is a filled accent badge. Theme variables keep it in step with the
+   vault's accent; the rounding comes from the base rule above. */
+.yabacavi-day.is-today .yabacavi-day-number {
+	color: var(--text-on-accent);
+	background-color: var(--color-accent);
+}
+
+/* Daily-note affordance, pushed to the far end of the header. A bare icon (span,
+   not a button) — no background, border or focus ring. Grey and hover-only when
+   there's no note; white and pinned visible when one exists, so its presence is
+   the "has a daily note" signal. Low specificity on purpose — a snippet wins. */
+.yabacavi-daily-note {
+	margin-left: auto;
+	align-self: center;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.4em;
+	height: 1.4em;
+	color: var(--text-muted);
+	cursor: pointer;
+	opacity: 0;
+	transition: opacity 100ms ease-out;
+}
+
+.yabacavi-daily-note svg {
+	width: 1em;
+	height: 1em;
+}
+
+/* Reveal the create icon on cell hover (it starts hidden). */
+.yabacavi-day:hover .yabacavi-daily-note {
+	opacity: 1;
+}
+
+/* Existing note: always shown, grey; brightens to white with the day number
+   when the cell is hovered. */
+.yabacavi-daily-note.has-note {
+	opacity: 1;
+}
+
+.yabacavi-day:hover .yabacavi-daily-note.has-note {
+	color: var(--text-normal);
+}
+
+/* Hovering the icon itself whitens it — this is what lights up the create icon,
+   which otherwise stays grey on plain cell hover. */
+.yabacavi-daily-note:hover {
+	color: var(--text-normal);
+}
+
+.yabacavi-day-cards {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 0 var(--size-2-2) var(--size-2-2);
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+}
+
+/* Day view is one wide cell, so lay its cards out masonry-style in balanced columns
+   of the configured width and let the whole view scroll — rather than one tall,
+   full-width stack. Height follows content (no internal scroll here) so the columns
+   don't fragment sideways. */
+.yabacavi-grid--day .yabacavi-day-cards {
+	display: block;
+	flex: 0 1 auto;
+	overflow: visible;
+	columns: var(--yabacavi-day-card-width, 260px);
+	column-gap: 8px;
+}
+
+.yabacavi-grid--day .yabacavi-day-cards > .yabacavi-card {
+	break-inside: avoid;
+	margin-bottom: 8px;
+}
+
+/* --- cards -------------------------------------------------------------- */
+
+.yabacavi-card {
+	/* No accent by default; a theme sets this per status. Transparent keeps the
+	   bar invisible until a colour is set. */
+	--yabacavi-accent-color: transparent;
+	display: flex;
+	flex-direction: column;
+	background-color: var(--background-primary-alt);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 10px;
+	/* Clip the bar to the rounded corners. */
+	overflow: hidden;
+	cursor: pointer;
+	font-size: var(--font-adaptive-small);
+	flex: 0 0 auto;
+}
+
+.yabacavi-card:hover {
+	background-color: var(--background-modifier-hover);
+	border-color: var(--background-modifier-border-hover);
+}
+
+.yabacavi:not(.is-readonly) .yabacavi-card {
+	cursor: grab;
+}
+
+/* Placed by creation date — read-only, so no grab cursor even when the view is
+   otherwise editable. */
+.yabacavi:not(.is-readonly) .yabacavi-card[data-placed-by="created"] {
+	cursor: pointer;
+}
+
+/* Kept at low specificity on purpose, so a theme snippet can override the
+   dragged card's look without a fight. */
+.yabacavi-card.is-dragging {
+	opacity: 0.4;
+}
+
+/* The clone that hangs off the cursor. The JS only feeds it scalars through the
+   custom properties; everything visual lives here. transform-origin is the
+   pivot it swings around — top-centre, where the cursor "holds" it. */
+.yabacavi-card-ghost {
+	position: fixed;
+	top: 0;
+	left: 0;
+	z-index: var(--layer-popover);
+	width: var(--yabacavi-ghost-width);
+	margin: 0;
+	pointer-events: none;
+	/* Pivot at the grab point so the card swings around where you're holding it. */
+	transform-origin: var(--yabacavi-ghost-origin-x, 50%) var(--yabacavi-ghost-origin-y, 0);
+	transform: translate(var(--yabacavi-ghost-x, 0), var(--yabacavi-ghost-y, 0))
+		rotate(var(--yabacavi-ghost-angle, 0deg));
+	box-shadow: var(--shadow-l);
+	will-change: transform;
+}
+
+/* Bar across the top of the card, coloured per status. */
+.yabacavi-card-accent {
+	display: var(--yabacavi-accent-bar-display, block);
+	flex: 0 0 var(--yabacavi-accent-width, 4px);
+	background-color: var(--yabacavi-accent-color);
+}
+
+/* Status display modes are driven by variables set on the root from settings (not
+   descendant rules), so they carry to the drag ghost, which lives on <body>. "bar"
+   shows the accent bar (--yabacavi-accent-bar-display); "bullet" hides it and shows a
+   coloured dot before the title of cards that have a status (--yabacavi-bullet-
+   display); "none" hides both. The rules are unscoped, so they match the ghost too.
+   Todoist cards follow the bar var but have no title-text — so no bullet. */
+.yabacavi-card[data-has-status] .yabacavi-card-title-text::before {
+	content: "";
+	display: var(--yabacavi-bullet-display, none);
+	width: 0.6em;
+	height: 0.6em;
+	margin-right: 0.4em;
+	margin-bottom: 3px;
+	border-radius: 50%;
+	background-color: var(--yabacavi-accent-color);
+	vertical-align: middle;
+}
+
+.yabacavi-card-body {
+	flex: 1;
+	min-width: 0;
+	padding: 6px 8px 10px;
+}
+
+.yabacavi-card-title {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+	padding-bottom: 5px;
+	color: var(--text-normal);
+	font-size: calc(var(--font-adaptive-small) * var(--yabacavi-title-scale, 1));
+	font-weight: var(--font-medium);
+	line-height: var(--line-height-tight);
+	overflow-wrap: anywhere;
+}
+
+.yabacavi-card-time {
+	color: var(--text-accent);
+	font-variant-numeric: tabular-nums;
+	font-size: calc(var(--font-adaptive-smallest) * var(--yabacavi-time-scale, 1));
+	flex: 0 0 auto;
+}
+
+/* Each property stacks on its own row; this only lays the containers out, it
+   doesn't touch what's inside them. */
+.yabacavi-card-props {
+	display: flex;
+	/* Stacked (column) by default; the "Property layout" setting can flow them inline
+	   (row) via the root var. */
+	flex-direction: var(--yabacavi-props-direction, column);
+	flex-wrap: wrap;
+	align-items: flex-start;
+	gap: 6px;
+	margin-top: 6px;
+	min-width: 0;
+	font-size: calc(var(--font-adaptive-smaller) * var(--yabacavi-pill-scale, 1));
+}
+
+/* One container per property, holding that property's items on a line. Target a
+   single property with .yabacavi-chip[data-property="note.tags"] — set
+   flex-direction: column there to stack just that one's items. */
+.yabacavi-chip {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	max-width: 100%;
+	min-width: 0;
+	color: var(--text-muted);
+}
+
+.yabacavi-chip-item {
+	max-width: 100%;
+	padding: 1px 4px;
+	border-radius: var(--radius-s);
+	background-color: var(--background-modifier-hover);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* Tag items borrow the theme's own tag styling so they read as tags. */
+.yabacavi-chip[data-property*="tags"] .yabacavi-chip-item {
+	padding: 1px 4px;
+	background-color: var(--tag-background);
+}
+
+/* Formulas render short pills (html()); let them show in full. */
+.yabacavi-chip--formula {
+	display: block;
+	overflow: unset;
+}
+
+.yabacavi-chip--formula > * {
+	display: inline;
+}
+
+/* --- note modal --------------------------------------------------------- */
+
+.yabacavi-note-modal {
+	width: min(900px, 90vw);
+	height: min(700px, 85vh);
+}
+
+.yabacavi-note-modal .modal-content {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	flex: 1;
+	padding: 0;
+}
+
+/* Strip the modal's own chrome — the embedded note brings its own header. */
+.yabacavi-note-modal .modal-header {
+	display: none;
+}
+
+.yabacavi-note-modal .modal-close-button {
+	z-index: 10;
+}
+
+/* Fallback position for the "open in new tab" icon when the note's own header
+   action bar isn't present — tuck it just left of the modal's close button. */
+.yabacavi-note-modal .yabacavi-modal-open {
+	position: absolute;
+	top: var(--size-4-3);
+	right: calc(var(--size-4-3) + 32px);
+	z-index: 11;
+}
+
+.yabacavi-note-modal .view-header {
+	padding: 0 30px 0 0;
+}
+
+.yabacavi-note-modal .markdown-source-view,
+.yabacavi-note-modal .markdown-reading-view {
+	background-color: var(--background-primary);
+}
+
+.yabacavi-note-modal .markdown-rendered {
+	padding: 0 12px 10px;
+}
+
+.yabacavi-modal-leaf {
+	flex: 1;
+	min-height: 0;
+}
+
+/* --- Todoist ------------------------------------------------------------ */
+
+/* Toolbar cluster: a "Todoist" label, the show/hide toggle, and refresh. Sits to
+   the left of the mode buttons; the trailing border is the divider between them,
+   and it vanishes with the cluster when there's no token. */
+.yabacavi-todoist-controls {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding-right: 16px;
+	border-right: 1px solid var(--text-faint);
+}
+
+.yabacavi-todoist-label {
+	font-size: var(--font-ui-small);
+	font-weight: var(--font-semibold);
+	color: var(--text-muted);
+}
+
+.yabacavi-todoist-controls.is-hidden {
+	display: none;
+}
+
+/* Refresh button: bare like the nav icons — transparent, no shadow, only a hover
+   fill. */
+.yabacavi-todoist-refresh {
+	/* !important: some themes style buttons more specifically than a single class,
+	   and this must stay bare. The hover below needs it too, or the base wins it. */
+	background-color: transparent !important;
+	box-shadow: none;
+}
+
+.yabacavi-todoist-refresh:hover {
+	background-color: var(--background-modifier-hover) !important;
+	box-shadow: none;
+}
+
+.yabacavi-todoist-refresh.is-hidden {
+	display: none;
+}
+
+.yabacavi-todoist-refresh.is-loading {
+	pointer-events: none;
+	color: var(--text-faint);
+}
+
+.yabacavi-todoist-refresh.is-loading svg {
+	animation: yabacavi-spin 0.8s linear infinite;
+}
+
+@keyframes yabacavi-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+/* "Beta" tag next to a settings name. */
+.yabacavi-beta-badge {
+	margin-left: 6px;
+	padding: 0 6px;
+	border-radius: var(--radius-s);
+	font-size: var(--font-ui-smaller);
+	font-weight: var(--font-semibold);
+	letter-spacing: 0.03em;
+	text-transform: uppercase;
+	color: var(--text-on-accent);
+	background-color: var(--interactive-accent);
+	vertical-align: middle;
+}
+
+/* Task marker + title share a row (the card title is otherwise a column, which
+   would drop the icon onto its own line). */
+.yabacavi-card-titleline {
+	display: flex;
+	align-items: flex-start;
+	gap: 5px;
+}
+
+/* The Todoist mark identifying the card's source. Nudged down a hair so it sits
+   on the text's first line rather than its cap. */
+.yabacavi-card-source {
+	flex: 0 0 auto;
+	width: 0.95em;
+	height: 0.95em;
+	margin-top: 0.2em;
+}
+
+/* "Has a description" marker, trailing the title on the same line. */
+.yabacavi-card-desc-icon {
+	flex: 0 0 auto;
+	display: inline-flex;
+	margin-top: 0.2em;
+	color: var(--text-muted);
+}
+
+.yabacavi-card-desc-icon svg {
+	width: 0.85em;
+	height: 0.85em;
+}
+
+/* Accent bar reflects Todoist priority (4 = urgent … 1 = none). p1 keeps the
+   default transparent bar. Low specificity so a snippet can recolour them. */
+.yabacavi-card--todoist[data-priority="4"] .yabacavi-card-accent {
+	background-color: var(--color-red);
+}
+
+.yabacavi-card--todoist[data-priority="3"] .yabacavi-card-accent {
+	background-color: var(--color-orange);
+}
+
+.yabacavi-card--todoist[data-priority="2"] .yabacavi-card-accent {
+	background-color: var(--color-blue);
+}
+
+/* Draggable Todoist cards show the grab cursor even in a read-only calendar —
+   their reschedule goes to the API, not the note date property. */
+.yabacavi-card--todoist[draggable="true"] {
+	cursor: grab;
+}
+
+/* Recurring tasks can't be dragged; keep the plain click cursor. */
+.yabacavi .yabacavi-card--todoist[data-recurring="true"] {
+	cursor: pointer;
+}
+
+/* --- Todoist modal ------------------------------------------------------ */
+
+.yabacavi-todoist-modal {
+	width: min(520px, 90vw);
+}
+
+/* Title row: the completion checkbox sits beside the task title. */
+.yabacavi-todoist-title {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+/* Todoist-style round checkbox that closes the task when ticked. */
+.yabacavi-todoist-check {
+	appearance: none;
+	-webkit-appearance: none;
+	flex: 0 0 auto;
+	width: 1.15em;
+	height: 1.15em;
+	margin: 0;
+	border: 1.5px solid var(--text-muted);
+	border-radius: 50%;
+	cursor: pointer;
+	position: relative;
+}
+
+.yabacavi-todoist-check:hover {
+	border-color: var(--text-normal);
+}
+
+.yabacavi-todoist-check:checked {
+	background-color: var(--text-muted);
+	border-color: var(--text-muted);
+}
+
+/* The tick, drawn as an L rotated into a checkmark. */
+.yabacavi-todoist-check:checked::after {
+	content: "";
+	position: absolute;
+	left: 0.34em;
+	top: 0.14em;
+	width: 0.24em;
+	height: 0.46em;
+	border: solid var(--background-primary);
+	border-width: 0 2px 2px 0;
+	transform: rotate(45deg);
+}
+
+.yabacavi-todoist-desc {
+	overflow-wrap: anywhere;
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+	margin-bottom: var(--size-4-3);
+}
+
+/* Rendered markdown brings its own paragraph margins; drop the outer ones so the
+   block sits flush against the title and the meta rows below. */
+.yabacavi-todoist-desc > :first-child {
+	margin-top: 0;
+}
+
+.yabacavi-todoist-desc > :last-child {
+	margin-bottom: 0;
+}
+
+.yabacavi-todoist-meta {
+	display: flex;
+	flex-direction: column;
+	gap: var(--size-2-3);
+	margin-bottom: var(--size-4-4);
+}
+
+.yabacavi-todoist-row {
+	display: flex;
+	align-items: center;
+	gap: var(--size-2-2);
+	font-size: var(--font-ui-small);
+}
+
+.yabacavi-todoist-row-icon {
+	display: inline-flex;
+	color: var(--text-muted);
+}
+
+.yabacavi-todoist-row-icon svg {
+	width: 1em;
+	height: 1em;
+}
+
+/* Fixed-width label column so the values line up down the rows. */
+.yabacavi-todoist-row-label {
+	flex: 0 0 auto;
+	width: 4.5em;
+	color: var(--text-muted);
+}
+
+.yabacavi-todoist-row-value {
+	color: var(--text-normal);
+	overflow-wrap: anywhere;
+}
+
+.yabacavi-todoist-open {
+	width: 100%;
+}

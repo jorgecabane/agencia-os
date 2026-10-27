@@ -1,0 +1,34 @@
+# Incluye a propósito lo atrasado: vence <= hoy+7 sin cota inferior.
+filters:
+  and:
+    - file.inFolder("clientes")
+    - tipo == "entregable"
+    - vence <= today() + "7d"
+    - estado != "publicado"
+    - estado != "cancelado"
+properties:
+  file.name:
+    displayName: Entregable
+  cliente:
+    displayName: Cliente
+  vence:
+    displayName: Vence
+  estado:
+    displayName: Estado
+  responsable:
+    displayName: Responsable
+  origen:
+    displayName: Origen
+views:
+  - type: table
+    name: Hoy
+    order:
+      - file.name
+      - cliente
+      - vence
+      - estado
+      - responsable
+      - origen
+    sort:
+      - property: vence
+        direction: ASC
