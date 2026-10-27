@@ -1,6 +1,7 @@
 import fg from "fast-glob";
 import { statSync, watch } from "node:fs";
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 
 const IGNORADOS = [".git", "node_modules", "ui-dist"];
@@ -24,7 +25,14 @@ export function crearRepo(raiz: string) {
   const base = resolve(raiz);
   const abs = (ruta: string): string => {
     const destino = resolve(base, ruta);
-    if (isAbsolute(ruta) || relative(base, destino).startsWith("..")) throw new Error("ruta fuera del repo");
+    const rel = relative(base, destino);
+    if (isAbsolute(ruta) || !rel || rel === ".." || rel.startsWith(`..${sep}`)) throw new Error("ruta fuera del repo");
+    return destino;
+  };
+  // Escribir, mover o borrar nunca toca .git.
+  const absEscritura = (ruta: string): string => {
+    const destino = abs(ruta);
+    if (relative(base, destino).split(sep)[0] === ".git") throw new Error("ruta fuera del repo");
     return destino;
   };
 
@@ -37,20 +45,25 @@ export function crearRepo(raiz: string) {
       return readFile(abs(ruta), "utf8");
     },
     async write(ruta: string, contenido: string): Promise<void> {
-      const destino = abs(ruta);
+      const destino = absEscritura(ruta);
       await mkdir(dirname(destino), { recursive: true });
-      const tmp = `${destino}${MARCA_TMP}`;
-      await writeFile(tmp, contenido);
-      await rename(tmp, destino);
+      const tmp = `${destino}.${process.pid}.${randomUUID()}${MARCA_TMP}`;
+      try {
+        await writeFile(tmp, contenido);
+        await rename(tmp, destino);
+      } catch (error) {
+        await rm(tmp, { force: true });
+        throw error;
+      }
     },
     async move(de: string, a: string): Promise<void> {
-      const destino = abs(a);
-      const origen = abs(de);
+      const destino = absEscritura(a);
+      const origen = absEscritura(de);
       await mkdir(dirname(destino), { recursive: true });
       await rename(origen, destino);
     },
     async delete(ruta: string): Promise<void> {
-      await rm(abs(ruta), { recursive: true });
+      await rm(absEscritura(ruta), { recursive: true });
     },
     /** Avisa de los archivos cambiados, agrupados cada 150 ms. Devuelve cómo dejar de vigilar. */
     onCambio(cb: (rutas: string[]) => void): () => void {

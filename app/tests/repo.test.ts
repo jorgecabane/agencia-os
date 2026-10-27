@@ -17,15 +17,29 @@ describe("puente de archivos", () => {
 
   it("rechaza rutas fuera del repo en todas las operaciones", async () => {
     const repo = crearRepo(fixtureRepo({ "x.md": "x" }));
-    const malas = ["../x", "/etc/x"];
+    const malas = ["../x", "/etc/x", ".", "", ".git", ".git/config"];
     for (const ruta of malas) {
       await expect(repo.write(ruta, "")).rejects.toThrow("ruta fuera del repo");
-      await expect(repo.read(ruta)).rejects.toThrow("ruta fuera del repo");
+      if (!ruta.startsWith(".git")) await expect(repo.read(ruta)).rejects.toThrow("ruta fuera del repo");
       await expect(repo.delete(ruta)).rejects.toThrow("ruta fuera del repo");
       await expect(repo.move("x.md", ruta)).rejects.toThrow("ruta fuera del repo");
       await expect(repo.move(ruta, "y.md")).rejects.toThrow("ruta fuera del repo");
-      await expect(repo.list(ruta)).rejects.toThrow("ruta fuera del repo");
+      if (ruta.startsWith("/") || ruta.startsWith("..")) await expect(repo.list(ruta)).rejects.toThrow("ruta fuera del repo");
     }
+  });
+
+  it("acepta nombres que empiezan con dos puntos", async () => {
+    const repo = crearRepo(fixtureRepo({}));
+    await repo.write("..foo.md", "ok");
+    expect(await repo.read("..foo.md")).toBe("ok");
+  });
+
+  it("escrituras concurrentes a la misma ruta no chocan ni dejan temporales", async () => {
+    const dir = fixtureRepo({});
+    const repo = crearRepo(dir);
+    await Promise.all([repo.write("c.md", "A"), repo.write("c.md", "B")]);
+    expect(["A", "B"]).toContain(readFileSync(join(dir, "c.md"), "utf8"));
+    expect(readdirSync(dir)).toEqual(["c.md"]);
   });
 
   it("lista las fichas y omite .git, node_modules y ui-dist", async () => {
