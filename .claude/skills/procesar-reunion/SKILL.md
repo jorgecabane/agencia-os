@@ -69,10 +69,13 @@ Fecha: la dicha en la reunión convertida a `YYYY-MM-DD`; si no se dijo, `(sin f
 
 - **Cada decisión** → `clientes/<c>/decisiones/YYYY-MM-DD-<slug>.md` con `tipo: decision`, `cliente`,
   `fecha`, `origen: "[[clientes/<c>/reuniones/<acta sin .md>]]"`; cuerpo: qué se decidió, por qué, alternativas descartadas.
-- **Cada promesa nuestra con fecha** → `clientes/<c>/entregables/<vence>-<slug>.md` con `tipo: entregable`,
+- **Cada promesa nuestra** (con o sin fecha) → `clientes/<c>/entregables/<vence>-<slug>.md` con `tipo: entregable`,
   `cliente`, `formato` (slug corto: `propuesta`, `post-instagram`, `reporte`…), `vence`, `estado: brief`,
   `responsable` (quien prometió), `origen: "[[clientes/<c>/reuniones/<acta>]]"`; cuerpo `## Brief` con lo pedido y `## Versiones` vacío.
-  Las promesas del cliente y las nuestras sin fecha quedan solo en el acta (señálalas al cerrar).
+  Sin fecha dicha: `vence` = fecha de la reunión + 7 días y `fecha_tentativa: true` (el brief del día
+  le pide al responsable confirmarla). Ninguna promesa nuestra queda solo en el acta.
+  Las promesas del cliente (lo que nos debe: fotos, accesos, aprobaciones) quedan como `- [ ]` en el acta;
+  el responsable del cliente las ve en su brief del día hasta que se cumplan.
 - **Cada aprendizaje** → viñeta al final de `contexto.md › ## Lo que aprendimos`:
   `- YYYY-MM-DD: <aprendizaje> ([[clientes/<c>/reuniones/<acta>]])`. Si `contexto.md` no existe, créalo desde `plantillas/cliente/contexto.md`.
 - **Promesas previas cumplidas**: si en esta reunión se entregó o mostró algo prometido antes, marca

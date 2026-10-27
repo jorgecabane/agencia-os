@@ -50,7 +50,7 @@ El esquema exacto está en `scripts/aos/esquemas.py`; esto es lo obligatorio:
 |---|---|---|
 | `cliente` | `nombre, slug, etapa, modalidad, responsable` | `etapa`: prospecto, propuesta, activo, pausado, cerrado · `modalidad`: retainer, proyecto, mixto · opcionales `dominios_email`, `emails`, `proximo_contacto`, `drive`, `conectores`, `fuentes_metricas` |
 | `plan` | `cliente` | `recurrentes`: lista de `{nombre, formato, cada, responsable}`; `cada` con días lun mar mie jue vie sab dom |
-| `entregable` | `cliente, formato, vence, estado, responsable` | `estado`: brief, en_curso, revision, aprobado, publicado, cancelado · `responsable` = slug de persona o `ia` · `origen` = `"[[clientes/<c>/...]]"` de la reunión, plan o decisión que lo generó |
+| `entregable` | `cliente, formato, vence, estado, responsable` | `estado`: brief, en_curso, revision, aprobado, publicado, cancelado · `responsable` = slug de persona o `ia` · `origen` = `"[[clientes/<c>/...]]"` de la reunión, plan o decisión que lo generó · `fecha_tentativa: true` si la fecha la puso la IA y falta confirmarla |
 | `reunion` / `brief-reunion` | `cliente, fecha` | opcionales `asistentes`, `fuente`, `granola_id` |
 | `decision` | `cliente, fecha` | `origen`; cuerpo: qué se decidió, por qué, alternativas descartadas |
 | `sesion` | `persona, fecha, session_id, clientes` | `clientes`: lista de slugs tocados (puede ser `[]`) |

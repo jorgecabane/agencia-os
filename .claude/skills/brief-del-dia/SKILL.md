@@ -14,7 +14,10 @@ Lee `clientes/*/entregables/`, `reuniones/` y `_ficha.md` de cada cliente (Glob 
 
 - **Entregables**: `responsable` = persona o `ia`, `estado` ni `publicado` ni `cancelado`, y `vence` ≤ hoy+7
   días (los `vence` < hoy están **atrasados**). Ordénalos por `vence`.
-- **Promesas abiertas** `- [ ]` de la persona en actas de los últimos 14 días.
+- **Promesas abiertas** `- [ ]` de la persona en cualquier acta (sin límite de fecha: ninguna se pierde).
+- **Lo que nos debe el cliente**: `- [ ]` del lado del cliente en actas de clientes donde la persona es
+  `responsable`; las vencidas, con un borrador de recordatorio para aprobar.
+- **Fechas por confirmar**: sus entregables con `fecha_tentativa: true`.
 - **Reuniones de hoy**: `tipo: brief-reunion` con `fecha` de hoy en `clientes/*/reuniones/` y la persona en `asistentes`.
 - **Señales**: más de 5 entregables de la persona en una misma semana (sobrecarga); y, solo en clientes
   donde la persona es `responsable` o está en `equipo` de la `_ficha.md`: `proximo_contacto` vencido, o
@@ -52,6 +55,12 @@ o redistribuir, y dilo.
 ## Promesas abiertas
 - <promesa> ([[clientes/<c>/reuniones/<acta>]])
   Propuesta: <...>
+
+## Lo que nos debe el cliente
+- <cliente>: <qué> (prometido para <fecha>) · borrador de recordatorio: <...>
+
+## Fechas por confirmar
+- [[clientes/<c>/entregables/<entregable>]] · vence <fecha> (tentativa) · ¿la confirmas o la muevo?
 
 ## Alertas de jefe de proyecto
 - <sobrecarga, próximo contacto vencido, cliente sin actividad> → <acción propuesta>
