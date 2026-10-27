@@ -4,6 +4,7 @@ import { Lateral, type Pantalla } from "./componentes/Lateral";
 import { fechaLocal, titulo } from "./datos/hoy";
 import { SesionCtx, useIndice } from "./datos/sesion";
 import { Hoy } from "./pantallas/Hoy";
+import { Tablero } from "./pantallas/Tablero";
 
 const aviso = new URLSearchParams(location.search).get("aviso");
 
@@ -43,20 +44,23 @@ export function App() {
       {aviso && <p role="status" className="aviso">ⓘ {aviso}</p>}
       <div className="app">
         <Lateral pantalla={pantalla} ir={ir} fecha={fecha} onCambiarPersona={() => setEligiendo(true)} />
-        {pantalla.nombre === "hoy" && <Hoy fecha={fecha} onEditar={(ruta) => ir({ nombre: "editar", ruta })} />}
-        {pantalla.nombre === "editar" && <Editar ruta={pantalla.ruta} onVolver={() => ir({ nombre: "hoy" })} />}
+        {pantalla.nombre === "hoy" && <Hoy fecha={fecha} onEditar={(ruta) => ir({ nombre: "editar", ruta, desde: "hoy" })} />}
+        {pantalla.nombre === "tablero" && <Tablero fecha={fecha} onEditar={(ruta) => ir({ nombre: "editar", ruta, desde: "tablero" })} />}
+        {pantalla.nombre === "editar" && (
+          <Editar ruta={pantalla.ruta} desde={pantalla.desde} onVolver={() => ir({ nombre: pantalla.desde })} />
+        )}
       </div>
     </SesionCtx.Provider>
   );
 }
 
 /** Provisional: muestra el archivo tal cual. El editor de verdad llega después. */
-function Editar({ ruta, onVolver }: { ruta: string; onVolver: () => void }) {
+function Editar({ ruta, desde, onVolver }: { ruta: string; desde: "hoy" | "tablero"; onVolver: () => void }) {
   const [texto, setTexto] = useState("");
   useEffect(() => void window.aos.repo.read(ruta).then(setTexto, () => setTexto("")), [ruta]);
   return (
     <main className="principal editar">
-      <button className="btn plano" onClick={onVolver}>‹ Volver a Hoy</button>
+      <button className="btn plano" onClick={onVolver}>‹ Volver a {desde === "hoy" ? "Hoy" : "Tablero"}</button>
       <h1 className="titulo" style={{ marginTop: 12 }}>{titulo(ruta)}</h1>
       <p className="bajada">{ruta}</p>
       <pre>{texto}</pre>

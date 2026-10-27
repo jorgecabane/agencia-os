@@ -52,3 +52,10 @@ export function unir(fmOriginal: string | null, cambios: Record<string, unknown>
   fm = [fm, ...nuevas].filter((x) => x !== "").join(eol);
   return fm === "" ? cuerpo : `---${eol}${fm}${eol}---${eol}${cuerpo}`;
 }
+
+/** Relee `ruta` justo antes de escribir (para no pisar cambios recientes) y cambia solo esas claves. */
+export async function cambiar(ruta: string, cambios: Record<string, unknown>): Promise<void> {
+  const actual = separar(await window.aos.repo.read(ruta));
+  if (actual.error) throw new Error(actual.error);
+  await window.aos.repo.write(ruta, unir(actual.fm, cambios, actual.cuerpo));
+}

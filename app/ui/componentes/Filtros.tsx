@@ -1,0 +1,174 @@
+import { type KeyboardEvent, type MouseEvent, type ReactNode, type RefObject, useEffect, useRef, useState } from "react";
+import { aplicar, alternar, CAMPO, conteos, ESTADOS, type Filtro, type Lista, type Vence } from "../datos/filtros";
+import { colorPara } from "../datos/hoy";
+import { useSesion } from "../datos/sesion";
+import type { Entregable } from "../datos/tipos";
+import { ESTADO } from "./Panel";
+
+const CATEGORIAS: { k: Lista | "vence"; nombre: string }[] = [
+  { k: "personas", nombre: "Persona" }, { k: "clientes", nombre: "Cliente" }, { k: "formatos", nombre: "Formato" },
+  { k: "vence", nombre: "Vence" }, { k: "estados", nombre: "Estado" },
+];
+const VENCE: Record<Exclude<Vence, "todo">, string> = { hoy: "hoy", semana: "esta semana", atrasado: "atrasado" };
+
+type Opcion = { id: string; etiqueta: string; k?: string; color?: string; n?: number; marcado?: boolean; ir?: boolean; hacer: () => void };
+
+export const colorPersona = (slug: string) => (slug === "ia" ? "var(--ia)" : colorPara(slug));
+export const etiquetaEstado = (e: string) => { const t = ESTADO[e] ?? e; return t[0].toUpperCase() + t.slice(1); };
+
+/** Nombres legibles de cada valor por campo, en el orden en que se muestran. */
+function useNombres(es: Entregable[]) {
+  const { indice } = useSesion();
+  const con = (conocidos: [string, string][], k: keyof Entregable) => {
+    const m = new Map(conocidos);
+    for (const e of es) if (!m.has(String(e[k]))) m.set(String(e[k]), String(e[k]));
+    return m;
+  };
+  return {
+    personas: con([...indice.personas.map((p): [string, string] => [p.slug, p.nombre]), ["ia", "Claude"]], "responsable"),
+    clientes: con(indice.clientes.map((c) => [c.slug, c.nombre]), "cliente"),
+    formatos: con([], "formato"),
+    estados: new Map<string, string>(ESTADOS.map((e) => [e, etiquetaEstado(e)])),
+  };
+}
+
+/** Caras del equipo, menú "Filtrar" (tecla F) con buscador y conteos, y chips con ×. `children` va a la derecha. */
+export function Filtros({ es, filtro, cambiar, fecha, children }: {
+  es: Entregable[]; filtro: Filtro; cambiar: (f: Filtro) => void; fecha: string; children?: ReactNode;
+}) {
+  const nombres = useNombres(es);
+  const [menu, setMenu] = useState<{ animar: boolean } | null>(null);
+  const boton = useRef<HTMLButtonElement>(null);
+  const cerrar = () => { setMenu(null); boton.current?.focus(); };
+
+  useEffect(() => {
+    const tecla = (e: globalThis.KeyboardEvent) => {
+      const t = e.target as HTMLElement;
+      if (e.key.toLowerCase() !== "f" || e.metaKey || e.ctrlKey || e.altKey || t.closest("input, textarea, select, [contenteditable]")) return;
+      e.preventDefault();
+      setMenu({ animar: false }); // por teclado: sin animación
+    };
+    window.addEventListener("keydown", tecla);
+    return () => window.removeEventListener("keydown", tecla);
+  }, []);
+
+  const personas = filtro.personas ?? [];
+  const quitar = (k: keyof Filtro) => cambiar({ ...filtro, [k]: undefined });
+  const chip = (clave: keyof Filtro, k: string, valor: ReactNode) => (
+    <span className="chip filtro" key={clave}>
+      {k && <span className="k">{k}</span>}{valor}
+      <button className="x" onClick={() => quitar(clave)} aria-label={`Quitar filtro ${k ? `de ${k.toLowerCase()}` : valor}`}>×</button>
+    </span>
+  );
+
+  return (
+    <div className="barra-filtros">
+      <div className="caras" role="group" aria-label="Filtrar por persona">
+        {[...nombres.personas].map(([slug, nombre]) => {
+          const on = personas.includes(slug);
+          return (
+            <button
+              key={slug} className={`av${on ? " on" : personas.length ? " off" : ""}`} style={{ background: colorPersona(slug) }}
+              title={nombre} aria-label={nombre} aria-pressed={on} onClick={() => cambiar(alternar(filtro, "personas", slug))}
+            >{slug === "ia" ? "✦" : nombre[0]}</button>
+          );
+        })}
+      </div>
+      <span className="sep" aria-hidden />
+      <span className="ancla">
+        <button
+          ref={boton} className={menu ? "btn plano abierto" : "btn plano"} aria-expanded={Boolean(menu)} aria-haspopup="dialog"
+          onClick={(e: MouseEvent) => (menu ? setMenu(null) : setMenu({ animar: e.detail !== 0 }))}
+        >Filtrar <kbd className="kbd">F</kbd></button>
+        {menu && <Menu {...{ es, filtro, cambiar, fecha, nombres }} animar={menu.animar} onCerrar={cerrar} boton={boton} />}
+      </span>
+      {(["clientes", "formatos", "estados"] as const).map((k) => filtro[k]?.length ? chip(k, CATEGORIAS.find((c) => c.k === k)!.nombre,
+        filtro[k]!.map((v) => (
+          <span key={v} className="valor">
+            {k === "clientes" && <span className="dot" style={{ background: colorPara(v) }} aria-hidden />}{nombres[k].get(v) ?? v}
+          </span>
+        ))) : null)}
+      {filtro.vence && filtro.vence !== "todo" && chip("vence", "Vence", VENCE[filtro.vence])}
+      {filtro.esperandoCliente && chip("esperandoCliente", "", "Esperando al cliente")}
+      <div className="derecha">{children}</div>
+    </div>
+  );
+}
+
+function Menu({ es, filtro, cambiar, fecha, nombres, animar, onCerrar, boton }: {
+  es: Entregable[]; filtro: Filtro; cambiar: (f: Filtro) => void; fecha: string; nombres: ReturnType<typeof useNombres>;
+  animar: boolean; onCerrar: () => void; boton: RefObject<HTMLButtonElement | null>;
+}) {
+  const [cat, setCat] = useState<Lista | "vence" | null>(null);
+  const [q, setQ] = useState("");
+  const [hl, setHl] = useState(0);
+  const caja = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const fuera = (e: PointerEvent) => {
+      const t = e.target as Node;
+      if (!caja.current?.contains(t) && !boton.current?.contains(t)) onCerrar();
+    };
+    document.addEventListener("pointerdown", fuera);
+    return () => document.removeEventListener("pointerdown", fuera);
+  }, [onCerrar, boton]);
+
+  const valores = (k: Lista | "vence"): Opcion[] => {
+    const nombreCat = CATEGORIAS.find((c) => c.k === k)!.nombre;
+    if (k === "vence") {
+      return (Object.keys(VENCE) as (keyof typeof VENCE)[]).map((v) => ({
+        id: `vence-${v}`, k: nombreCat, etiqueta: VENCE[v][0].toUpperCase() + VENCE[v].slice(1), marcado: filtro.vence === v,
+        n: aplicar(es, { ...filtro, vence: v }, fecha).length,
+        hacer: () => cambiar({ ...filtro, vence: filtro.vence === v ? undefined : v }),
+      }));
+    }
+    const n = conteos(aplicar(es, { ...filtro, [k]: undefined }, fecha), CAMPO[k]);
+    return [...nombres[k]].map(([v, etiqueta]) => ({
+      id: `${k}-${v}`, k: nombreCat, etiqueta, n: n[v] ?? 0, marcado: filtro[k]?.includes(v),
+      color: k === "clientes" ? colorPara(v) : k === "personas" ? colorPersona(v) : undefined,
+      hacer: () => cambiar(alternar(filtro, k, v)),
+    }));
+  };
+  const busca = q.trim().toLowerCase();
+  const opciones: Opcion[] = cat
+    ? valores(cat).filter((o) => o.etiqueta.toLowerCase().includes(busca))
+    : busca
+      ? CATEGORIAS.flatMap((c) => valores(c.k)).filter((o) => o.etiqueta.toLowerCase().includes(busca))
+      : CATEGORIAS.map((c) => ({ id: `cat-${c.k}`, etiqueta: c.nombre, ir: true, hacer: () => { setCat(c.k); setQ(""); setHl(0); } }));
+  const marcada = Math.min(hl, Math.max(0, opciones.length - 1));
+  const nombreCat = CATEGORIAS.find((c) => c.k === cat)?.nombre;
+
+  const tecla = (e: KeyboardEvent<HTMLInputElement>) => {
+    const mover = { ArrowDown: 1, ArrowUp: -1 }[e.key];
+    if (mover) { e.preventDefault(); setHl((marcada + mover + opciones.length) % Math.max(1, opciones.length)); }
+    else if (e.key === "Enter") { e.preventDefault(); opciones[marcada]?.hacer(); }
+    else if (e.key === "Escape") { e.preventDefault(); onCerrar(); }
+    else if (e.key === "Backspace" && !q && cat) { setCat(null); setHl(0); }
+  };
+
+  return (
+    <div ref={caja} className={animar ? "pop anima" : "pop"} role="dialog" aria-label={nombreCat ? `Filtrar por ${nombreCat.toLowerCase()}` : "Filtrar"}>
+      <input
+        autoFocus value={q} onChange={(e) => { setQ(e.target.value); setHl(0); }} onKeyDown={tecla}
+        placeholder={nombreCat ? `Buscar ${nombreCat.toLowerCase()}…` : "Filtrar por…"} aria-label={nombreCat ? `Buscar ${nombreCat.toLowerCase()}` : "Buscar filtro"}
+        role="combobox" aria-expanded aria-controls="filtro-opciones" aria-activedescendant={opciones[marcada] ? `op-${opciones[marcada].id}` : undefined}
+      />
+      {cat && <button className="cabeza" onClick={() => { setCat(null); setHl(0); }}>‹ {nombreCat}</button>}
+      <div id="filtro-opciones" role="listbox" aria-multiselectable={Boolean(cat || busca)} aria-label="Opciones">
+        {opciones.map((o, i) => (
+          <div
+            key={o.id} id={`op-${o.id}`} role="option" aria-selected={o.ir ? undefined : Boolean(o.marcado)}
+            className={i === marcada ? "op hl" : "op"} onMouseMove={() => setHl(i)} onClick={o.hacer}
+          >
+            {!o.ir && <span className={o.marcado ? "caja on" : "caja"} aria-hidden>{o.marcado && "✓"}</span>}
+            {o.color && <span className="dot" style={{ background: o.color }} aria-hidden />}
+            {!cat && busca && <span className="k">{o.k}</span>}
+            {o.etiqueta}
+            <span className="n">{o.ir ? "›" : o.n}</span>
+          </div>
+        ))}
+        {!opciones.length && <div className="op vacia">Nada calza con “{q}”</div>}
+      </div>
+    </div>
+  );
+}

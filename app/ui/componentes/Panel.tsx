@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { clienteDeRuta, colorPara, cuando, fechaLocal, titulo } from "../datos/hoy";
-import { separar, unir } from "../datos/md";
+import { cambiar as cambiarFm, separar } from "../datos/md";
 import { inspiracion, propuestas } from "../datos/propuestas";
 import { useSesion } from "../datos/sesion";
 
@@ -56,12 +56,9 @@ export function Panel({ ruta, onCerrar, onEditar, onDesarrollar, chat, animar = 
   const cliente = indice.clientes.find((c) => c.slug === meta?.cliente);
   const linea = contexto(cuerpo);
 
-  // Relee justo antes de escribir para no pisar cambios recientes.
   const cambiar = async (cambios: Record<string, unknown>) => {
     try {
-      const actual = separar(await window.aos.repo.read(ruta));
-      if (actual.error) throw new Error(actual.error);
-      await window.aos.repo.write(ruta, unir(actual.fm, cambios, actual.cuerpo));
+      await cambiarFm(ruta, cambios);
       setAbierto(null);
     } catch {
       setError("No se pudo guardar el cambio. Revisa que el archivo se pueda leer.");
@@ -151,10 +148,10 @@ export function Panel({ ruta, onCerrar, onEditar, onDesarrollar, chat, animar = 
   );
 }
 
-const ANILLO: Record<string, string> = {
+export const ANILLO: Record<string, string> = {
   en_curso: "var(--en-curso)", revision: "var(--foco)", aprobado: "var(--avance)", cancelado: "var(--atraso)",
 };
-const ESTADO: Record<string, string> = { en_curso: "en curso", revision: "revisión" };
+export const ESTADO: Record<string, string> = { en_curso: "en curso", revision: "revisión" };
 
 function Etiquetas({ meta, cliente, color }: { meta: Record<string, unknown>; cliente?: string; color: string }) {
   const vence = meta.vence ? cuando(String(meta.vence), fechaLocal()) : null;
