@@ -38,7 +38,7 @@ export function Chat({ contextoId, contexto, etiqueta, color, formato, pedido, o
     enviado.current = pedido;
     mandar(pedido.texto);
   }, [pedido]);
-  useEffect(() => fin.current?.scrollIntoView({ block: "end" }), [turnos]);
+  useEffect(() => { fin.current?.scrollIntoView({ block: "end" }); }, [turnos]);
 
   return (
     <section className={onCerrar ? "chat cajon" : "chat"} aria-label="Chat con Claude"

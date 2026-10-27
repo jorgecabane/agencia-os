@@ -32,7 +32,7 @@ export function Panel({ ruta, onCerrar, onEditar, animar = true }: {
   const [error, setError] = useState<string | null>(null);
   const [pedido, setPedido] = useState<Pedido>();
   const caja = useRef<HTMLElement>(null);
-  useEffect(() => caja.current?.focus(), [ruta]); // al abrir, el foco entra al panel
+  useEffect(() => { caja.current?.focus(); }, [ruta]); // al abrir, el foco entra al panel
 
   useEffect(() => {
     let vivo = true;

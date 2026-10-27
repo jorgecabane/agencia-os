@@ -68,7 +68,7 @@ export function Lienzo(props: PropsLienzo) {
   const p = useRef(props);
   p.current = props;
   const vista = useRef<(() => void) | null>(null); // redibuja las marcas cuando cambia `previo`
-  useEffect(() => vista.current?.(), [props.previo]);
+  useEffect(() => { vista.current?.(); }, [props.previo]);
   useEffect(() => {
     const { inicial, ruta } = p.current;
     // Sin bloques de código con resaltado ni fórmulas: traen cientos de archivos y el repo no los usa.
