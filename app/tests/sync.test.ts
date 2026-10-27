@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { log, show, yo } from "../shell/git";
-import { correrSyncSh, crearSync } from "../shell/sync";
+import { correrSyncSh, crearPausas, crearSync } from "../shell/sync";
 
 describe("crearSync (reloj falso)", () => {
   beforeEach(() => vi.useFakeTimers());
@@ -68,6 +68,53 @@ describe("crearSync (reloj falso)", () => {
     sync.parar();
   });
 
+  it("enCurso() espera a la ejecución en vuelo y la pausa no deja arrancar otra", async () => {
+    let terminar!: (c: number) => void;
+    const correr = vi.fn(() => new Promise<number>((r) => (terminar = r)));
+    const sync = crearSync({ correr, ahora: () => new Date(), persona: () => "jorge" });
+    sync.foco();
+    await vi.advanceTimersByTimeAsync(0);
+    const reanudar = sync.pausar();
+    let listo = false;
+    void sync.enCurso().then(() => (listo = true));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(listo).toBe(false);
+    terminar(0);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(listo).toBe(true);
+    expect(correr).toHaveBeenCalledTimes(1);
+    reanudar();
+    sync.parar();
+  });
+
+  it("si persona() falla queda sin-conexion", async () => {
+    const sync = crearSync({
+      correr: async () => 0,
+      ahora: () => new Date(),
+      persona: () => {
+        throw new Error("x");
+      },
+    });
+    await sync.ahora();
+    expect(sync.estado()).toBe("sin-conexion");
+    sync.parar();
+  });
+
+  it("soltar(dueño) libera las pausas colgadas de un renderer recargado", async () => {
+    const { correr, sync } = armar([0]);
+    const pausas = crearPausas(sync);
+    pausas.pausar(1, 1);
+    pausas.pausar(1, 2);
+    pausas.pausar(2, 1);
+    pausas.reanudar(2, 1);
+    sync.foco();
+    expect(correr).not.toHaveBeenCalled();
+    pausas.soltar(1);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(correr).toHaveBeenCalledTimes(1);
+    sync.parar();
+  });
+
   it("avisa los cambios de estado", async () => {
     const { sync } = armar([0]);
     const vistos: string[] = [];
@@ -87,6 +134,19 @@ describe("integración con sync.sh real", () => {
   const git = (cwd: string, ...a: string[]) =>
     execFileSync("git", ["-C", cwd, "-c", "commit.gpgsign=false", ...a], { env: ENV, encoding: "utf8", stdio: "pipe" });
 
+  const envPrevio = { ...process.env };
+  afterEach(() => {
+    for (const k of Object.keys(process.env)) if (!(k in envPrevio)) delete process.env[k];
+    Object.assign(process.env, envPrevio);
+  });
+
+  it("rechaza desde y max peligrosos", async () => {
+    await expect(log("/x", { desde: "--output=/tmp/x" })).rejects.toThrow("desde");
+    await expect(log("/x", { desde: "a b" })).rejects.toThrow("desde");
+    await expect(log("/x", { max: -1 })).rejects.toThrow("max");
+    await expect(log("/x", { max: 1.5 })).rejects.toThrow("max");
+  });
+
   it("sube un cambio y git.log/show/yo lo ven", async () => {
     const tmp = mkdtempSync(join(tmpdir(), "aos-sync-"));
     const remoto = join(tmp, "r.git");
@@ -94,6 +154,8 @@ describe("integración con sync.sh real", () => {
     const a = join(tmp, "a");
     git(tmp, "clone", "-q", remoto, a);
     git(a, "checkout", "-q", "-b", "main");
+    git(a, "config", "user.name", "Ana");
+    git(a, "config", "user.email", "ana@x.cl");
     writeFileSync(join(a, "f.txt"), "1\n");
     git(a, "add", "-A");
     git(a, "commit", "-qm", "init");
@@ -115,6 +177,6 @@ describe("integración con sync.sh real", () => {
     expect(ultimo).toMatchObject({ autor: "t", email: "t@t", rutas: ["f.txt"] });
     expect(await show(a, ultimo.hash, "f.txt")).toBe("1\n2\n");
     expect((await log(a, { ruta: "f.txt" })).length).toBe(2);
-    expect(await yo(a)).toEqual({ nombre: "", email: "" });
+    expect(await yo(a)).toEqual({ nombre: "Ana", email: "ana@x.cl" });
   });
 });

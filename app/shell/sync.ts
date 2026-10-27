@@ -8,6 +8,7 @@ const CALMA_MS = 5_000;
 const INTERVALO_MS = 45_000;
 const SALIDA_CONFLICTO = 3;
 const SALIDA_SIN_CONEXION = 4;
+const TIEMPO_MAX_MS = 60_000;
 
 export interface Sync {
   estado(): Estado;
@@ -17,6 +18,8 @@ export interface Sync {
   /** Corre ya, incluso tras un conflicto. */
   ahora(): Promise<void>;
   pausar(): () => void;
+  /** Resuelve cuando no hay ninguna ejecución en curso (usar tras `pausar()`). */
+  enCurso(): Promise<void>;
   parar(): void;
 }
 
@@ -40,9 +43,9 @@ export function crearSync(deps: {
 
   async function ejecutar(): Promise<void> {
     poner("subiendo");
-    const persona = await deps.persona();
-    const mensaje = `app: ${persona} ${deps.ahora().toISOString().slice(0, 16)}Z`;
-    const codigo = await deps.correr(mensaje).catch(() => SALIDA_SIN_CONEXION);
+    const codigo = await Promise.resolve()
+      .then(async () => deps.correr(`app: ${await deps.persona()} ${deps.ahora().toISOString().slice(0, 16)}Z`))
+      .catch(() => SALIDA_SIN_CONEXION);
     if (codigo === 0) poner("al-dia");
     else poner(codigo === SALIDA_CONFLICTO ? "conflicto" : "sin-conexion");
   }
@@ -94,9 +97,31 @@ export function crearSync(deps: {
         if (--pausas === 0) auto();
       };
     },
+    async enCurso() {
+      while (corriendo) await corriendo;
+    },
     parar() {
       clearInterval(intervalo);
       clearTimeout(calma);
+    },
+  };
+}
+
+/** Pausas de sync por dueño (ventana): al recargar o cerrar, `soltar` libera las que quedaron colgadas. */
+export function crearPausas(sync: Pick<Sync, "pausar">) {
+  const porDueno = new Map<number, Map<number, () => void>>();
+  return {
+    pausar(dueno: number, id: number) {
+      if (!porDueno.has(dueno)) porDueno.set(dueno, new Map());
+      porDueno.get(dueno)!.set(id, sync.pausar());
+    },
+    reanudar(dueno: number, id: number) {
+      porDueno.get(dueno)?.get(id)?.();
+      porDueno.get(dueno)?.delete(id);
+    },
+    soltar(dueno: number) {
+      porDueno.get(dueno)?.forEach((r) => r());
+      porDueno.delete(dueno);
     },
   };
 }
@@ -108,7 +133,7 @@ export function correrSyncSh(raiz: string): (mensaje: string) => Promise<number>
       execFile(
         join(raiz, ".claude/hooks/sync.sh"),
         [mensaje],
-        { env: { ...process.env, CLAUDE_PROJECT_DIR: raiz } },
+        { env: { ...process.env, CLAUDE_PROJECT_DIR: raiz }, timeout: TIEMPO_MAX_MS },
         (err) => resolver(err ? (typeof err.code === "number" ? err.code : SALIDA_SIN_CONEXION) : 0),
       );
     });

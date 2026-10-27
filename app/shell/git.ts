@@ -21,8 +21,10 @@ export async function log(
   raiz: string,
   { desde, ruta, max }: { desde?: string; ruta?: string; max?: number } = {},
 ): Promise<Commit[]> {
+  if (desde !== undefined && !/^[0-9a-zA-Z._/][0-9a-zA-Z._/-]*$/.test(desde)) throw new Error("desde inválido");
+  if (max !== undefined && !(Number.isInteger(max) && max > 0)) throw new Error("max inválido");
   const args = ["log", "--name-only", `--format=${REGISTRO}%H${CAMPO}%an${CAMPO}%ae${CAMPO}%aI${CAMPO}%s${CAMPO}`];
-  if (max) args.push(`-n${Math.floor(max)}`);
+  if (max) args.push(`-n${max}`);
   args.push(desde ? `${desde}..HEAD` : "HEAD", "--");
   if (ruta) args.push(ruta);
   const salida = await git(raiz, ...args);

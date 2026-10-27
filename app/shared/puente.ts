@@ -31,6 +31,8 @@ export interface Puente {
     ahora(): Promise<void>;
     /** Detiene el sync (p. ej. mientras chatea Claude). Devuelve cómo reanudar; al reanudar corre una vez. */
     pausar(): () => void;
+    /** Resuelve cuando no hay un sync en curso: `pausar()` y luego `await enCurso()` antes de un turno de chat. */
+    enCurso(): Promise<void>;
   };
   git: {
     log(opts: { desde?: string; ruta?: string; max?: number }): Promise<Commit[]>;

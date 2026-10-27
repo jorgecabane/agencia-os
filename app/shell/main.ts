@@ -6,7 +6,7 @@ import { elegirUI } from "./cargar-ui";
 import { guardarConfig, leerConfig } from "./config";
 import * as git from "./git";
 import { crearRepo } from "./repo";
-import { correrSyncSh, crearSync, leerPersona } from "./sync";
+import { correrSyncSh, crearPausas, crearSync, leerPersona } from "./sync";
 
 const ESPERA_RECARGA_MS = 300;
 
@@ -49,23 +49,26 @@ function cablearSync(ventana: BrowserWindow, raiz: string): { escribio: () => vo
     ahora: () => new Date(),
     persona: () => leerPersona(raiz),
   });
-  const reanudar = new Map<number, () => void>();
+  const pausas = crearPausas(sync);
+  const dueno = ventana.webContents.id;
   ipcMain.on("sync:estado", (e) => (e.returnValue = sync.estado()));
   ipcMain.handle("sync:ahora", () => sync.ahora());
-  ipcMain.on("sync:pausar", (_e, id: number) => reanudar.set(id, sync.pausar()));
-  ipcMain.on("sync:reanudar", (_e, id: number) => {
-    reanudar.get(id)?.();
-    reanudar.delete(id);
-  });
+  ipcMain.handle("sync:en-curso", () => sync.enCurso());
+  ipcMain.on("sync:pausar", (e, id: number) => e.sender.id === dueno && pausas.pausar(dueno, id));
+  ipcMain.on("sync:reanudar", (e, id: number) => e.sender.id === dueno && pausas.reanudar(dueno, id));
   ipcMain.handle("git:log", (_e, opts) => git.log(raiz, opts));
   ipcMain.handle("git:show", (_e, hash: string, ruta: string) => git.show(raiz, hash, ruta));
   ipcMain.handle("git:yo", () => git.yo(raiz));
   const quitar = sync.onEstado((e) => ventana.webContents.send("sync:cambio", e));
   ventana.on("focus", sync.foco);
+  // Recargar la UI pierde sus ids de pausa: se liberan todas las del renderer anterior.
+  const wc = ventana.webContents;
+  wc.on("did-start-navigation", (d) => d.isMainFrame && !d.isSameDocument && pausas.soltar(dueno));
+  wc.on("render-process-gone", () => pausas.soltar(dueno));
   ventana.on("closed", () => {
     quitar();
     sync.parar();
-    reanudar.forEach((r) => r());
+    pausas.soltar(dueno);
   });
   void sync.ahora(); // al abrir: traer lo del equipo
   return sync;

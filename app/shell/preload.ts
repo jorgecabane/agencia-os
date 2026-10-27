@@ -30,6 +30,7 @@ const puente: Puente = {
       return () => ipcRenderer.removeListener("sync:cambio", escucha);
     },
     ahora: () => ipcRenderer.invoke("sync:ahora"),
+    enCurso: () => ipcRenderer.invoke("sync:en-curso"),
     pausar: () => {
       const id = ++pausas;
       ipcRenderer.send("sync:pausar", id);
