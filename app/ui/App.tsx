@@ -149,7 +149,8 @@ export function App() {
         {pantalla.nombre === "calendario" && <Calendario fecha={fecha} onEditar={editar} />}
         {pantalla.nombre === "aprobaciones" && <Aprobaciones key={pantalla.ruta} inicial={pantalla.ruta} onEditar={editar} />}
         {pantalla.nombre === "config" && <Config onEditar={editar} onCambiarPersona={() => setEligiendo(true)} />}
-        {pantalla.nombre === "cliente" && <Cliente key={pantalla.slug} slug={pantalla.slug} fecha={fecha} onErrorFuera={setErrorGuardar} onPedirClaude={pedir} />}
+        {pantalla.nombre === "cliente" && <Cliente key={pantalla.slug} slug={pantalla.slug} fecha={fecha} onErrorFuera={setErrorGuardar} onPedirClaude={pedir}
+          onNuevaTarea={(c) => setNueva({ cliente: c })} />}
         {pantalla.nombre === "editar" && (
           <main className="principal editar">
             <button className="btn plano" onClick={() => ir(pantalla.desde)}>‹ Volver a {nombreDe(pantalla.desde)}</button>

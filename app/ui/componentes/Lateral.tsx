@@ -1,4 +1,5 @@
-import { CalendarDays, Inbox, Search, Settings, Sparkles, SquareKanban, Sun, TriangleAlert } from "lucide-react";
+import { CalendarDays, ClockAlert, Inbox, Search, Settings, Sparkles, SquareKanban, Sun, TriangleAlert } from "lucide-react";
+import { sinContacto } from "../datos/contacto";
 import type { Filtro } from "../datos/filtros";
 import { colorPara, hoy } from "../datos/hoy";
 import { useSesion } from "../datos/sesion";
@@ -53,7 +54,7 @@ export function Lateral({ pantalla, ir, fecha, onCambiarPersona, onMezclar, onBu
           className="nav-it" key={c.slug} onClick={() => ir({ nombre: "cliente", slug: c.slug })}
           aria-current={pantalla.nombre === "cliente" && pantalla.slug === c.slug ? "page" : undefined}
         >
-          <span className="dot" style={{ background: colorPara(c.slug) }} aria-hidden />{c.nombre}
+          <span className="dot" style={{ background: colorPara(c.slug) }} aria-hidden />{c.nombre}<SinContacto slug={c.slug} fecha={fecha} />
         </button>
       ))}
       <div className="pie">
@@ -74,4 +75,13 @@ export function Lateral({ pantalla, ir, fecha, onCambiarPersona, onMezclar, onBu
       </div>
     </nav>
   );
+}
+
+/** Reloj junto al cliente con alerta de contacto (ver `sinContacto`). */
+function SinContacto({ slug, fecha }: { slug: string; fecha: string }) {
+  const { indice } = useSesion();
+  const a = sinContacto(indice, slug, fecha);
+  if (!a) return null;
+  const t = a.dias === null ? "Sin reuniones registradas" : `Sin contacto hace ${a.dias} días`;
+  return <span className="n sin-contacto" role="img" aria-label={t} title={t}><ClockAlert size={14} aria-hidden /></span>;
 }

@@ -10,11 +10,15 @@ import { slugDe } from "../datos/resumen";
 import { useSesion } from "../datos/sesion";
 import type { Cliente as Ficha } from "../datos/tipos";
 import type { Vista } from "../datos/vistas";
+import { AlertaContacto, ListaCliente } from "./ClienteListas";
 import { type Datos, Estado, Fila, type Lista, type Pagina, Resumen, type Tab } from "./ClienteResumen";
 import { useVistas } from "./Tablero";
 
-/** `onPedirClaude(texto, contexto)`: abre el chat con ese contexto (el cliente o el documento abierto). */
-type Props = { slug: string; fecha: string; onPedirClaude?: (texto: string, contexto: string) => void; onErrorFuera: (msg: string) => void };
+/** `onPedirClaude(texto, contexto)`: abre el chat con ese contexto (el cliente o el documento abierto). `onNuevaTarea`: el diálogo de ⌘N con este cliente. */
+type Props = {
+  slug: string; fecha: string; onPedirClaude?: (texto: string, contexto: string) => void; onErrorFuera: (msg: string) => void;
+  onNuevaTarea?: (cliente: string) => void;
+};
 
 const DOCS: [archivo: string, etiqueta: string][] = [
   ["contexto.md", "Contexto"], ["brandbook.md", "Brandbook"], ["plan-contratado.md", "Plan"], ["material.md", "Material"],
@@ -70,7 +74,7 @@ const DocVacio = ({ cliente, etiqueta, onCrear }: { cliente: string; etiqueta: s
   </div>
 );
 
-export function Cliente({ slug, fecha, onPedirClaude, onErrorFuera }: Props) {
+export function Cliente({ slug, fecha, onPedirClaude, onErrorFuera, onNuevaTarea }: Props) {
   const { indice } = useSesion();
   const ficha = indice.clientes.find((c) => c.slug === slug);
   const [datos, recargar] = useDatos(slug);
@@ -98,7 +102,7 @@ export function Cliente({ slug, fecha, onPedirClaude, onErrorFuera }: Props) {
     );
     if (abierto) return <><button className="btn plano volver" onClick={() => setAbierto(null)}>‹ Volver</button>{editor}</>;
     if (tab.k === "resumen") return <Resumen ficha={ficha} fecha={fecha} datos={datos} abrir={setAbierto} abrirPanel={abrirPanel} irA={elegir} onPedirClaude={pedir} />;
-    if (tab.k === "lista") return <ListaCliente cual={tab.cual} slug={slug} fecha={fecha} abrir={setAbierto} />;
+    if (tab.k === "lista") return <ListaCliente key={tab.cual} cual={tab.cual} slug={slug} fecha={fecha} abrir={setAbierto} onNuevaTarea={onNuevaTarea && (() => onNuevaTarea(slug))} />;
     if (tab.k === "vista") {
       const v = mias.find((x) => x.nombre === tab.nombre);
       return v ? <Tareas vista={v} fecha={fecha} abrirPanel={abrirPanel} abierta={panel?.ruta} /> : null;
@@ -112,6 +116,7 @@ export function Cliente({ slug, fecha, onPedirClaude, onErrorFuera }: Props) {
     <>
       <main className="principal cliente">
         <Cabecera ficha={ficha} compacta={tab.k !== "resumen" || abierto !== null} />
+        <AlertaContacto ficha={ficha} fecha={fecha} onPedirClaude={pedir} />
         <Pestanas tab={tab} elegir={elegir} slug={slug} paginas={datos?.paginas ?? []} vistas={mias} acciones={acciones} nombre={ficha.nombre} />
         {(error ?? errorVistas) && <p className="error" role="alert">⚠ {error ?? errorVistas}</p>}
         {contenido()}
@@ -259,18 +264,6 @@ function MenuMas({ acciones, nombre }: { acciones: Acciones; nombre: string }) {
       )}
     </span>
   );
-}
-
-function ListaCliente({ cual, slug, fecha, abrir }: { cual: Lista; slug: string; fecha: string; abrir: (r: string) => void }) {
-  const { indice } = useSesion();
-  const filas = cual === "entregables"
-    ? indice.entregables.filter((e) => e.cliente === slug).map((e) => ({ ruta: e.ruta, f: e.vence, der: <Estado estado={e.estado} />, alerta: !CERRADOS.has(e.estado) }))
-    : (cual === "reuniones" ? indice.reuniones : indice.decisiones).filter((x) => x.cliente === slug).map((x) => ({
-      ruta: x.ruta, f: x.fecha, alerta: false, der: "tipo" in x ? <span className="st">{x.tipo === "brief-reunion" ? "Brief" : "Acta"}</span> : null,
-    }));
-  filas.sort((a, b) => String(b.f).localeCompare(String(a.f)));
-  if (!filas.length) return <p className="vacio">Todavía no hay {cual}.</p>;
-  return <ul className="lista">{filas.map((x) => <Fila key={x.ruta} cuandoF={x.f} fecha={fecha} t={titulo(x.ruta)} derecha={x.der} onClick={() => abrir(x.ruta)} alerta={x.alerta} />)}</ul>;
 }
 
 function Tareas({ vista, fecha, abrirPanel, abierta }: {
