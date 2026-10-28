@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { opcionesEtiqueta, type Etiqueta } from "../ui/datos/etiquetas";
 import { alternar } from "../ui/datos/filtros";
-import { teclaMenu } from "../ui/datos/menu";
+import { fechaValida, teclaMenu } from "../ui/datos/menu";
 
 describe("teclaMenu", () => {
   it("cada letra lleva a su opción, sin distinguir mayúsculas", () => {
@@ -42,4 +42,10 @@ it("alternar también suma y quita etiquetas del filtro", () => {
   const f = alternar({}, "etiquetas", "adopcion");
   expect(f.etiquetas).toEqual(["adopcion"]);
   expect(alternar(f, "etiquetas", "adopcion").etiquetas).toBeUndefined();
+});
+
+it("fechaValida rechaza el año a medio teclear", () => {
+  expect(fechaValida("2026-10-30")).toBe(true);
+  expect(fechaValida("0202-10-30")).toBe(false);
+  expect(fechaValida("")).toBe(false);
 });

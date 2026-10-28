@@ -1,6 +1,7 @@
 import { Calendar, Tag } from "lucide-react";
 import { type KeyboardEvent, type ReactNode, useId, useRef, useState } from "react";
 import { colorPara, cuando, fechaLocal } from "../datos/hoy";
+import { fechaValida } from "../datos/menu";
 import { crearTarea, interpretar, type NuevaTarea as Tarea } from "../datos/nueva";
 import { useSesion } from "../datos/sesion";
 import { ElegirEtiquetas } from "./ElegirEtiquetas";
@@ -96,8 +97,9 @@ function Elegir({ campo, t, fijar }: { campo: Campo; t: Tarea; fijar: (c: Partia
     return (
       <label className="campo">
         Vence
-        <input type="date" autoFocus defaultValue={t.vence} onKeyDown={(ev) => ev.key === "Enter" && fijar({ vence: ev.currentTarget.value || t.vence })}
-          onBlur={(ev) => ev.currentTarget.value && fijar({ vence: ev.currentTarget.value })} />
+        <input type="date" autoFocus defaultValue={t.vence}
+          onChange={(ev) => fechaValida(ev.target.value) && fijar({ vence: ev.target.value }, false)}
+          onKeyDown={(ev) => { if (ev.key === "Enter") { ev.preventDefault(); fijar({}); } }} />
       </label>
     );
   }

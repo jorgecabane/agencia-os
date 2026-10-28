@@ -25,8 +25,8 @@ export function ElegirEtiquetas({ elegidas, onCambiar }: { elegidas: string[]; o
   const tecla = (ev: KeyboardEvent<HTMLInputElement>) => {
     if (ev.key !== "Enter") return;
     ev.preventDefault();
-    if (lista.length) alternar(lista[0].slug);
-    else if (crear) void nueva(crear);
+    if (crear) void nueva(crear); // nada calza exacto: se crea
+    else if (lista.length) { alternar(lista[0].slug); setQ(""); }
   };
   return (
     <div className="elegir-etq">

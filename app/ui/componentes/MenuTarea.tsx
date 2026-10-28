@@ -3,7 +3,7 @@ import { type ReactNode, type RefObject, useCallback, useEffect, useLayoutEffect
 import { ESTADOS } from "../datos/filtros";
 import { titulo } from "../datos/hoy";
 import { cambiar } from "../datos/md";
-import { type Accion, teclaMenu } from "../datos/menu";
+import { type Accion, fechaValida, teclaMenu } from "../datos/menu";
 import { crearTarea } from "../datos/nueva";
 import { useSesion } from "../datos/sesion";
 import type { Entregable } from "../datos/tipos";
@@ -16,7 +16,6 @@ type Props = {
   e: Entregable; onCambiar: (cambios: Partial<Entregable>) => void;
   onPedirClaude?: (texto: string) => void; onAbrir: (ruta: string) => void;
 };
-const FECHA = /^(\d{4})-\d{2}-\d{2}$/;
 
 /** Botón ⋯ de la tarjeta y su menú. Las letras (M A R L ⌫) funcionan con el menú abierto o con la tarjeta enfocada. */
 export function MenuTarea(props: Props) {
@@ -58,9 +57,13 @@ function Caja({ modo, animar, boton, onCerrar, onModo, ...props }: Props & {
   const [error, setError] = useState<string | null>(null);
   useClicAfuera(caja, boton, onCerrar);
   // En la capa superior (popover) para que el overflow de las columnas no lo corte; `source` lo ancla al ⋯ (CSS anchor).
+  // autoFocus no sirve: React enfoca antes de que el popover se vea. Se abre y se enfoca lo primero de cada vista.
   useLayoutEffect(() => {
-    (caja.current as (HTMLElement & { showPopover(o?: { source?: HTMLElement | null }): void }) | null)?.showPopover({ source: boton.current });
-  }, [boton]);
+    const c = caja.current as (HTMLElement & { showPopover(o?: { source?: HTMLElement | null }): void }) | null;
+    if (!c) return;
+    if (!c.matches(":popover-open")) c.showPopover({ source: boton.current });
+    c.querySelector<HTMLElement>("input, button")?.focus();
+  }, [boton, modo]);
   const hecho = (cambios: Partial<Entregable>) => { props.onCambiar(cambios); onCerrar(); };
   return (
     <div
@@ -75,11 +78,11 @@ function Caja({ modo, animar, boton, onCerrar, onModo, ...props }: Props & {
   );
 }
 
-function Opcion({ icono, letra, peligro, onClick, auto, children }: {
-  icono: ReactNode; letra?: string; peligro?: boolean; onClick: () => void; auto?: boolean; children: ReactNode;
+function Opcion({ icono, letra, peligro, onClick, children }: {
+  icono: ReactNode; letra?: string; peligro?: boolean; onClick: () => void; children: ReactNode;
 }) {
   return (
-    <button type="button" className={peligro ? "o peligro" : "o"} onClick={onClick} autoFocus={auto}
+    <button type="button" className={peligro ? "o peligro" : "o"} onClick={onClick}
       aria-keyshortcuts={letra === "⌫" ? "Backspace" : letra}>
       {icono}{children}{letra && <kbd className="der">{letra}</kbd>}
     </button>
@@ -105,7 +108,7 @@ function Lista({ e, onPedirClaude, onAbrir, onModo, onCerrar, onError }: Props &
   const i = { size: ICONO, "aria-hidden": true } as const;
   return (
     <>
-      <Opcion auto icono={<ArrowRightLeft {...i} />} letra="M" onClick={() => onModo("mover")}>Mover a…</Opcion>
+      <Opcion icono={<ArrowRightLeft {...i} />} letra="M" onClick={() => onModo("mover")}>Mover a…</Opcion>
       <Opcion icono={<UserRound {...i} />} letra="A" onClick={() => onModo("asignar")}>Asignar</Opcion>
       <Opcion icono={<Calendar {...i} />} letra="R" onClick={() => onModo("reagendar")}>Reagendar</Opcion>
       <Opcion icono={<Tag {...i} />} letra="L" onClick={() => onModo("etiquetas")}>Etiquetas</Opcion>
@@ -130,8 +133,8 @@ function Sub({ modo, e, hecho, onCambiar, onCerrar, onError }: {
     return (
       <>
         <div className="h">Mover a…</div>
-        {ESTADOS.filter((x) => x !== e.estado).map((x, k) => (
-          <button key={x} type="button" className="o" autoFocus={k === 0} onClick={() => hecho({ estado: x })}>{etiquetaEstado(x)}</button>
+        {ESTADOS.filter((x) => x !== e.estado).map((x) => (
+          <button key={x} type="button" className="o" onClick={() => hecho({ estado: x })}>{etiquetaEstado(x)}</button>
         ))}
       </>
     );
@@ -141,8 +144,8 @@ function Sub({ modo, e, hecho, onCambiar, onCerrar, onError }: {
     return (
       <>
         <div className="h">Asignar a</div>
-        {gente.map((p, k) => (
-          <button key={p.slug} type="button" className="o" autoFocus={k === 0} aria-current={p.slug === e.responsable}
+        {gente.map((p) => (
+          <button key={p.slug} type="button" className="o" aria-current={p.slug === e.responsable}
             onClick={() => hecho({ responsable: p.slug })}>
             {p.nombre}{p.slug === e.responsable && <span className="der">actual</span>}
           </button>
@@ -152,22 +155,26 @@ function Sub({ modo, e, hecho, onCambiar, onCerrar, onError }: {
   }
   if (modo === "reagendar") {
     // Guarda en cada cambio válido sin cerrar (al teclear el día pasa por fechas intermedias); Enter cierra.
-    // ponytail: años < 2000 son el año a medio teclear; un guardado por tecla, debounce si molesta en git.
-    const guardar = (v: string) => { const m = FECHA.exec(v); if (m && Number(m[1]) >= 2000) onCambiar({ vence: v }); };
+    // ponytail: un guardado por tecla, debounce si molesta en git.
+    const guardar = (v: string) => fechaValida(v) && onCambiar({ vence: v });
     return (
       <label className="campo">
         Nueva fecha
-        <input type="date" autoFocus defaultValue={String(e.vence).slice(0, 10)} onChange={(ev) => guardar(ev.target.value)}
+        <input type="date" defaultValue={String(e.vence).slice(0, 10)} onChange={(ev) => guardar(ev.target.value)}
           onKeyDown={(ev) => ev.key === "Enter" && onCerrar()} />
       </label>
     );
   }
   if (modo === "etiquetas") return <ElegirEtiquetas elegidas={e.etiquetas ?? []} onCambiar={(etiquetas) => onCambiar({ etiquetas })} />;
-  const borrar = () => window.aos.repo.delete(e.ruta).then(onCerrar, () => onError("No se pudo borrar."));
+  const borrar = () => {
+    // El ⋯ desaparece con la tarjeta: el foco queda en el "+" de su columna.
+    const columna = document.querySelector(`[data-ruta="${CSS.escape(e.ruta)}"]`)?.closest(".col")?.querySelector<HTMLElement>(".mas-col");
+    return window.aos.repo.delete(e.ruta).then(() => { onCerrar(); columna?.focus(); }, () => onError("No se pudo borrar."));
+  };
   return (
     <div className="confirmar-menu" role="alertdialog" aria-label="Confirmar borrado">
       <span>¿Borrar esta tarea? Queda en el historial de git.</span>
-      <button className="btn peligro" onClick={() => void borrar()} autoFocus>Sí, borrar</button>
+      <button className="btn peligro" onClick={() => void borrar()}>Sí, borrar</button>
       <button className="btn plano" onClick={onCerrar}>Cancelar</button>
     </div>
   );
