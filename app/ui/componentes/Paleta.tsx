@@ -8,13 +8,26 @@ import { ICONO } from "./Lateral";
 import { NuevaTarea } from "./NuevaTarea";
 import "./paleta.css";
 
-/** `<dialog>` modal mientras está montado; al cerrarse, el foco vuelve a donde estaba. */
+// A dónde vuelve el foco al cerrar cada diálogo.
+const volverA = new WeakMap<Element, HTMLElement | null>();
+
+/**
+ * `<dialog>` modal mientras está montado; al cerrarse, el foco vuelve a donde estaba. Si eso estaba en otro diálogo
+ * que ya se cerró (⌘K → "Nueva tarea"), sigue la cadena hasta algo que siga en pantalla.
+ */
 function useModal() {
   const ref = useRef<HTMLDialogElement>(null);
   const [antes] = useState(() => document.activeElement as HTMLElement | null); // antes del autoFocus
   useEffect(() => {
-    ref.current?.showModal();
-    return () => antes?.focus();
+    const d = ref.current;
+    if (!d) return;
+    volverA.set(d, antes);
+    if (!d.open) d.showModal(); // StrictMode corre el efecto dos veces
+    return () => {
+      let t = antes;
+      while (t && !t.isConnected) t = volverA.get(t.closest("dialog") as Element) ?? null;
+      t?.focus();
+    };
   }, []);
   return ref;
 }
@@ -40,7 +53,7 @@ export function Paleta({ fecha, onAccion, onCerrar }: { fecha: string; onAccion:
   const tecla = (e: KeyboardEvent) => {
     const paso = { ArrowDown: 1, ArrowUp: -1 }[e.key];
     if (paso) setK((k + paso + opciones.length) % opciones.length);
-    else if (e.key === "Enter" && opciones[k]) onAccion(opciones[k].accion);
+    else if (e.key === "Enter" && !e.nativeEvent.isComposing && opciones[k]) onAccion(opciones[k].accion);
     else if (e.key === "Escape") onCerrar();
     else return;
     e.preventDefault();
@@ -71,11 +84,19 @@ export function Paleta({ fecha, onAccion, onCerrar }: { fecha: string; onAccion:
   );
 }
 
-/** ⌘N: la tarjeta de tarea nueva en un diálogo. Escape lo maneja la tarjeta (primero cierra lo que tenga abierto). */
+/**
+ * ⌘N: la tarjeta de tarea nueva en un diálogo. Con el foco en la tarjeta, Escape lo maneja ella; si el foco quedó
+ * fuera (en el diálogo), Escape cierra primero la lista abierta y si no hay, el diálogo.
+ */
 export function DialogoNueva({ inicial, onCreada, onCerrar }: { inicial: Partial<Tarea>; onCreada: (ruta: string) => void; onCerrar: () => void }) {
   const caja = useModal();
   return (
-    <dialog ref={caja} className="paleta nueva-d" aria-label="Nueva tarea" onCancel={(e) => e.preventDefault()} onClose={onCerrar}>
+    <dialog ref={caja} className="paleta nueva-d" aria-label="Nueva tarea" onClose={onCerrar} onCancel={(e) => {
+      e.preventDefault();
+      const lista = caja.current?.querySelector<HTMLElement>('.chip-m[aria-expanded="true"]');
+      if (lista) lista.click();
+      else onCerrar();
+    }}>
       <NuevaTarea inicial={inicial} onCreada={onCreada} onCancelar={onCerrar} />
     </dialog>
   );

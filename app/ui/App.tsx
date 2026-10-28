@@ -166,7 +166,7 @@ export function App() {
         )}
       </div>
       {paleta && <Paleta fecha={fecha} onAccion={ejecutar} onCerrar={() => setPaleta(false)} />}
-      {nueva && <DialogoNueva inicial={nueva} onCerrar={() => setNueva(null)} onCreada={(ruta) => { setNueva(null); editar(ruta); }} />}
+      {nueva && <DialogoNueva key={nueva.cliente ?? ""} inicial={nueva} onCerrar={() => setNueva(null)} onCreada={(ruta) => { setNueva(null); editar(ruta); }} />}
     </SesionCtx.Provider>
   );
 }
