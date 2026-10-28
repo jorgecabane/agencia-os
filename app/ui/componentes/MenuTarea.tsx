@@ -156,7 +156,8 @@ function Sub({ modo, e, hecho, onCambiar, onCerrar, onError }: {
   if (modo === "reagendar") {
     // Guarda en cada cambio válido sin cerrar (al teclear el día pasa por fechas intermedias); Enter cierra.
     // ponytail: un guardado por tecla, debounce si molesta en git.
-    const guardar = (v: string) => fechaValida(v) && onCambiar({ vence: v });
+    // Una fecha elegida por una persona deja de ser tentativa.
+    const guardar = (v: string) => fechaValida(v) && onCambiar({ vence: v, fecha_tentativa: undefined });
     return (
       <label className="campo">
         Nueva fecha

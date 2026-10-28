@@ -40,6 +40,14 @@ describe("md", () => {
     expect(salida).toBe(`---\r\n${fm.replace("10-01", "10-30")}\r\n---\r\nc\n`);
   });
 
+  it("unir con undefined borra la clave (y si no está, no hace nada)", () => {
+    const { fm, cuerpo } = separar(ARCHIVO.replace("estado: brief", "fecha_tentativa: true\nestado: brief"));
+    expect(unir(fm, { vence: "2026-10-30", fecha_tentativa: undefined }, cuerpo)).toBe(ARCHIVO.replace("2026-10-01", "2026-10-30"));
+    const ultima = separar(ARCHIVO.replace("estado: brief", "estado: brief\nfecha_tentativa: true"));
+    expect(unir(ultima.fm, { fecha_tentativa: undefined }, ultima.cuerpo)).toBe(ARCHIVO);
+    expect(unir(separar(ARCHIVO).fm, { fecha_tentativa: undefined }, separar(ARCHIVO).cuerpo)).toBe(ARCHIVO);
+  });
+
   it("unir sin frontmatter previo escribe mapa en bloque", () => {
     expect(unir(null, { x: 1 }, "c\n")).toBe("---\nx: 1\n---\nc\n");
   });

@@ -39,14 +39,19 @@ export function unir(fmOriginal: string | null, cambios: Record<string, unknown>
   const ediciones: { ini: number; fin: number; txt: string }[] = [];
   const mapa = fmOriginal === null ? null : parseDocument(fmOriginal).contents;
   for (const [clave, valor] of Object.entries(cambios)) {
-    const txt = lf(texto({ [clave]: valor }));
+    const borrar = valor === undefined; // undefined = quitar la clave
+    const txt = borrar ? "" : lf(texto({ [clave]: valor }));
     const par = isMap(mapa) ? mapa.items.find((p) => isScalar(p.key) && p.key.value === clave) : undefined;
     const k = par && isScalar(par.key) ? par.key.range : null;
-    if (!par || !k) { nuevas.push(txt); continue; }
+    if (!par || !k) { if (!borrar) nuevas.push(txt); continue; }
     const v = isNode(par.value) ? par.value.range : null;
     let fin = v ? v[1] : fm.indexOf(":", k[1]) + 1;
     while (v && /\s/.test(fm[fin - 1] ?? "")) fin--;
-    ediciones.push({ ini: k[0], fin, txt });
+    let ini = k[0];
+    // Al borrar se va la línea entera: su salto, o el anterior si es la última.
+    if (borrar && fm.startsWith(eol, fin)) fin += eol.length;
+    else if (borrar && ini >= eol.length) ini -= eol.length;
+    ediciones.push({ ini, fin, txt });
   }
   for (const { ini, fin, txt } of ediciones.sort((a, b) => b.ini - a.ini)) fm = fm.slice(0, ini) + txt + fm.slice(fin);
   fm = [fm, ...nuevas].filter((x) => x !== "").join(eol);

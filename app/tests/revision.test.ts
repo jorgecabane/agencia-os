@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { construirIndice } from "../ui/datos/indice";
 import { confirmarActa, deActa, porConfirmar, porRevisar } from "../ui/datos/revision";
 
@@ -38,15 +38,30 @@ describe("deActa", () => {
 });
 
 describe("confirmarActa", () => {
-  it("sin descartadas escribe solo revisada: true en el acta", async () => {
-    const archivos: Record<string, string> = { [ACTA]: acta("acme", "2026-10-27") };
-    const escritos: Record<string, string> = {};
+  const TAREA = "clientes/acme/entregables/2026-10-30-post.md";
+  const tarea = "---\ntipo: entregable\nestado: brief\n---\n";
+  const usarRepo = (archivos: Record<string, string>) => {
+    const escritos: [string, string][] = [];
     (globalThis as { window?: unknown }).window = { aos: { repo: {
       read: async (r: string) => archivos[r],
-      write: async (r: string, c: string) => void (escritos[r] = c),
+      write: async (r: string, c: string) => void escritos.push([r, c]),
     } } };
-    await confirmarActa(i.reuniones.find((r) => r.ruta === ACTA)!, []);
-    expect(escritos).toEqual({ [ACTA]: acta("acme", "2026-10-27", "revisada: true\n") });
+    return escritos;
+  };
+  afterEach(() => { delete (globalThis as { window?: unknown }).window; });
+  const elActa = () => i.reuniones.find((r) => r.ruta === ACTA)!;
+  it("sin descartadas escribe solo revisada: true en el acta", async () => {
+    const escritos = usarRepo({ [ACTA]: acta("acme", "2026-10-27") });
+    await confirmarActa(elActa(), []);
+    expect(escritos).toEqual([[ACTA, acta("acme", "2026-10-27", "revisada: true\n")]]);
+  });
+  it("cancela las descartadas primero y después marca el acta", async () => {
+    const escritos = usarRepo({ [ACTA]: acta("acme", "2026-10-27"), [TAREA]: tarea });
+    await confirmarActa(elActa(), [TAREA]);
+    expect(escritos).toEqual([
+      [TAREA, tarea.replace("brief", "cancelado")],
+      [ACTA, acta("acme", "2026-10-27", "revisada: true\n")],
+    ]);
   });
 });
 

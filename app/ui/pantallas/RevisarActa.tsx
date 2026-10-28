@@ -50,6 +50,7 @@ export function RevisarActa({ ruta, fecha, onVolver, onEditar, onPedirClaude }: 
   const alternar = (r: string) => setDescartadas((s) => { const x = new Set(s); if (!x.delete(r)) x.add(r); return x; });
   const confirmar = async () => {
     setGuardando(true);
+    setError(null);
     try { await confirmarActa(acta, [...descartadas]); onVolver(); }
     catch { setError("No pude guardar la revisión. Inténtalo de nuevo."); setGuardando(false); }
   };
@@ -74,7 +75,7 @@ export function RevisarActa({ ruta, fecha, onVolver, onEditar, onPedirClaude }: 
           {error && <p role="alert" className="error">{error}</p>}
           <div className="acciones">
             <button className="btn pri" disabled={guardando} onClick={() => void confirmar()}>
-              <ListChecks size={ICONO} aria-hidden />{tareas.length ? `Confirmar y crear ${plural(n, "tarea", "tareas")}` : "Marcar como revisada"}
+              <ListChecks size={ICONO} aria-hidden />{n > 0 ? `Confirmar y crear ${plural(n, "tarea", "tareas")}` : "Marcar como revisada"}
             </button>
             <button className="btn" onClick={() => onEditar(acta.ruta)}>Ver acta completa</button>
             <button className="btn" onClick={() => onPedirClaude(CORREGIR, acta.ruta)}><Sparkles size={ICONO} aria-hidden />Corregir con Claude</button>
@@ -110,10 +111,13 @@ function Subtitulo({ texto, n, nota }: { texto: string; n: number; nota?: string
 }
 
 /** Casilla local hasta confirmar; responsable y fecha se guardan al tiro. */
-function FilaTarea({ e, marcada, onAlternar, onError }: { e: Entregable; marcada: boolean; onAlternar: () => void; onError: (m: string) => void }) {
+function FilaTarea({ e, marcada, onAlternar, onError }: { e: Entregable; marcada: boolean; onAlternar: () => void; onError: (m: string | null) => void }) {
   const { indice } = useSesion();
   const t = titulo(e.ruta);
-  const guardar = (cambios: Record<string, unknown>) => void cambiar(e.ruta, cambios).catch(() => onError(`No pude guardar el cambio en "${t}".`));
+  const guardar = (cambios: Record<string, unknown>) => {
+    onError(null);
+    cambiar(e.ruta, cambios).catch(() => onError(`No pude guardar el cambio en "${t}".`));
+  };
   const personas = [...indice.personas.map((p) => ({ slug: p.slug, nombre: p.nombre })), { slug: "ia", nombre: "Claude" }];
   if (!personas.some((p) => p.slug === e.responsable)) personas.push({ slug: e.responsable, nombre: e.responsable });
   return (
@@ -128,7 +132,7 @@ function FilaTarea({ e, marcada, onAlternar, onError }: { e: Entregable; marcada
           </select>
           <label className="oculto" htmlFor={`vence-${e.ruta}`}>Fecha de {t}</label>
           <input type="date" id={`vence-${e.ruta}`} defaultValue={String(e.vence).slice(0, 10)}
-            onChange={(ev) => ev.target.value && guardar({ vence: ev.target.value })} />
+            onChange={(ev) => ev.target.value && guardar({ vence: ev.target.value, fecha_tentativa: undefined })} />
           {e.fecha_tentativa && <span className="tentativa">fecha por confirmar</span>}
         </span>
       </span>
