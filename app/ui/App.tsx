@@ -1,13 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MOTIVO_CONFLICTO, RELEASES } from "../shared/puente";
 import { Barra, BarraSinPersona } from "./barra/Barra";
 import { Chat } from "./componentes/Chat";
 import { Editor } from "./componentes/Editor";
 import { ElegirPersona } from "./componentes/ElegirPersona";
 import { Lateral, type Pantalla } from "./componentes/Lateral";
+import { DialogoNueva, Paleta } from "./componentes/Paleta";
 import { colorDeContexto, contextoDe } from "./datos/contexto-chat";
 import { useCajon } from "./datos/cajon";
 import { clienteDeRuta, fechaLocal, fijarZona, titulo } from "./datos/hoy";
+import type { Accion } from "./datos/paleta";
 import { APROBACION } from "./datos/pasos";
 import { sePuedeRecargar } from "./datos/recarga";
 import { SesionCtx, useIndice } from "./datos/sesion";
@@ -26,6 +28,8 @@ const NOMBRES: Record<string, string> = {
   hoy: "Hoy", tablero: "Tablero", calendario: "Calendario", aprobaciones: "Aprobaciones", config: "Configuración",
   claude: "Claude", equipo: "Equipo", revisar: "Revisar",
 };
+/** ⌘N pone el cliente si estás en uno. */
+const clienteAqui = (p: Pantalla) => (p.nombre === "cliente" ? { cliente: p.slug } : {});
 
 export function App() {
   const { indice, error, reintentar } = useIndice();
@@ -37,6 +41,23 @@ export function App() {
   const nombreCliente = (slug: string) => indice?.clientes.find((c) => c.slug === slug)?.nombre ?? slug;
   const { cajon, enfocar, cerrar, ocultar, alternar, pantallaCompleta, pedir, capturar } = useCajon(pantalla, ir, (p) => contextoDe(p, nombreCliente));
   const [nuevaUI, setNuevaUI] = useState(false);
+  const [paleta, setPaleta] = useState(false);
+  // ⌘N: con el cliente de la pantalla, o el que eligió la paleta.
+  const [nueva, setNueva] = useState<{ cliente?: string } | null>(null);
+  const actual = useRef(pantalla);
+  actual.current = pantalla;
+  useEffect(() => {
+    const tecla = (e: KeyboardEvent) => {
+      const k = e.key.toLowerCase();
+      if (!e.metaKey || (k !== "k" && k !== "n") || BARRA) return;
+      e.preventDefault();
+      setPaleta(false);
+      if (k === "k") setPaleta(true);
+      else setNueva(clienteAqui(actual.current));
+    };
+    window.addEventListener("keydown", tecla);
+    return () => window.removeEventListener("keydown", tecla);
+  }, []);
   useEffect(() => window.aos.sistema.onNuevaUI(() => (sePuedeRecargar() ? window.aos.sistema.recargar() : setNuevaUI(true))), []);
   useEffect(() => {
     const leer = () => void window.aos.persona().then(setPersona, () => setPersona(null));
@@ -86,6 +107,13 @@ export function App() {
   // Los borradores para aprobar se revisan en Aprobaciones, no en el editor.
   const abrirArchivo = (ruta: string) => (APROBACION.test(ruta) ? ir({ nombre: "aprobaciones", ruta }) : editar(ruta));
   const nombreDe = (p: typeof desde) => (p.nombre === "cliente" ? nombreCliente(p.slug) : NOMBRES[p.nombre]);
+  const ejecutar = (a: Accion) => {
+    setPaleta(false);
+    if (a.tipo === "ir") ir(a.pantalla);
+    else if (a.tipo === "abrir") abrirArchivo(a.ruta);
+    else if (a.tipo === "claude") capturar(a.texto); // global y se manda
+    else setNueva(a.cliente ? { cliente: a.cliente } : clienteAqui(pantalla));
+  };
   const etiquetaDe = (contexto: string) => {
     if (contexto.endsWith(".md")) return titulo(contexto);
     const c = clienteDeRuta(`${contexto}/`);
@@ -115,7 +143,7 @@ export function App() {
       )}
       <div className="app">
         <Lateral pantalla={pantalla} ir={ir} fecha={fecha} onCambiarPersona={() => setEligiendo(true)}
-          onMezclar={() => capturar(MOTIVO_CONFLICTO)} onClaude={alternar} />
+          onMezclar={() => capturar(MOTIVO_CONFLICTO)} onClaude={alternar} onBuscar={() => setPaleta(true)} />
         {pantalla.nombre === "hoy" && <Hoy fecha={fecha} onEditar={editar} />}
         {pantalla.nombre === "tablero" && <Tablero key={JSON.stringify(pantalla.filtro ?? null)} fecha={fecha} onEditar={editar} filtroInicial={pantalla.filtro} />}
         {pantalla.nombre === "calendario" && <Calendario fecha={fecha} onEditar={editar} />}
@@ -137,6 +165,8 @@ export function App() {
             onCerrar={cerrar} onOcultar={ocultar} onAgrandar={pantallaCompleta} enfocar={enfocar} color={colorDeContexto(cajon.contexto)} />
         )}
       </div>
+      {paleta && <Paleta fecha={fecha} onAccion={ejecutar} onCerrar={() => setPaleta(false)} />}
+      {nueva && <DialogoNueva inicial={nueva} onCerrar={() => setNueva(null)} onCreada={(ruta) => { setNueva(null); editar(ruta); }} />}
     </SesionCtx.Provider>
   );
 }
