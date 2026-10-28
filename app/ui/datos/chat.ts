@@ -9,6 +9,8 @@ export type Turno = { mensaje: string; eventos: EventoChat[]; enCurso: boolean }
  */
 export type Revision = { archivos: Record<string, string> };
 export type Receta = { etiqueta: string; mensaje: string };
+/** Una conversación de esta sesión de la app: `ultimo` es el último mensaje del usuario y `hora` cuándo lo mandó (ms). */
+export type Conversacion = { id: string; contexto: string; etiqueta: string; ultimo: string; hora: number };
 
 // Vive fuera de React: cerrar el panel no corta el turno ni borra la conversación (dura lo que la sesión de la app).
 const conversaciones = new Map<string, Turno[]>();
@@ -19,6 +21,7 @@ const SIN_OMITIDOS: string[] = [];
 const oyentes = new Set<() => void>();
 const avisar = () => oyentes.forEach((f) => f());
 const VACIA: Turno[] = [];
+let recientes: Conversacion[] = []; // la más reciente primero; solo cambia al enviar
 
 /** Archivos del turno, recalculados con todos sus eventos (un Edit que después falla sale); los de turnos previos mandan. */
 function recalcular(t: Turno): void {
@@ -54,10 +57,13 @@ export const useOmitidos = (): string[] => useSyncExternalStore(suscribir, () =>
 export const olvidarOmitidos = () => { omitidos = []; avisar(); };
 export const algunoEnCurso = (): boolean => [...conversaciones.values()].some((ts) => ts.at(-1)?.enCurso);
 export const useAlgunoEnCurso = (): boolean => useSyncExternalStore(suscribir, algunoEnCurso);
+export const leerConversaciones = (): Conversacion[] => recientes;
+export const useConversaciones = (): Conversacion[] => useSyncExternalStore(suscribir, leerConversaciones);
 
-export function enviar(id: string, mensaje: string, contexto: string): void {
+export function enviar(id: string, mensaje: string, contexto: string, etiqueta = contexto): void {
   quitar ??= window.aos.claude.onEvento(alEvento);
   conversaciones.set(id, [...(conversaciones.get(id) ?? []), { mensaje, eventos: [], enCurso: true }]);
+  recientes = [{ id, contexto, etiqueta, ultimo: mensaje, hora: Date.now() }, ...recientes.filter((c) => c.id !== id)];
   avisar();
   window.aos.claude.enviar(id, mensaje, contexto).catch((e: unknown) => {
     alEvento(id, { tipo: "error", texto: `No pude hablar con Claude: ${e instanceof Error ? e.message : String(e)}` });

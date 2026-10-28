@@ -397,3 +397,4 @@ h2.s { display: flex; align-items: center; justify-content: space-between; gap: 
 .nav-it svg { flex: none; color: var(--apagado); }
 .nav-it[aria-current="page"] svg { color: var(--texto); }
 .rotos summary svg { vertical-align: -2px; }
+.app:has(.panel) .chat.cajon { display: none; } /* con un panel de tarea abierto, manda su chat */

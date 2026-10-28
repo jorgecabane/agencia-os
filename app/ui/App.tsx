@@ -1,16 +1,19 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { MOTIVO_CONFLICTO, RELEASES } from "../shared/puente";
 import { Barra, BarraSinPersona } from "./barra/Barra";
-import { Chat, type Pedido } from "./componentes/Chat";
+import { Chat } from "./componentes/Chat";
 import { Editor } from "./componentes/Editor";
 import { ElegirPersona } from "./componentes/ElegirPersona";
 import { Lateral, type Pantalla } from "./componentes/Lateral";
+import { contextoDe } from "./datos/contexto-chat";
+import { useCajon } from "./datos/cajon";
 import { clienteDeRuta, colorPara, fechaLocal, fijarZona, titulo } from "./datos/hoy";
 import { APROBACION } from "./datos/pasos";
 import { sePuedeRecargar } from "./datos/recarga";
 import { SesionCtx, useIndice } from "./datos/sesion";
 import { Aprobaciones } from "./pantallas/Aprobaciones";
 import { Calendario } from "./pantallas/Calendario";
+import { Claude } from "./pantallas/Claude";
 import { Cliente } from "./pantallas/Cliente";
 import { Config } from "./pantallas/Config";
 import { Hoy } from "./pantallas/Hoy";
@@ -19,39 +22,10 @@ import { Tablero } from "./pantallas/Tablero";
 const aviso = new URLSearchParams(location.search).get("aviso");
 // La ventana de la barra de menú carga la misma UI con #barra.
 const BARRA = location.hash === "#barra";
-const GLOBAL = { contextoId: "global", contexto: "Todo el espacio" };
-const NOMBRES: Record<string, string> = { hoy: "Hoy", tablero: "Tablero", calendario: "Calendario", aprobaciones: "Aprobaciones", config: "Configuración" };
-
-type Cajon = { contextoId: string; contexto: string; pedido?: Pedido };
-
-/** Chat lateral: ⌘J lo abre o cierra con "Todo el espacio"; los "Pedirle a Claude" lo abren con su contexto. */
-function useCajon() {
-  const [cajon, setCajon] = useState<Cajon | null>(null);
-  const origen = useRef<Element | null>(null); // al cerrar, el foco vuelve a donde estaba
-  const abrir = (c: Cajon) => {
-    if (!origen.current) origen.current = document.activeElement;
-    setCajon(c);
-  };
-  const cerrar = () => {
-    setCajon(null);
-    (origen.current as HTMLElement | null)?.focus?.();
-    origen.current = null;
-  };
-  const alternar = useRef(() => {});
-  alternar.current = () => (cajon ? cerrar() : abrir(GLOBAL));
-  useEffect(() => {
-    const tecla = (e: KeyboardEvent) => {
-      if (!e.metaKey || e.key.toLowerCase() !== "j") return;
-      e.preventDefault();
-      alternar.current();
-    };
-    window.addEventListener("keydown", tecla);
-    return () => window.removeEventListener("keydown", tecla);
-  }, []);
-  const pedir = (texto: string, contexto: string) => abrir({ contextoId: contexto, contexto, pedido: { texto } });
-  const capturar = (texto: string) => abrir({ ...GLOBAL, pedido: { texto } });
-  return { cajon, cerrar, pedir, capturar };
-}
+const NOMBRES: Record<string, string> = {
+  hoy: "Hoy", tablero: "Tablero", calendario: "Calendario", aprobaciones: "Aprobaciones", config: "Configuración",
+  claude: "Claude", equipo: "Equipo", revisar: "Revisar",
+};
 
 export function App() {
   const { indice, error, reintentar } = useIndice();
@@ -60,7 +34,8 @@ export function App() {
   const [eligiendo, setEligiendo] = useState(false);
   const [pantalla, ir] = useState<Pantalla>({ nombre: "hoy" });
   const [errorGuardar, setErrorGuardar] = useState<string | null>(null);
-  const { cajon, cerrar, pedir, capturar } = useCajon();
+  const nombreCliente = (slug: string) => indice?.clientes.find((c) => c.slug === slug)?.nombre ?? slug;
+  const { cajon, enfocar, cerrar, alternar, pantallaCompleta, pedir, capturar } = useCajon(pantalla, ir, (p) => contextoDe(p, nombreCliente));
   const [nuevaUI, setNuevaUI] = useState(false);
   useEffect(() => window.aos.sistema.onNuevaUI(() => (sePuedeRecargar() ? window.aos.sistema.recargar() : setNuevaUI(true))), []);
   useEffect(() => {
@@ -110,8 +85,11 @@ export function App() {
   const editar = (ruta: string) => ir({ nombre: "editar", ruta, desde });
   // Los borradores para aprobar se revisan en Aprobaciones, no en el editor.
   const abrirArchivo = (ruta: string) => (APROBACION.test(ruta) ? ir({ nombre: "aprobaciones", ruta }) : editar(ruta));
-  const nombreCliente = (slug: string) => indice.clientes.find((c) => c.slug === slug)?.nombre ?? slug;
   const nombreDe = (p: typeof desde) => (p.nombre === "cliente" ? nombreCliente(p.slug) : NOMBRES[p.nombre]);
+  const colorDe = (contexto: string) => {
+    const c = clienteDeRuta(`${contexto}/`);
+    return c ? colorPara(c) : undefined;
+  };
   const etiquetaDe = (contexto: string) => {
     if (contexto.endsWith(".md")) return titulo(contexto);
     const c = clienteDeRuta(`${contexto}/`);
@@ -141,9 +119,9 @@ export function App() {
       )}
       <div className="app">
         <Lateral pantalla={pantalla} ir={ir} fecha={fecha} onCambiarPersona={() => setEligiendo(true)}
-          onMezclar={() => capturar(MOTIVO_CONFLICTO)} />
+          onMezclar={() => capturar(MOTIVO_CONFLICTO)} onClaude={alternar} />
         {pantalla.nombre === "hoy" && <Hoy fecha={fecha} onEditar={editar} />}
-        {pantalla.nombre === "tablero" && <Tablero fecha={fecha} onEditar={editar} />}
+        {pantalla.nombre === "tablero" && <Tablero fecha={fecha} onEditar={editar} onPedirClaude={pedir} />}
         {pantalla.nombre === "calendario" && <Calendario fecha={fecha} onEditar={editar} />}
         {pantalla.nombre === "aprobaciones" && <Aprobaciones key={pantalla.ruta} inicial={pantalla.ruta} onEditar={editar} />}
         {pantalla.nombre === "config" && <Config onEditar={editar} onCambiarPersona={() => setEligiendo(true)} />}
@@ -154,9 +132,13 @@ export function App() {
             <Editor key={pantalla.ruta} ruta={pantalla.ruta} onErrorFuera={setErrorGuardar} onPedirClaude={(t) => pedir(t, pantalla.ruta)} />
           </main>
         )}
-        {cajon && (
-          <Chat key={cajon.contextoId} {...cajon} etiqueta={etiquetaDe(cajon.contexto)} onAbrir={abrirArchivo} onCerrar={cerrar}
-            color={clienteDeRuta(`${cajon.contexto}/`) ? colorPara(clienteDeRuta(`${cajon.contexto}/`)!) : undefined} />
+        {pantalla.nombre === "claude" && (
+          <Claude id={pantalla.id} fecha={fecha} pedido={cajon?.pedido} etiquetaDe={etiquetaDe} onAbrir={abrirArchivo}
+            onElegir={(id) => ir({ nombre: "claude", id })} onAchicar={pantallaCompleta} />
+        )}
+        {cajon && pantalla.nombre !== "claude" && (
+          <Chat key={cajon.contextoId} {...cajon} etiqueta={cajon.etiqueta ?? etiquetaDe(cajon.contexto)} onAbrir={abrirArchivo}
+            onCerrar={cerrar} onAgrandar={pantallaCompleta} enfocar={enfocar} color={colorDe(cajon.contexto)} />
         )}
       </div>
     </SesionCtx.Provider>

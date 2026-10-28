@@ -1,0 +1,16 @@
+/* Modo trabajo: Claude a pantalla completa (mockups-app/v3-claude.html, marco 2). */
+.trabajo { grid-column: 2 / -1; display: grid; grid-template-columns: 250px minmax(0, 1fr); height: 100vh; min-height: 0; }
+.hilos {
+  border-right: 1px solid var(--linea-suave); padding: calc(var(--alto-barra-ventana) + 6px) 12px 18px; font-size: 14px;
+  display: flex; flex-direction: column; gap: 2px; overflow: auto;
+}
+.hilos .nueva-conv { justify-content: center; margin-bottom: 4px; }
+.hilos .h { color: var(--tenue); font-size: 12.5px; font-weight: 400; margin: 14px 8px 6px; }
+.hilos .it {
+  all: unset; cursor: pointer; padding: 7px 8px; border-radius: 7px; color: var(--apagado); display: flex; gap: 8px; align-items: center;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+.hilos .it .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hilos .it:hover { background: var(--superficie); color: var(--texto); }
+.hilos .it[aria-current="true"] { background: var(--elevado); color: var(--texto); }
+.hilos .it:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }

@@ -1,24 +1,30 @@
-import { type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from "react";
+import { Maximize2, Minimize2, X } from "lucide-react";
+import { type FormEvent, type KeyboardEvent, type ReactNode, useEffect, useRef, useState } from "react";
 import {
   aceptar, cancelar, deshacerTodo, enviar, olvidarOmitidos, recetas, type Turno, useAlgunoEnCurso, useConversacion, useOmitidos, useRevision,
 } from "../datos/chat";
 import { titulo } from "../datos/hoy";
 import { type Bloque, bloques, type Estado } from "../datos/pasos";
 import { useSesion } from "../datos/sesion";
+import { ICONO as TAM } from "./Lateral";
 import "./chat.css";
 
 export type Pedido = { texto: string };
 type Props = {
   contextoId: string; contexto: string; etiqueta: string; color?: string; formato?: string;
   /** Un mensaje que llega de afuera ("Desarrolla la propuesta 1"): se envía al llegar un objeto nuevo. */
-  pedido?: Pedido; onAbrir?: (ruta: string) => void; onCerrar?: () => void;
+  pedido?: Pedido; onAbrir?: (ruta: string) => void;
+  /** En el cajón de la derecha: cerrar (⌘J) y pasar a pantalla completa (⌘⇧J). En pantalla completa: volver al costado (⌘⇧J). */
+  onCerrar?: () => void; onAgrandar?: () => void; onAchicar?: () => void;
+  /** Enfoca la entrada al montar (solo cuando la persona lo abrió recién). */
+  enfocar?: boolean;
 };
 
 const ICONO: Record<Estado, string> = { ok: "✓", corriendo: "◐", error: "✕" };
 const LEIDO: Record<Estado, string> = { ok: "listo", corriendo: "en curso", error: "falló" };
 
 /** Conversación con Claude en un contexto (tarea, cliente o todo el espacio), según `chat.html`. */
-export function Chat({ contextoId, contexto, etiqueta, color, formato, pedido, onAbrir, onCerrar }: Props) {
+export function Chat({ contextoId, contexto, etiqueta, color, formato, pedido, onAbrir, onCerrar, onAgrandar, onAchicar, enfocar = false }: Props) {
   const turnos = useConversacion(contextoId);
   const enCurso = Boolean(turnos.at(-1)?.enCurso);
   const claudeOcupado = useAlgunoEnCurso(); // un turno a la vez en toda la app
@@ -27,7 +33,7 @@ export function Chat({ contextoId, contexto, etiqueta, color, formato, pedido, o
   const [espera, setEspera] = useState(false); // pidieron algo mientras Claude seguía respondiendo
   const mandar = (texto: string) => {
     if (claudeOcupado) return setEspera(true);
-    if (texto.trim()) enviar(contextoId, texto.trim(), contexto);
+    if (texto.trim()) enviar(contextoId, texto.trim(), contexto, etiqueta);
   };
   useEffect(() => { if (!claudeOcupado) setEspera(false); }, [claudeOcupado]);
   // Solo el texto final se anuncia; los pasos que cambian en vivo no.
@@ -41,12 +47,17 @@ export function Chat({ contextoId, contexto, etiqueta, color, formato, pedido, o
   useEffect(() => { fin.current?.scrollIntoView({ block: "end" }); }, [turnos]);
 
   return (
-    <section className={onCerrar ? "chat cajon" : "chat"} aria-label="Chat con Claude"
+    <section className={onCerrar ? "chat cajon" : onAchicar ? "chat ancho" : "chat"} aria-label="Chat con Claude"
       onKeyDown={(e) => { if (onCerrar && e.key === "Escape") { e.preventDefault(); onCerrar(); } }}>
       <div className="chat-cabeza">
         <span className="ctx">{color && <span className="dot" style={{ background: color }} aria-hidden />}{etiqueta}</span>
-        <span className="r">{contextoId === "global" ? "Conversación general" : "Conversación de este contexto"}</span>
-        {onCerrar && <button className="x" onClick={onCerrar} aria-label="Cerrar chat">×</button>}
+        {onCerrar || onAchicar ? (
+          <span className="acc">
+            {onAgrandar && <BotonIcono etiqueta="Pantalla completa (⌘⇧J)" onClick={onAgrandar}><Maximize2 size={TAM} aria-hidden /></BotonIcono>}
+            {onAchicar && <BotonIcono etiqueta="Volver al costado (⌘⇧J)" onClick={onAchicar}><Minimize2 size={TAM} aria-hidden /></BotonIcono>}
+            {onCerrar && <BotonIcono etiqueta="Cerrar (⌘J)" onClick={onCerrar}><X size={TAM} aria-hidden /></BotonIcono>}
+          </span>
+        ) : <span className="r">{contextoId === "global" ? "Conversación general" : "Conversación de este contexto"}</span>}
       </div>
       <div className="msgs">
         {turnos.length === 0 && <p className="vacio">Pídele algo a Claude: trabaja en el repo y lo ves cambiar en vivo.</p>}
@@ -57,9 +68,16 @@ export function Chat({ contextoId, contexto, etiqueta, color, formato, pedido, o
       </div>
       <p className="sr" aria-live="polite">{final && final.tipo === "texto" ? final.texto : ""}</p>
       <BarraRevision />
-      <Entrada enCurso={claudeOcupado} onEnviar={mandar} recetas={recetas(contexto, formato)} enfocar={Boolean(onCerrar)} />
+      <Entrada enCurso={claudeOcupado} onEnviar={mandar} recetas={recetas(contexto, formato)} enfocar={enfocar} />
+      {onCerrar && <p className="pista">Enter envía · ⌘J cierra · ⌘⇧J agranda</p>}
+      {onAchicar && <p className="pista">Enter envía · ⌘⇧J vuelve al costado</p>}
     </section>
   );
+}
+
+/** Botón de solo ícono: el nombre con su atajo va en aria-label y en el tooltip. */
+function BotonIcono({ etiqueta, onClick, children }: { etiqueta: string; onClick: () => void; children: ReactNode }) {
+  return <button className="x" onClick={onClick} aria-label={etiqueta} title={etiqueta}>{children}</button>;
 }
 
 function TurnoVista({ turno, onAbrir, onDetener }: { turno: Turno; onAbrir?: (ruta: string) => void; onDetener: () => void }) {

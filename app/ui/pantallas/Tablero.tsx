@@ -71,7 +71,7 @@ export function useMovidos(onError: (msg: string) => void) {
 }
 
 export function Tablero({ fecha, onEditar, onPedirClaude }: {
-  fecha: string; onEditar: (ruta: string) => void; onPedirClaude?: (texto: string) => void;
+  fecha: string; onEditar: (ruta: string) => void; onPedirClaude?: (texto: string, contexto: string) => void;
 }) {
   const { indice } = useSesion();
   const [actual, setActual] = useState<Actual>({ filtro: POR_DEFECTO[0].filtro, agrupar: "estado" });
@@ -94,7 +94,7 @@ export function Tablero({ fecha, onEditar, onPedirClaude }: {
       onCambiar={(c) => {
         mover(e, c);
         if ("estado" in c || "responsable" in c) seguirFoco(e.ruta); // cambia de columna o carril; etiquetas y fecha no
-      }} onPedirClaude={onPedirClaude} onAbrirOtra={abrirNueva}
+      }} onPedirClaude={onPedirClaude && ((t) => onPedirClaude(t, e.ruta))} onAbrirOtra={abrirNueva}
     />
   );
   const otraAgrupacion = actual.agrupar === "estado" ? "persona" : "estado";

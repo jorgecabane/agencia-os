@@ -43,6 +43,8 @@ export interface Config {
   yaAvisados: string[];
   /** "Pausar avisos 1 h": ISO hasta cuándo no se avisa nada. */
   pausaHasta: string | null;
+  /** El chat de Claude a la derecha queda abierto (⌘J lo alterna). */
+  chatAbierto: boolean;
 }
 
 /** Un aviso del sistema. `id` empieza con su clase (`reunion:`, `acta:`, `dia:`, `mencion:`); `ruta` es lo que abre al hacer clic. */
