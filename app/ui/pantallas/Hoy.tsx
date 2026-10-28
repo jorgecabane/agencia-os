@@ -1,13 +1,16 @@
+import { ListChecks } from "lucide-react";
 import { type MouseEvent, type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import type { Commit } from "../../shared/puente";
+import { ICONO } from "../componentes/Lateral";
 import { Panel } from "../componentes/Panel";
 import { clienteDeRuta, colorPara, cuando, horaDe, hoy, titulo } from "../datos/hoy";
 import { separar } from "../datos/md";
 import { novedades } from "../datos/novedades";
 import { promesasDeActa } from "../datos/promesas";
 import { propuestas } from "../datos/propuestas";
+import { deActa, porConfirmar, porRevisar } from "../datos/revision";
 import { useSesion } from "../datos/sesion";
-import type { Entregable, Promesa } from "../datos/tipos";
+import type { Entregable, Promesa, Reunion } from "../datos/tipos";
 
 const plural = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`;
 
@@ -69,7 +72,7 @@ function useCuerpos(entregables: Entregable[], actas: string[]) {
   return { recomendada, promesas };
 }
 
-export function Hoy({ fecha, onEditar }: { fecha: string; onEditar: (ruta: string) => void }) {
+export function Hoy({ fecha, onEditar, onRevisar }: { fecha: string; onEditar: (ruta: string) => void; onRevisar: (ruta: string) => void }) {
   const { indice, persona } = useSesion();
   const [sel, setSel] = useState<{ ruta: string; animar: boolean } | null>(null);
   const misClientes = new Set(indice.clientes.filter((c) => c.responsable === persona).map((c) => c.slug));
@@ -107,7 +110,8 @@ export function Hoy({ fecha, onEditar }: { fecha: string; onEditar: (ruta: strin
   const dia = new Date(`${fecha}T12:00:00`).toLocaleDateString("es-CL", { weekday: "long", day: "numeric" });
   const resumen = [plural(h.entregas.length, "entrega", "entregas"), plural(h.reuniones.length, "reunión", "reuniones")];
   if (h.debeCliente.length) resumen.push(plural(h.debeCliente.length, "cosa que nos debe el cliente", "cosas que nos debe el cliente"));
-  const nada = !h.entregas.length && !h.reuniones.length && !h.tentativas.length && !h.debeCliente.length;
+  const llego = porRevisar(indice, persona, fecha);
+  const nada = !llego.length && !h.entregas.length && !h.reuniones.length && !h.tentativas.length && !h.debeCliente.length;
 
   return (
     <>
@@ -118,6 +122,7 @@ export function Hoy({ fecha, onEditar }: { fecha: string; onEditar: (ruta: strin
           {frases.length > 0 && <p className="novedades"><b>Desde tu última visita:</b> {frases.join(". ")}.</p>}
           {nada && <p className="vacio">Nada vence hoy. Buen momento para adelantar lo de la semana o pedirle ideas a Claude.</p>}
 
+          <Seccion titulo="Llegó desde ayer" n={llego.length}>{llego.map((r) => <FilaRevisar key={r.ruta} r={r} onRevisar={onRevisar} />)}</Seccion>
           <Seccion titulo="Reuniones" n={h.reuniones.length}>
             {h.reuniones.map((r) => fila(r.ruta, horaDe(r.fecha) || "hoy", false, r.cliente,
               `${titulo(r.ruta)} · ${nombreCliente(r.cliente)}`, r.tipo === "brief-reunion" ? "Brief listo" : "Acta",
@@ -145,6 +150,20 @@ export function Hoy({ fecha, onEditar }: { fecha: string; onEditar: (ruta: strin
       </main>
       {sel && <Panel key={sel.ruta} ruta={sel.ruta} animar={sel.animar} onCerrar={cerrar} onEditar={onEditar} />}
     </>
+  );
+}
+
+function FilaRevisar({ r, onRevisar }: { r: Reunion; onRevisar: (ruta: string) => void }) {
+  const { indice } = useSesion();
+  const { tareas, decisiones } = deActa(indice, r);
+  const cliente = indice.clientes.find((c) => c.slug === r.cliente)?.nombre ?? r.cliente;
+  return (
+    <button className="fila" onClick={() => onRevisar(r.ruta)}>
+      <span className="cuando">acta</span>
+      <span className="barra" style={{ background: colorPara(r.cliente) }} aria-hidden />
+      <span><span className="t">{titulo(r.ruta)} · {cliente}</span><span className="sub">{porConfirmar(decisiones.length, tareas.filter((e) => e.estado !== "cancelado").length)}</span></span>
+      <span className="chip"><ListChecks size={ICONO} aria-hidden />Revisar</span>
+    </button>
   );
 }
 

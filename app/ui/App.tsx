@@ -19,6 +19,7 @@ import { Claude } from "./pantallas/Claude";
 import { Cliente } from "./pantallas/Cliente";
 import { Config } from "./pantallas/Config";
 import { Hoy } from "./pantallas/Hoy";
+import { RevisarActa } from "./pantallas/RevisarActa";
 import { Tablero } from "./pantallas/Tablero";
 
 const aviso = new URLSearchParams(location.search).get("aviso");
@@ -144,7 +145,9 @@ export function App() {
       <div className="app">
         <Lateral pantalla={pantalla} ir={ir} fecha={fecha} onCambiarPersona={() => setEligiendo(true)}
           onMezclar={() => capturar(MOTIVO_CONFLICTO)} onClaude={alternar} onBuscar={() => setPaleta(true)} />
-        {pantalla.nombre === "hoy" && <Hoy fecha={fecha} onEditar={editar} />}
+        {pantalla.nombre === "hoy" && <Hoy fecha={fecha} onEditar={editar} onRevisar={(ruta) => ir({ nombre: "revisar", ruta })} />}
+        {pantalla.nombre === "revisar" && <RevisarActa key={pantalla.ruta} ruta={pantalla.ruta} fecha={fecha} onVolver={() => ir({ nombre: "hoy" })}
+          onEditar={editar} onPedirClaude={pedir} />}
         {pantalla.nombre === "tablero" && <Tablero key={JSON.stringify(pantalla.filtro ?? null)} fecha={fecha} onEditar={editar} filtroInicial={pantalla.filtro} />}
         {pantalla.nombre === "calendario" && <Calendario fecha={fecha} onEditar={editar} />}
         {pantalla.nombre === "aprobaciones" && <Aprobaciones key={pantalla.ruta} inicial={pantalla.ruta} onEditar={editar} />}

@@ -1,0 +1,14 @@
+/* Revisar lo que llegó (mockups-app/v3-cliente.html, frame 2). */
+.revisar .dos { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 26px; margin-top: 18px; align-items: start; }
+.revisar .sub-r { font-size: 13px; font-weight: 400; color: var(--apagado); margin: 16px 0 6px; display: flex; justify-content: space-between; }
+.revisar .sub-r b { color: var(--texto); }
+.revisa { list-style: none; margin: 0; padding: 0; border: 1px solid var(--linea); border-radius: 10px; background: var(--superficie); }
+.revisa .f { display: grid; grid-template-columns: 18px 1fr auto; gap: 10px; align-items: start; padding: 10px 14px; border-bottom: 1px solid var(--linea-suave); font-size: 14px; }
+.revisa .f:has(> span:only-child) { grid-template-columns: 1fr; }
+.revisa .f:last-child { border-bottom: 0; }
+.revisa .s { display: flex; color: var(--apagado); font-size: 14px; margin-top: 4px; }
+.revisa .f.descartada > span:nth-child(2) > label { color: var(--tenue); text-decoration: line-through; }
+.revisa input[type="checkbox"] { width: 16px; height: 16px; margin: 2px 0 0; accent-color: var(--avance); }
+.revisa input[type="checkbox"]:focus-visible, .revisa select:focus-visible, .revisa input[type="date"]:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+.revisa .tentativa { color: var(--atraso); }
+.revisar .acciones { margin-top: 18px; gap: 8px; }
