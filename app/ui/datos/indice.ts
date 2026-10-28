@@ -1,12 +1,14 @@
+import { comentarios } from "./comentarios";
+import { CATALOGO, leerCatalogo, type Etiqueta } from "./etiquetas";
 import { registrarTitulo } from "./hoy";
 import { separar } from "./md";
 import type { Aprobacion, Cliente, Decision, Entregable, Persona, Reunion } from "./tipos";
 
 export type Indice = {
   clientes: Cliente[]; entregables: Entregable[]; reuniones: Reunion[]; decisiones: Decision[];
-  personas: Persona[]; aprobaciones: Aprobacion[]; rotos: { ruta: string; error: string }[];
+  personas: Persona[]; aprobaciones: Aprobacion[]; etiquetas: Etiqueta[]; rotos: { ruta: string; error: string }[];
 };
-type Coleccion = Exclude<keyof Indice, "rotos">;
+type Coleccion = Exclude<keyof Indice, "rotos" | "etiquetas">;
 
 const REQUERIDOS: Record<string, string[]> = {
   cliente: ["nombre", "slug", "etapa", "modalidad", "responsable"],
@@ -20,8 +22,10 @@ const COLECCION: Record<string, Coleccion> = {
   decision: "decisiones", persona: "personas", aprobacion: "aprobaciones",
 };
 
+const COLECCIONES: (Coleccion | "rotos")[] = ["clientes", "entregables", "reuniones", "decisiones", "personas", "aprobaciones", "rotos"];
+
 const vacio = (): Indice => ({
-  clientes: [], entregables: [], reuniones: [], decisiones: [], personas: [], aprobaciones: [], rotos: [],
+  clientes: [], entregables: [], reuniones: [], decisiones: [], personas: [], aprobaciones: [], etiquetas: [], rotos: [],
 });
 
 /** Date de YAML → texto ISO (solo fecha si es medianoche UTC). */
@@ -56,7 +60,7 @@ function leer(ruta: string, texto: string): Entrada | null {
   const esperados = CARPETA.find(([r]) => r.test(ruta))?.[1];
   if (!esperados) return null;
   const bandeja = ruta.startsWith("bandeja/");
-  const { meta, error } = separar(texto);
+  const { meta, cuerpo, error } = separar(texto);
   if (error) return { errores: [error] };
   const tipo = meta?.tipo;
   if (bandeja && tipo !== "aprobacion") return null; // la bandeja también guarda notas libres
@@ -65,6 +69,7 @@ function leer(ruta: string, texto: string): Entrada | null {
   if (!(tipo in COLECCION)) return { errores: [`tipo desconocido '${tipo}'`] };
   if (!esperados.includes(tipo)) return { errores: [`tipo '${tipo}' no corresponde a esta carpeta`] };
   const obj = { ...meta, ruta } as Record<string, unknown>;
+  if (tipo === "entregable") obj.comentarios = comentarios(cuerpo);
   for (const c of ["fecha", "vence", "proximo_contacto"]) if (c in obj) obj[c] = iso(obj[c]);
   const errores = REQUERIDOS[tipo].filter((c) => meta[c] == null).map((c) => `falta '${c}'`);
   return { coleccion: COLECCION[tipo], obj: obj as { ruta: string }, errores };
@@ -73,7 +78,8 @@ function leer(ruta: string, texto: string): Entrada | null {
 /** Aplica cambios (ruta → contenido nuevo, o null si se borró) sin mutar el índice anterior. */
 export function actualizarIndice(i: Indice, cambios: Map<string, string | null>): Indice {
   const nuevo = vacio();
-  for (const k of Object.keys(nuevo) as (keyof Indice)[]) {
+  nuevo.etiquetas = cambios.has(CATALOGO) ? leerCatalogo(cambios.get(CATALOGO) ?? "") : i.etiquetas;
+  for (const k of COLECCIONES) {
     (nuevo[k] as { ruta: string }[]) = (i[k] as { ruta: string }[]).filter((x) => !cambios.has(x.ruta));
   }
   for (const [ruta, texto] of cambios) {
@@ -83,7 +89,7 @@ export function actualizarIndice(i: Indice, cambios: Map<string, string | null>)
     for (const error of e.errores) nuevo.rotos.push({ ruta, error });
     if (e.coleccion && e.obj) (nuevo[e.coleccion] as { ruta: string }[]).push(e.obj);
   }
-  for (const k of Object.keys(nuevo) as (keyof Indice)[]) {
+  for (const k of COLECCIONES) {
     (nuevo[k] as { ruta: string }[]).sort((a, b) => a.ruta.localeCompare(b.ruta));
   }
   return nuevo;

@@ -4,6 +4,8 @@ export type Vence = "hoy" | "semana" | "atrasado" | "todo";
 export type Filtro = {
   personas?: string[]; clientes?: string[]; formatos?: string[]; estados?: string[];
   vence?: Vence; esperandoCliente?: boolean;
+  /** La tarea pasa si tiene alguna de estas etiquetas. */
+  etiquetas?: string[];
 };
 
 /** Estados en orden de columna; `cancelado` no se muestra en el tablero. */
@@ -31,6 +33,7 @@ export function aplicar(es: Entregable[], f: Filtro, hoy: string): Entregable[] 
   return es.filter((e) =>
     e.estado !== "cancelado"
     && listas.every((k) => f[k]!.includes(String(e[CAMPO[k]])))
+    && (!f.etiquetas?.length || f.etiquetas.some((t) => e.etiquetas?.includes(t)))
     && VENCE[f.vence ?? "todo"](e, hoy)
     // Esperando al cliente = en revisión: el cliente tiene que aprobar.
     && (!f.esperandoCliente || e.estado === "revision"));

@@ -10,8 +10,8 @@ export const useSesion = (): Sesion => {
   return s;
 };
 
-const INDEXADOS = ["clientes/**/*.md", "equipo/personas/*.md", "bandeja/*.md"];
-const ES_INDEXADO = /^(clientes\/.+|equipo\/personas\/[^/]+|bandeja\/[^/]+)\.md$/;
+const INDEXADOS = ["clientes/**/*.md", "equipo/personas/*.md", "equipo/etiquetas.md", "bandeja/*.md"];
+const ES_INDEXADO = /^(clientes\/.+|equipo\/personas\/[^/]+|equipo\/etiquetas|bandeja\/[^/]+)\.md$/;
 
 async function leerTodas(rutas: string[]): Promise<Map<string, string | null>> {
   const textos = await Promise.all(rutas.map((r) => window.aos.repo.read(r).catch(() => null)));

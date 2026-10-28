@@ -1,3 +1,4 @@
+import type { Comentario } from "./comentarios";
 // Campos según scripts/aos/esquemas.py. Las fechas son siempre texto ISO.
 export type Cliente = {
   ruta: string; nombre: string; slug: string; etapa: string; modalidad: string; responsable: string;
@@ -8,10 +9,12 @@ export type Cliente = {
 export type Entregable = {
   ruta: string; cliente: string; formato: string; vence: string; estado: string; responsable: string;
   origen?: string; fecha_tentativa?: boolean;
+  titulo?: string; etiquetas?: string[]; comentarios?: Comentario[];
 };
 export type Reunion = {
   ruta: string; tipo: "reunion" | "brief-reunion"; cliente: string; fecha: string;
   asistentes?: string[]; link?: string; fuente?: string;
+  titulo?: string; revisada?: boolean; origen?: string;
 };
 export type Decision = { ruta: string; cliente: string; fecha: string; origen?: string };
 export type Persona = {

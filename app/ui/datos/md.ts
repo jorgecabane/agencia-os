@@ -59,3 +59,22 @@ export async function cambiar(ruta: string, cambios: Record<string, unknown>): P
   if (actual.error) throw new Error(actual.error);
   await window.aos.repo.write(ruta, unir(actual.fm, cambios, actual.cuerpo));
 }
+
+/** Rango [ini, fin) de las líneas bajo `## <nombre>`, o null si la sección no existe. */
+export function seccion(lineas: string[], nombre: string): [number, number] | null {
+  const ini = lineas.findIndex((l) => new RegExp(`^##\\s+${nombre}\\s*$`, "i").test(l));
+  if (ini < 0) return null;
+  const sig = lineas.findIndex((l, k) => k > ini && /^##\s/.test(l));
+  return [ini + 1, sig < 0 ? lineas.length : sig];
+}
+
+/** Agrega `linea` al final de la sección `## <nombre>` (la crea al final del cuerpo si no existe). */
+export function agregarEnSeccion(cuerpo: string, nombre: string, linea: string): string {
+  const lineas = cuerpo.split("\n");
+  const rango = seccion(lineas, nombre);
+  if (!rango) return `${cuerpo.trimEnd()}\n\n## ${nombre}\n\n${linea}${cuerpo.endsWith("\n") ? "\n" : ""}`;
+  let fin = rango[1];
+  while (fin > rango[0] && lineas[fin - 1].trim() === "") fin--;
+  lineas.splice(fin, 0, ...(fin === rango[0] ? ["", linea] : [linea]));
+  return lineas.join("\n");
+}
