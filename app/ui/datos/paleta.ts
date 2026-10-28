@@ -11,10 +11,9 @@ export type Opcion = {
 
 const MAX = 5;
 const CERRADOS = new Set(["publicado", "cancelado"]);
-// Equipo se suma con su pantalla (Task 8): hoy sería un link muerto.
 const IR: [string, Pantalla][] = [
   ["Hoy", { nombre: "hoy" }], ["Tablero", { nombre: "tablero" }], ["Calendario", { nombre: "calendario" }],
-  ["Aprobaciones", { nombre: "aprobaciones" }], ["Configuración", { nombre: "config" }],
+  ["Aprobaciones", { nombre: "aprobaciones" }], ["Equipo", { nombre: "equipo" }], ["Configuración", { nombre: "config" }],
 ];
 const norm = (t: string) => t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
 

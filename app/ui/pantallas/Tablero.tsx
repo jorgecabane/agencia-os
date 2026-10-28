@@ -107,7 +107,7 @@ export function Tablero({ fecha, onEditar, filtroInicial }: {
   return (
     <>
       <main className="principal tablero">
-        <CabezaVistas actual={actual} elegir={setActual} onError={setError} />
+        <CabezaVistas actual={actual} elegir={setActual} onError={setError} conFiltro={filtroInicial !== undefined} />
         <Filtros es={es} filtro={actual.filtro} cambiar={(filtro) => setActual({ ...actual, filtro })} fecha={fecha}>
           <span>{plural(visibles.length)}</span>
           <span className="sep" aria-hidden />
@@ -129,13 +129,15 @@ export function Tablero({ fecha, onEditar, filtroInicial }: {
 }
 
 /** Título, vistas guardadas (la que calza con los filtros de ahora queda marcada) y "+ Vista". */
-function CabezaVistas({ actual, elegir, onError }: { actual: Actual; elegir: (a: Actual) => void; onError: (msg: string) => void }) {
+function CabezaVistas({ actual, elegir, onError, conFiltro }: {
+  actual: Actual; elegir: (a: Actual) => void; onError: (msg: string) => void; conFiltro: boolean;
+}) {
   const [leidas, guardarLista, errorVistas] = useVistas();
   const vistas = leidas ?? POR_DEFECTO;
   const [nombrando, setNombrando] = useState(false);
   const cargadas = leidas !== null;
-  // Al abrir, la primera vista del equipo.
-  useEffect(() => { if (cargadas) elegir({ filtro: vistas[0].filtro, agrupar: vistas[0].agrupar }); }, [cargadas]);
+  // Al abrir, la primera vista del equipo, salvo que llegue con un filtro (p. ej. desde Equipo).
+  useEffect(() => { if (cargadas && !conFiltro) elegir({ filtro: vistas[0].filtro, agrupar: vistas[0].agrupar }); }, [cargadas]);
   const guardar = (ev: FormEvent<HTMLFormElement>) => {
     ev.preventDefault();
     const nombre = String(new FormData(ev.currentTarget).get("nombre")).trim();

@@ -1,4 +1,4 @@
-import { CalendarDays, ClockAlert, Inbox, Search, Settings, Sparkles, SquareKanban, Sun, TriangleAlert } from "lucide-react";
+import { CalendarDays, ClockAlert, Inbox, Search, Settings, Sparkles, SquareKanban, Sun, TriangleAlert, Users } from "lucide-react";
 import { sinContacto } from "../datos/contacto";
 import type { Filtro } from "../datos/filtros";
 import { colorPara, hoy } from "../datos/hoy";
@@ -44,6 +44,9 @@ export function Lateral({ pantalla, ir, fecha, onCambiarPersona, onMezclar, onBu
       <button className="nav-it" aria-current={actual("aprobaciones")} onClick={() => ir({ nombre: "aprobaciones" })}>
         <Inbox size={ICONO} aria-hidden />Aprobaciones
         {porAprobar > 0 && <span className="n" aria-label={`${porAprobar} tuyas por revisar`}>{porAprobar}</span>}
+      </button>
+      <button className="nav-it" aria-current={actual("equipo")} onClick={() => ir({ nombre: "equipo" })}>
+        <Users size={ICONO} aria-hidden />Equipo
       </button>
       <button className="nav-it" aria-current={actual("claude")} onClick={onClaude}>
         <Sparkles size={ICONO} className="chispa" aria-hidden />Claude<kbd className="atajo">⌘J</kbd>

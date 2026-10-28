@@ -81,7 +81,7 @@ export function PanelDetalle({ ruta, meta, cuerpo, onEditar, onPedir, onError, o
       </div>
 
       {abierto === "reagendar" && (
-        <Formulario etiqueta="Nueva fecha" onCancelar={() => setAbierto(null)} onGuardar={(v) => cambiar({ vence: v })}>
+        <Formulario etiqueta="Nueva fecha" onCancelar={() => setAbierto(null)} onGuardar={(v) => cambiar({ vence: v, fecha_tentativa: undefined })}>
           {(id) => <input id={id} name="valor" type="date" defaultValue={String(meta?.vence ?? "")} required autoFocus />}
         </Formulario>
       )}

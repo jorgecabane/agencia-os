@@ -1,0 +1,25 @@
+/* Equipo (mockups-app/v3-cliente.html, frame 3): carga de la semana por persona. */
+.equipo .carga, .carga-leyenda { list-style: none; margin: 0; padding: 0; max-width: 760px; }
+.carga-leyenda { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 16px; font-size: 13px; color: var(--apagado); }
+.carga-leyenda li { display: inline-flex; align-items: center; gap: 6px; }
+.seg-muestra { width: 10px; height: 10px; border-radius: 3px; }
+.equipo .carga { margin-top: 10px; }
+.carga-fila {
+  all: unset; box-sizing: border-box; cursor: pointer; width: 100%; display: grid; grid-template-columns: 150px 1fr 170px; gap: 12px;
+  align-items: center; padding: 9px 6px; font-size: 14px; border-bottom: 1px solid var(--linea-suave); border-radius: 6px;
+  transition: background-color 150ms ease, transform 160ms var(--ease-out);
+}
+.carga-fila:hover { background: var(--superficie); }
+.carga-fila:active { transform: scale(0.97); }
+.carga-fila:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+.carga-fila .quien { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.barra-c { height: 8px; border-radius: 4px; background: var(--superficie); overflow: hidden; display: flex; }
+.barra-c i { display: block; height: 100%; }
+.carga-fila .num { text-align: right; color: var(--apagado); font-variant-numeric: tabular-nums; }
+.carga-fila .num.alta { color: var(--atraso); font-weight: 550; }
+.alerta-carga {
+  display: flex; align-items: center; gap: 10px; max-width: 760px; margin: 14px 0 0; padding: 9px 12px; border-radius: 9px;
+  font-size: 14px; border: 1px solid var(--linea); background: var(--superficie);
+}
+.alerta-carga > svg { color: var(--foco); flex: none; }
+.alerta-carga .grow { flex: 1; }

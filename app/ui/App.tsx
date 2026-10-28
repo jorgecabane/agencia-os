@@ -18,6 +18,7 @@ import { Calendario } from "./pantallas/Calendario";
 import { Claude } from "./pantallas/Claude";
 import { Cliente } from "./pantallas/Cliente";
 import { Config } from "./pantallas/Config";
+import { Equipo } from "./pantallas/Equipo";
 import { Hoy } from "./pantallas/Hoy";
 import { RevisarActa } from "./pantallas/RevisarActa";
 import { Tablero } from "./pantallas/Tablero";
@@ -150,6 +151,8 @@ export function App() {
           onEditar={editar} onPedirClaude={pedir} />}
         {pantalla.nombre === "tablero" && <Tablero key={JSON.stringify(pantalla.filtro ?? null)} fecha={fecha} onEditar={editar} filtroInicial={pantalla.filtro} />}
         {pantalla.nombre === "calendario" && <Calendario fecha={fecha} onEditar={editar} />}
+        {pantalla.nombre === "equipo" && <Equipo fecha={fecha} onVerPersona={(slug) => ir({ nombre: "tablero", filtro: { personas: [slug] } })}
+          onPedirClaude={capturar} />}
         {pantalla.nombre === "aprobaciones" && <Aprobaciones key={pantalla.ruta} inicial={pantalla.ruta} onEditar={editar} />}
         {pantalla.nombre === "config" && <Config onEditar={editar} onCambiarPersona={() => setEligiendo(true)} />}
         {pantalla.nombre === "cliente" && <Cliente key={pantalla.slug} slug={pantalla.slug} fecha={fecha} onErrorFuera={setErrorGuardar} onPedirClaude={pedir}

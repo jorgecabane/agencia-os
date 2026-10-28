@@ -1,5 +1,8 @@
-import { type DragEvent, type KeyboardEvent, type MouseEvent, useCallback, useRef, useState } from "react";
+import { Plus } from "lucide-react";
+import { type DragEvent, type KeyboardEvent, type MouseEvent, useCallback, useEffect, useRef, useState } from "react";
 import { Filtros } from "../componentes/Filtros";
+import { ICONO } from "../componentes/Lateral";
+import { NuevaTarea } from "../componentes/NuevaTarea";
 import { Panel } from "../componentes/Panel";
 import { type Dia, dias, esReunion, type Item, lunes, semanas, sumarDias, sumarMeses } from "../datos/calendario";
 import type { Filtro } from "../datos/filtros";
@@ -29,6 +32,7 @@ export function Calendario({ fecha, onEditar }: { fecha: string; onEditar: (ruta
   const [anuncio, setAnuncio] = useState("");
   const { es, mover } = useMovidos(setError);
   const [sel, setSel] = useState<{ ruta: string; animar: boolean } | null>(null);
+  const [nueva, setNueva] = useState<Nueva | null>(null);
   const origen = useRef<HTMLElement | null>(null);
   const cerrar = useCallback(() => { setSel(null); origen.current?.focus(); }, []);
 
@@ -43,7 +47,7 @@ export function Calendario({ fecha, onEditar }: { fecha: string; onEditar: (ruta
     setAnuncio(`${titulo(e.ruta)} ahora vence el ${largo(dia, { weekday: "long", day: "numeric", month: "long" })}${fuera}`);
   };
   const ctx: Ctx = {
-    fecha, mes: vista === "mes" ? mes : null, sel: sel?.ruta, es, mueve,
+    fecha, mes: vista === "mes" ? mes : null, sel: sel?.ruta, es, mueve, nueva, setNueva,
     abrir: (ruta) => (ev) => { origen.current = ev.currentTarget; setSel(sel?.ruta === ruta ? null : { ruta, animar: ev.detail !== 0 }); },
     verSemana: (dia) => { setVista("semana"); setAncla(dia); },
   };
@@ -89,8 +93,9 @@ function Cabeza({ vista, setVista, ancla, paso, hoy }: {
   );
 }
 
+type Nueva = { dia: string; animar: boolean };
 type Ctx = {
-  fecha: string; mes: string | null; sel?: string; es: Entregable[];
+  fecha: string; mes: string | null; sel?: string; es: Entregable[]; nueva: Nueva | null; setNueva: (n: Nueva | null) => void;
   mueve: (e: Entregable, dia: string) => void; abrir: (ruta: string) => (ev: MouseEvent<HTMLElement>) => void;
   verSemana: (dia: string) => void;
 };
@@ -106,6 +111,7 @@ function Grilla({ filas, ctx }: { filas: Dia[][]; ctx: Ctx }) {
 
 function Celda({ d, ctx }: { d: Dia; ctx: Ctx }) {
   const [sobre, setSobre] = useState(false);
+  const mas = useRef<HTMLButtonElement>(null);
   const fuera = ctx.mes !== null && !d.dia.startsWith(ctx.mes);
   const visibles = ctx.mes ? d.items.slice(0, MAX_EN_MES) : d.items;
   const resto = d.items.length - visibles.length;
@@ -117,19 +123,47 @@ function Celda({ d, ctx }: { d: Dia; ctx: Ctx }) {
   };
   const clases = ["cal-dia", fuera && "fuera", d.dia === ctx.fecha && "hoy", sobre && "sobre"].filter(Boolean).join(" ");
   const nombre = largo(d.dia, { weekday: "long", day: "numeric", month: "long" });
+  const abierta = ctx.nueva?.dia === d.dia;
+  const cerrarNueva = () => { ctx.setNueva(null); mas.current?.focus(); };
   return (
     <section
       className={clases} aria-label={`${nombre}, ${d.items.length === 1 ? "1 cosa" : `${d.items.length} cosas`}`}
       onDragOver={(ev) => { ev.preventDefault(); ev.dataTransfer.dropEffect = "move"; if (!sobre) setSobre(true); }}
       onDragLeave={(ev) => !ev.currentTarget.contains(ev.relatedTarget as Node) && setSobre(false)}
       onDrop={soltar}
+      onDoubleClick={(ev) => !(ev.target as Element).closest("button, .cal-pop") && ctx.setNueva({ dia: d.dia, animar: true })}
     >
       <span className="cal-num" aria-current={d.dia === ctx.fecha ? "date" : undefined}>
         {ctx.mes ? Number(d.dia.slice(8)) : largo(d.dia, { weekday: "short", day: "numeric" }).replace(".", "")}
       </span>
+      <button ref={mas} className="cal-agregar" aria-label={`Nueva tarea el ${nombre}`} aria-expanded={abierta}
+        onClick={(ev) => ctx.setNueva(abierta ? null : { dia: d.dia, animar: ev.detail !== 0 })}>
+        <Plus size={ICONO} aria-hidden />
+      </button>
+      {abierta && <CalPop dia={d.dia} nombre={nombre} animar={ctx.nueva!.animar} onCerrar={() => ctx.setNueva(null)} onListo={cerrarNueva} />}
       {visibles.map((x) => <CalItem key={x.ruta} x={x} ctx={ctx} />)}
       {resto > 0 && <button className="cal-mas" onClick={() => ctx.verSemana(d.dia)}>{resto} más</button>}
     </section>
+  );
+}
+
+/** Tarjeta rápida del Tablero anclada al día, con `vence` puesto. Un clic fuera la cierra; Esc o crear devuelven el foco al "+". */
+function CalPop({ dia, nombre, animar, onCerrar, onListo }: {
+  dia: string; nombre: string; animar: boolean; onCerrar: () => void; onListo: () => void;
+}) {
+  const cerrar = useRef(onCerrar);
+  cerrar.current = onCerrar;
+  useEffect(() => {
+    const fuera = (ev: PointerEvent) => !(ev.target as Element).closest(".cal-pop, .cal-agregar") && cerrar.current();
+    document.addEventListener("pointerdown", fuera);
+    return () => document.removeEventListener("pointerdown", fuera);
+  }, []);
+  // De jueves a domingo se abre hacia la izquierda para no salirse de la grilla.
+  const izq = (new Date(`${dia}T12:00:00Z`).getUTCDay() + 6) % 7 >= 3;
+  return (
+    <div className={["cal-pop", animar && "anima", izq && "izq"].filter(Boolean).join(" ")} role="dialog" aria-label={`Nueva tarea el ${nombre}`}>
+      <NuevaTarea inicial={{ vence: dia }} onCreada={onListo} onCancelar={onListo} />
+    </div>
   );
 }
 

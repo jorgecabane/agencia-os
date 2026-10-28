@@ -7,9 +7,14 @@
 .cal-rotulo:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
 .cal-rotulo { font-family: var(--fuente-titulo); font-weight: 400; font-size: 20px; margin: 0 6px; min-width: 9ch; text-align: center; }
 .cal-ayuda { color: var(--tenue); font-size: 12.5px; }
-.cal-grilla { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1px; background: var(--linea-suave); border: 1px solid var(--linea-suave); border-radius: 10px; overflow: hidden; }
+.cal-grilla { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1px; background: var(--linea-suave); border: 1px solid var(--linea-suave); border-radius: 10px; }
+/* Sin overflow: hidden para que la tarjeta de "+" no se recorte; las esquinas se redondean a mano. */
+.cal-grilla > :first-child { border-top-left-radius: 9px; }
+.cal-grilla > :nth-child(7) { border-top-right-radius: 9px; }
+.cal-grilla > :nth-last-child(7) { border-bottom-left-radius: 9px; }
+.cal-grilla > :last-child { border-bottom-right-radius: 9px; }
 .cal-dow { background: var(--fondo); color: var(--tenue); font-size: 12px; padding: 6px 8px; }
-.cal-dia { background: var(--fondo); min-height: 112px; padding: 6px 6px 8px; display: flex; flex-direction: column; gap: 3px; transition: background-color 150ms ease; }
+.cal-dia { position: relative; background: var(--fondo); min-height: 112px; padding: 6px 6px 8px; display: flex; flex-direction: column; gap: 3px; transition: background-color 150ms ease; }
 .semana .cal-dia { min-height: 420px; }
 .cal-dia.fuera { background: var(--lateral); }
 .cal-dia.fuera .cal-num { color: var(--tenue); }
@@ -100,3 +105,20 @@
 .aprob-meta dd { margin: 0; }
 .aprob-meta .tarde { color: var(--atraso); }
 .aprob-meta .tenue { color: var(--tenue); }
+
+/* "+" del día (v3-cliente.html, frame 4): aparece al pasar el mouse o con foco. */
+.cal-agregar {
+  all: unset; position: absolute; top: 5px; right: 5px; width: 22px; height: 22px; display: grid; place-items: center; cursor: pointer;
+  border-radius: 5px; color: var(--texto); background: var(--elevado); opacity: 0;
+  transition: opacity 150ms ease, transform 160ms var(--ease-out);
+}
+.cal-dia:hover .cal-agregar, .cal-agregar:focus-visible, .cal-agregar[aria-expanded="true"] { opacity: 1; }
+.cal-agregar:active { transform: scale(0.97); }
+.cal-agregar:focus-visible { outline: 2px solid var(--foco); outline-offset: 1px; }
+.cal-pop {
+  position: absolute; top: 30px; left: 4px; z-index: 6; width: 290px; border-radius: 10px; transform-origin: top left;
+  background: var(--elevado); border: 1px solid var(--linea); box-shadow: 0 14px 34px var(--sombra);
+}
+.cal-pop.izq { left: auto; right: 4px; transform-origin: top right; }
+.cal-pop.anima { animation: pop-entra 180ms var(--ease-out); }
+.cal-pop .nueva { margin: 0; border: 0; background: none; }

@@ -44,6 +44,8 @@ describe("buscar", () => {
     expect(new Set(r.map((o) => o.grupo))).toEqual(new Set(["Ir a", "Acciones"]));
     expect(r.filter((o) => o.grupo === "Acciones").map((o) => o.titulo)).toEqual(["Nueva tarea"]);
     expect(r.some((o) => o.grupo === "Tareas")).toBe(false);
+    expect(r.filter((o) => o.grupo === "Ir a").map((o) => o.titulo)).toEqual(["Hoy", "Tablero", "Calendario", "Aprobaciones", "Equipo", "Configuración"]);
+    expect(r).toContainEqual(expect.objectContaining({ titulo: "Equipo", accion: { tipo: "ir", pantalla: { nombre: "equipo" } } }));
   });
   it("máximo 5 por grupo", () => {
     const muchas = { ...i, entregables: Array.from({ length: 8 }, (_, k) => tarea(`clientes/donnas/entregables/t${k}.md`, { titulo: `Post ${k}` })) };
