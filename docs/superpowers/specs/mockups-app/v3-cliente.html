@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Cliente y día a día v3</title>
+<link rel="stylesheet" href="../../../../app/ui/tokens.css"><link rel="stylesheet" href="../../../../app/ui/app.css"><link rel="stylesheet" href="v3.css">
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script></head>
+<body>
+<header class="cabeza-maqueta">
+  <h1>Cliente y día a día · maqueta v3</h1>
+  <p>Lo pasado del cliente separado de lo abierto, la alerta de contacto, la revisión de un acta antes de que sus tareas queden firmes, la carga del equipo y crear tareas desde el calendario.</p>
+</header>
+
+<div class="marco-t">1 · Cliente: alerta de contacto y entregables Abiertos / Cerrados
+  <small>La alerta sale de <code>proximo_contacto</code> y del último correo o reunión. Reuniones tiene el mismo selector (Próximas / Pasadas), con lo más reciente arriba y agrupado por mes. Lo que le falta al cliente (brandbook, quién aprueba…) aparece aquí como alerta suave, una a la vez.</small></div>
+<div class="ventana">
+  <nav class="lateral">
+    <button class="buscar"><i data-lucide="search"></i>Buscar o crear…<span class="atajo">⌘K</span></button>
+    <button class="nav-it"><i data-lucide="sun"></i>Hoy<span class="n">3</span></button>
+    <button class="nav-it"><i data-lucide="square-kanban"></i>Tablero</button>
+    <button class="nav-it"><i data-lucide="calendar-days"></i>Calendario</button>
+    <button class="nav-it"><i data-lucide="inbox"></i>Aprobaciones<span class="n">1</span></button>
+    <button class="nav-it"><i data-lucide="users"></i>Equipo</button>
+    <button class="nav-it"><i data-lucide="sparkles"></i>Claude<span class="atajo">⌘J</span></button>
+    <div class="grupo">Clientes</div>
+    <button class="nav-it" aria-current="page"><span class="dot" style="background:var(--cliente-2)"></span>Donna's</button>
+    <button class="nav-it"><span class="dot" style="background:var(--cliente-3)"></span>Casa Pilates<span class="n" title="Sin contacto hace 16 días"><i data-lucide="clock-alert" style="width:14px;height:14px;color:var(--atraso)"></i></span></button>
+  </nav>
+  <main class="principal">
+    <div class="cli-cab"><div class="marca">D</div><h2>Donna's</h2>
+      <span class="chip-m">Activo</span><span class="chip-m">Retainer</span><span class="chip-m">Jorge Cabane</span></div>
+    <div class="alerta"><i data-lucide="clock-alert"></i><span class="grow">Sin contacto con Paula hace 12 días. Quedamos en hablar el 25.</span>
+      <button class="btn">Pedirle a Claude un correo</button><button class="btn plano">Ya hablamos</button></div>
+    <div class="tabs-c"><span>Resumen</span><span class="on">Entregables<span class="c">14</span></span><span>Reuniones<span class="c">9</span></span><span>Decisiones<span class="c">3</span></span><span>Contexto</span><span>Brandbook</span><span>Plan</span></div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="segmento"><span>Abiertos 4</span><span class="on">Cerrados 10</span></div>
+      <span style="color:var(--tenue);font-size:13.5px">Publicados y cancelados, lo más reciente arriba</span>
+      <button class="btn" style="margin-left:auto"><i data-lucide="plus"></i>Nueva tarea</button>
+    </div>
+    <div class="mes">Octubre</div>
+    <div class="lista-m">
+      <div class="f"><span class="cuando-m">Vie 24</span><span>Reel casting septiembre<span class="s">Cami · reel</span></span><span class="chip-m"><span class="anillo" style="background:var(--tenue)"></span>Publicado</span></div>
+      <div class="f"><span class="cuando-m">Mar 21</span><span>Carrusel tips de invierno<span class="s">Jorge · carrusel</span></span><span class="chip-m"><span class="anillo" style="background:var(--tenue)"></span>Publicado</span></div>
+      <div class="f"><span class="cuando-m">Lun 13</span><span>Story encuesta de productos<span class="s">Claude · story</span></span><span class="chip-m"><i data-lucide="x" style="width:13px;height:13px"></i>Cancelado</span></div>
+    </div>
+    <div class="mes">Septiembre</div>
+    <div class="lista-m">
+      <div class="f"><span class="cuando-m">Lun 29</span><span>Informe mensual de septiembre<span class="s">Jorge · informe</span></span><span class="chip-m"><span class="anillo" style="background:var(--tenue)"></span>Publicado</span></div>
+    </div>
+  </main>
+  <div></div>
+</div>
+
+<div class="marco-t">2 · Revisar lo que llegó: el acta antes de que sus tareas queden firmes
+  <small>Cuando la recolección trae una reunión, Hoy muestra "Llegó desde ayer". Al abrirla ves lo que Claude entendió: decisiones y tareas con responsable y fecha, todo editable con un clic. Confirmar las deja en el Tablero; lo que destildas no se crea.</small></div>
+<div class="ventana" style="grid-template-columns:216px minmax(0,1fr)">
+  <nav class="lateral">
+    <button class="buscar"><i data-lucide="search"></i>Buscar o crear…<span class="atajo">⌘K</span></button>
+    <button class="nav-it" aria-current="page"><i data-lucide="sun"></i>Hoy<span class="n">3</span></button>
+    <button class="nav-it"><i data-lucide="square-kanban"></i>Tablero</button>
+  </nav>
+  <main class="principal">
+    <button class="btn plano">‹ Volver a Hoy</button>
+    <h1 class="titulo" style="margin-top:8px">Revisión mensual de octubre</h1>
+    <p class="bajada"><span class="dot" style="background:var(--cliente-2)"></span> Donna's · hoy 10:00 · Jorge, Cami, Paula · desde Granola</p>
+    <div class="dos" style="margin-top:18px">
+      <div>
+        <div class="sub-t"><span>Tareas que salieron <b style="color:var(--texto)">3</b></span><span>clic para corregir</span></div>
+        <div class="revisa">
+          <div class="f"><span class="caja ok"></span><span>Mandar cotización ajustada de Navidad<div class="s"><span class="editable">Jorge</span> · <span class="editable">jue 29</span></div></span><span class="chip-m">nuestra</span></div>
+          <div class="f"><span class="caja ok"></span><span>Reel con las fotos nuevas de la tienda<div class="s"><span class="editable">Cami</span> · <span class="editable" style="color:var(--atraso)">fecha por confirmar</span></div></span><span class="chip-m">nuestra</span></div>
+          <div class="f"><span class="caja"></span><span style="color:var(--tenue)">Revisar precios de la competencia<div class="s">Claude no está seguro: se mencionó de pasada</div></span><span class="chip-m">¿?</span></div>
+        </div>
+        <div class="sub-t" style="margin-top:16px"><span>Lo que nos debe el cliente <b style="color:var(--texto)">1</b></span></div>
+        <div class="revisa"><div class="f"><span class="caja ok"></span><span>Enviar fotos nuevas de la tienda<div class="s">Paula · <span class="editable">vie 30</span></div></span><span class="chip-m">cliente</span></div></div>
+      </div>
+      <div>
+        <div class="sub-t"><span>Decisiones <b style="color:var(--texto)">2</b></span></div>
+        <div class="revisa">
+          <div class="f"><span class="caja ok"></span><span>Desde noviembre los posts salen los viernes<div class="s">Pidió Paula: el jueves tienen poco alcance</div></span><span></span></div>
+          <div class="f"><span class="caja ok"></span><span>La campaña de Navidad parte el 1 de diciembre</span><span></span></div>
+        </div>
+        <div class="sub-t" style="margin-top:16px"><span>Lo que aprendimos</span></div>
+        <div class="revisa"><div class="f"><span class="caja ok"></span><span>A Paula le gustan los carruseles con poco texto</span><span></span></div></div>
+        <div class="acciones" style="margin-top:18px;display:flex;gap:8px">
+          <button class="btn pri">Confirmar y crear 3 tareas</button><button class="btn">Ver acta completa</button><button class="btn"><i data-lucide="sparkles"></i>Corregir con Claude</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="marco-t">3 · Equipo: carga de la semana
+  <small>Cuántas tareas tiene cada persona esta semana, por estado. Una barra pasada del límite se marca y Claude sugiere a quién mover algo. Clic en una persona abre el Tablero filtrado por ella.</small></div>
+<div class="ventana" style="grid-template-columns:216px minmax(0,1fr);height:420px">
+  <nav class="lateral">
+    <button class="buscar"><i data-lucide="search"></i>Buscar o crear…<span class="atajo">⌘K</span></button>
+    <button class="nav-it"><i data-lucide="sun"></i>Hoy<span class="n">3</span></button>
+    <button class="nav-it" aria-current="page"><i data-lucide="users"></i>Equipo</button>
+  </nav>
+  <main class="principal">
+    <h1 class="titulo">Equipo</h1>
+    <p class="bajada">Semana del 26 de octubre</p>
+    <div class="carga" style="max-width:760px;margin-top:16px">
+      <div class="p"><span><span class="av" style="background:var(--cliente-3)">C</span> Cami</span><span class="barra-c"><i style="width:30%;background:var(--en-curso)"></i><i style="width:45%;background:var(--tenue)"></i><i style="width:25%;background:var(--atraso)"></i></span><span style="color:var(--atraso)">11 · alta</span></div>
+      <div class="p"><span><span class="av" style="background:var(--cliente-2)">J</span> Jorge</span><span class="barra-c"><i style="width:20%;background:var(--en-curso)"></i><i style="width:15%;background:var(--tenue)"></i></span><span>5</span></div>
+      <div class="p"><span><span class="av" style="background:var(--ia)">✦</span> Claude</span><span class="barra-c"><i style="width:25%;background:var(--en-curso)"></i></span><span>4</span></div>
+    </div>
+    <div class="alerta" style="max-width:760px;border-color:var(--linea);background:var(--superficie)"><i data-lucide="sparkles" style="color:var(--foco)"></i><span class="grow">Cami tiene 11 tareas y 3 atrasadas. Puedo pasarle a Claude las 2 stories de Casa Pilates y mover el calendario de diciembre al lunes.</span><button class="btn">Hacerlo</button><button class="btn plano">Ver detalle</button></div>
+  </main>
+</div>
+
+<div class="marco-t">4 · Calendario: crear una tarea en un día
+  <small>Al pasar el mouse por un día aparece "+"; doble clic en el día también sirve. Se abre la misma tarjeta rápida del Tablero con la fecha ya puesta.</small></div>
+<div class="ventana" style="grid-template-columns:1fr;height:420px">
+  <main class="principal" style="position:relative">
+    <div class="cal">
+      <div>26<span class="ev">● Responder DMs</span></div><div>27<span class="ev">◷ 10:00 Revisión</span><span class="ev">● Post jueves</span></div><div>28</div><div>29<span class="ev">● Cotización Navidad</span></div><div class="sel">30<span class="mas-d"><i data-lucide="plus" style="width:13px;height:13px"></i></span></div><div>31</div><div>1</div>
+      <div>2</div><div>3</div><div>4</div><div>5</div><div>6</div><div>7</div><div>8</div>
+    </div>
+    <div class="pop" style="top:130px;left:calc(57% + 30px)">
+      <div class="in">Guion reel Navidad|</div>
+      <div class="opc" style="display:flex;flex-wrap:wrap;gap:6px"><span class="chip-m"><span class="dot" style="background:var(--cliente-2)"></span>Donna's</span><span class="chip-m">Cami</span><span class="chip-m"><i data-lucide="calendar"></i>Vie 30</span></div>
+      <div style="color:var(--tenue);font-size:12.5px;margin-top:9px">Enter para crear · Esc para cancelar</div>
+    </div>
+  </main>
+</div>
+<script>lucide.createIcons();</script>
+</body></html>

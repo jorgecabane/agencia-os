@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Tablero v3</title>
+<link rel="stylesheet" href="../../../../app/ui/tokens.css"><link rel="stylesheet" href="../../../../app/ui/app.css"><link rel="stylesheet" href="v3.css">
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script></head>
+<body>
+<header class="cabeza-maqueta">
+  <h1>Tablero · maqueta v3</h1>
+  <p>Crear tareas desde cada columna, etiquetas reutilizables, el menú ⋯ en vez de "Mover a…" y la actividad de la tarea en su panel. La barra lateral suma el buscador (⌘K) y Claude (⌘J), con su botón visible.</p>
+</header>
+
+<div class="marco-t">1 · Tablero con el menú ⋯ abierto y una tarea nueva en Brief
+  <small>El ⋯ aparece al pasar el mouse por la tarjeta y siempre al navegar con teclado. Cada opción dice su atajo. El "+" de la columna abre una tarjeta en blanco: escribes el título y Enter; cliente, responsable y fecha se eligen con los botones (o con @persona y #cliente al escribir).</small></div>
+<div class="ventana" style="grid-template-columns:216px minmax(0,1fr)">
+  <nav class="lateral">
+    <button class="buscar"><i data-lucide="search"></i>Buscar o crear…<span class="atajo">⌘K</span></button>
+    <button class="nav-it"><i data-lucide="sun"></i>Hoy<span class="n">3</span></button>
+    <button class="nav-it" aria-current="page"><i data-lucide="square-kanban"></i>Tablero</button>
+    <button class="nav-it"><i data-lucide="calendar-days"></i>Calendario</button>
+    <button class="nav-it"><i data-lucide="inbox"></i>Aprobaciones<span class="n">1</span></button>
+    <button class="nav-it"><i data-lucide="users"></i>Equipo</button>
+    <button class="nav-it"><i data-lucide="sparkles"></i>Claude<span class="atajo">⌘J</span></button>
+    <div class="grupo">Clientes</div>
+    <button class="nav-it"><span class="dot" style="background:var(--cliente-2)"></span>Donna's</button>
+    <button class="nav-it"><span class="dot" style="background:var(--cliente-3)"></span>Casa Pilates</button>
+    <div class="pie">
+      <button class="nav-it"><i data-lucide="check" style="color:var(--avance)"></i>Al día</button>
+      <button class="nav-it"><i data-lucide="settings"></i>Configuración</button>
+    </div>
+  </nav>
+  <main class="principal">
+    <div class="tab-cab"><h2>Tablero</h2>
+      <div class="vistas"><span class="on">Esta semana</span><span>Todo</span><span>Atrasado</span><span>Esperando al cliente</span><span>+ Vista</span></div></div>
+    <div class="barra-filtros">
+      <span class="pila"><span class="av" style="background:var(--cliente-3)">C</span><span class="av" style="background:var(--cliente-2)">J</span><span class="av" style="background:var(--ia)">✦</span></span>
+      <span>Filtrar <span class="atajo">F</span></span>
+      <span class="ficha-f">Vence <b>esta semana</b> ×</span>
+      <span class="ficha-f"><span class="etq" style="--c:var(--cliente-5)">Campaña Navidad</span> ×</span>
+      <span style="margin-left:auto">6 tareas</span>
+    </div>
+    <div class="cols" style="position:relative">
+      <section>
+        <div class="col-c"><span class="anillo"></span>Brief <span class="c">2</span><span class="mas-col hover"><i data-lucide="plus"></i></span></div>
+        <div class="nueva">
+          <div class="in">Guion reel Navidad</div>
+          <div class="opc"><span class="chip-m"><span class="dot" style="background:var(--cliente-2)"></span>Donna's</span><span class="chip-m"><span class="av" style="background:var(--cliente-3);width:18px;height:18px">C</span>Cami</span><span class="chip-m"><i data-lucide="calendar"></i>Vie 30</span><span class="chip-m"><i data-lucide="tag"></i>Etiqueta</span></div>
+          <div class="ayuda"><span>Enter para crear · Esc para cancelar</span><span>@ persona · # cliente</span></div>
+        </div>
+        <article class="tj"><div class="t">Responder DMs de la semana</div><div class="cl"><span class="dot" style="background:var(--cliente-2)"></span>Donna's</div>
+          <div class="pie-tj"><span class="tarde">Vencía ayer</span><span class="av" style="background:var(--cliente-2)">J</span></div></article>
+      </section>
+      <section>
+        <div class="col-c"><span class="anillo" style="border-color:var(--en-curso)"></span>En curso <span class="c">2</span><span class="mas-col"><i data-lucide="plus"></i></span></div>
+        <article class="tj hover"><div class="t">Post jueves: 5 cosas antes de adoptar</div><span class="puntos on"><i data-lucide="more-horizontal"></i></span>
+          <div class="cl"><span class="dot" style="background:var(--cliente-2)"></span>Donna's</div>
+          <div class="etqs"><span class="etq" style="--c:var(--cliente-4)">Adopción</span><span class="etq" style="--c:var(--cliente-1)">Carrusel</span></div>
+          <div class="act-l"><i data-lucide="pencil" style="width:13px;height:13px"></i>Cami cambió el copy · hace 2 h</div>
+          <div class="pie-tj"><span>Hoy</span><span class="av" style="background:var(--cliente-2)">J</span></div></article>
+        <div class="menu" style="top:72px;left:calc(25% + 6px)">
+          <div class="o hl"><i data-lucide="arrow-right-left"></i>Mover a…<span class="der">M</span></div>
+          <div class="o"><i data-lucide="user-round"></i>Asignar<span class="der">A</span></div>
+          <div class="o"><i data-lucide="calendar"></i>Reagendar<span class="der">R</span></div>
+          <div class="o"><i data-lucide="tag"></i>Etiquetas<span class="der">L</span></div>
+          <div class="o"><i data-lucide="sparkles"></i>Pedirle a Claude</div>
+          <div class="sep"></div>
+          <div class="o"><i data-lucide="copy"></i>Duplicar</div>
+          <div class="o peligro"><i data-lucide="trash-2"></i>Borrar…<span class="der">⌫</span></div>
+        </div>
+        <article class="tj"><div class="t">Calendario de noviembre</div><div class="cl"><span class="dot" style="background:var(--cliente-2)"></span>Donna's</div>
+          <div class="etqs"><span class="etq" style="--c:var(--cliente-6)">Planificación</span></div>
+          <div class="pie-tj"><span>Vie 30</span><span class="av" style="background:var(--cliente-3)">C</span></div></article>
+      </section>
+      <section>
+        <div class="col-c"><span class="anillo" style="border-color:var(--foco)"></span>Revisión <span class="c">1</span><span class="mas-col"><i data-lucide="plus"></i></span></div>
+        <article class="tj"><div class="t">Cotización campaña de Navidad</div><div class="cl"><span class="dot" style="background:var(--cliente-2)"></span>Donna's</div>
+          <div class="etqs"><span class="etq" style="--c:var(--cliente-5)">Campaña Navidad</span></div>
+          <div class="act-l"><i data-lucide="clock" style="width:13px;height:13px"></i>Esperando a Paula · 2 días</div>
+          <div class="pie-tj"><span>Jue 29</span><span class="av" style="background:var(--cliente-2)">J</span></div></article>
+      </section>
+      <section>
+        <div class="col-c"><span class="anillo" style="border-color:var(--avance)"></span>Aprobado <span class="c">1</span><span class="mas-col"><i data-lucide="plus"></i></span></div>
+        <article class="tj"><div class="t">Reel casting septiembre</div><div class="cl"><span class="dot" style="background:var(--cliente-3)"></span>Casa Pilates</div>
+          <div class="pie-tj"><span>Lun 2</span><span class="av" style="background:var(--ia)">✦</span></div></article>
+      </section>
+    </div>
+  </main>
+</div>
+
+<div class="marco-t">2 · Menú de etiquetas (desde ⋯ → Etiquetas, o tecla L)
+  <small>Las etiquetas son del espacio: se crean una vez y sirven en todos los clientes. Buscar filtra; si no existe, "Crear" la agrega con un color. Quedan en el archivo de la tarea (<code>etiquetas: [adopcion, carrusel]</code>) y el catálogo en <code>equipo/etiquetas.md</code>.</small></div>
+<div class="ventana" style="height:340px;grid-template-columns:1fr">
+  <div style="position:relative;padding:24px">
+    <div class="menu" style="position:static;width:280px">
+      <div class="o" style="color:var(--tenue)"><i data-lucide="search"></i>navi<span style="color:var(--texto)">|</span></div>
+      <div class="sep"></div>
+      <div class="h">Etiquetas</div>
+      <div class="o hl"><span class="caja ok"></span><span class="etq" style="--c:var(--cliente-5)">Campaña Navidad</span><span class="der">12 tareas</span></div>
+      <div class="o"><span class="caja"></span><span class="etq" style="--c:var(--cliente-1)">Navidad 2025</span><span class="der">archivada</span></div>
+      <div class="sep"></div>
+      <div class="o"><i data-lucide="plus"></i>Crear "navi…" como etiqueta nueva</div>
+      <div class="o"><i data-lucide="settings-2"></i>Administrar etiquetas</div>
+    </div>
+  </div>
+</div>
+
+<div class="marco-t">3 · Panel de la tarea con su actividad
+  <small>El panel suma pestañas: Detalle (lo de hoy: propuestas, botones), Actividad (todo lo que pasó, de git: quién, qué y cuándo, incluido lo que hizo Claude) y Comentarios con @menciones que avisan a esa persona. La checklist vive en el cuerpo del entregable como casillas de markdown.</small></div>
+<div class="ventana" style="grid-template-columns:216px minmax(0,1fr) auto">
+  <nav class="lateral">
+    <button class="buscar"><i data-lucide="search"></i>Buscar o crear…<span class="atajo">⌘K</span></button>
+    <button class="nav-it"><i data-lucide="sun"></i>Hoy<span class="n">3</span></button>
+    <button class="nav-it" aria-current="page"><i data-lucide="square-kanban"></i>Tablero</button>
+    <button class="nav-it"><i data-lucide="calendar-days"></i>Calendario</button>
+    <button class="nav-it"><i data-lucide="inbox"></i>Aprobaciones<span class="n">1</span></button>
+    <button class="nav-it"><i data-lucide="users"></i>Equipo</button>
+    <button class="nav-it"><i data-lucide="sparkles"></i>Claude<span class="atajo">⌘J</span></button>
+  </nav>
+  <main class="principal" style="opacity:.55">
+    <div class="tab-cab"><h2>Tablero</h2></div>
+    <div class="cols" style="margin-top:60px;grid-template-columns:repeat(3,1fr)">
+      <section><article class="tj"><div class="t">Responder DMs de la semana</div></article></section>
+      <section><article class="tj" style="border-color:var(--foco)"><div class="t">Post jueves: 5 cosas antes de adoptar</div></article></section>
+      <section><article class="tj"><div class="t">Cotización campaña de Navidad</div></article></section>
+    </div>
+  </main>
+  <aside class="panel-m">
+    <div class="chips-m"><span class="chip-m"><span class="dot" style="background:var(--cliente-2)"></span>Donna's</span><span class="chip-m">post-instagram</span><span class="chip-m"><span class="anillo" style="border-color:var(--en-curso)"></span>En curso</span><span class="chip-m">Hoy</span><span class="x" style="margin-left:auto"><i data-lucide="x"></i></span></div>
+    <h3>Post jueves: 5 cosas antes de adoptar</h3>
+    <div class="pestanas"><span>Detalle</span><span class="on">Actividad <span class="c">7</span></span><span>Comentarios <span class="c">2</span></span></div>
+    <div class="sub-t"><span>Checklist</span><span>2 de 4</span></div>
+    <ul class="checklist">
+      <li><span class="caja ok"></span><span class="hecho">Copy</span></li>
+      <li><span class="caja ok"></span><span class="hecho">Fotos del casting</span></li>
+      <li><span class="caja"></span>Slides en el brandbook</li>
+      <li><span class="caja"></span>OK de Paula</li>
+    </ul>
+    <ul class="linea-act">
+      <li><span class="av" style="background:var(--cliente-3)">C</span><span><span class="q">Cami</span> <span class="d">editó el copy</span><span class="cuando">hoy 08:40 · ver cambios</span></span></li>
+      <li><span class="av ia">✦</span><span><span class="q">Claude</span> <span class="d">armó 4 de 5 slides desde la propuesta 1</span><span class="cuando">ayer 18:12 · pedido por Jorge</span></span></li>
+      <li><span class="av" style="background:var(--cliente-2)">J</span><span><span class="q">Jorge</span> <span class="d">la pasó de Brief a En curso</span><span class="cuando">ayer 18:05</span></span></li>
+      <li><span class="av" style="background:var(--cliente-2)">J</span><span><span class="q">Jorge</span> <span class="d">comentó</span>
+        <div class="comentario"><span class="mencion">@Cami</span> ¿puedes revisar que el copy no pase de 2 líneas? Paula lo prefiere corto.</div><span class="cuando">ayer 18:06</span></span></li>
+      <li><span class="av ia">✦</span><span><span class="q">Claude</span> <span class="d">la creó desde la reunión del 20 oct</span><span class="cuando">20 oct · Revisión mensual de septiembre</span></span></li>
+    </ul>
+    <div class="entrada-m"><span>Comenta o menciona con @…</span><i data-lucide="send"></i></div>
+  </aside>
+</div>
+<script>lucide.createIcons();</script>
+</body></html>

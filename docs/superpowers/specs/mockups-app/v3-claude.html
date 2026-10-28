@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Claude y ⌘K v3</title>
+<link rel="stylesheet" href="../../../../app/ui/tokens.css"><link rel="stylesheet" href="../../../../app/ui/app.css"><link rel="stylesheet" href="v3.css">
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script></head>
+<body>
+<header class="cabeza-maqueta">
+  <h1>Claude en todas partes · maqueta v3</h1>
+  <p>Claude queda abierto por defecto a la derecha y sabe en qué pantalla estás. Para trabajar en serio (cargar info, crear clientes, revisar varias cosas) se agranda a pantalla completa. Y ⌘K busca, navega y crea desde cualquier lado.</p>
+</header>
+
+<div class="marco-t">1 · Hoy, con Claude abierto por defecto
+  <small>El contexto sigue a la pantalla: en Hoy es "Mi día"; en un cliente, ese cliente; en una tarea, esa tarea. Se cierra con × o ⌘J y la app recuerda si lo quieres abierto. El botón ⤢ lo pasa a pantalla completa. Debajo del cuadro, la pista del atajo.</small></div>
+<div class="ventana">
+  <nav class="lateral">
+    <button class="buscar"><i data-lucide="search"></i>Buscar o crear…<span class="atajo">⌘K</span></button>
+    <button class="nav-it" aria-current="page"><i data-lucide="sun"></i>Hoy<span class="n">3</span></button>
+    <button class="nav-it"><i data-lucide="square-kanban"></i>Tablero</button>
+    <button class="nav-it"><i data-lucide="calendar-days"></i>Calendario</button>
+    <button class="nav-it"><i data-lucide="inbox"></i>Aprobaciones<span class="n">1</span></button>
+    <button class="nav-it"><i data-lucide="users"></i>Equipo</button>
+    <button class="nav-it cl-on"><i data-lucide="sparkles" style="color:var(--foco)"></i>Claude<span class="atajo">⌘J</span></button>
+    <div class="grupo">Clientes</div>
+    <button class="nav-it"><span class="dot" style="background:var(--cliente-2)"></span>Donna's</button>
+    <button class="nav-it"><span class="dot" style="background:var(--cliente-3)"></span>Casa Pilates</button>
+  </nav>
+  <main class="principal">
+    <div class="hoy">
+      <h1 class="titulo">Martes 27</h1>
+      <p class="bajada">Hola, Jorge. Hoy tienes 2 entregas, 1 reunión y 1 cosa que nos debe el cliente.</p>
+      <section class="seccion"><h2>Llegó desde ayer <span class="c">3</span></h2>
+        <button class="fila"><span class="cuando">acta</span><span class="barra" style="background:var(--cliente-2)"></span><span><span class="t">Revisión mensual de octubre · Donna's</span><span class="sub">2 decisiones y 3 tareas nuevas por confirmar</span></span><span class="chip"><i data-lucide="list-checks" style="width:14px;height:14px"></i>Revisar</span></button>
+      </section>
+      <section class="seccion"><h2>Reuniones <span class="c">1</span></h2>
+        <button class="fila"><span class="cuando">10:00</span><span class="barra" style="background:var(--cliente-2)"></span><span><span class="t">Revisión mensual de octubre · Donna's</span><span class="sub">Brief listo</span></span></button>
+      </section>
+      <section class="seccion"><h2>Entregas <span class="c">2</span></h2>
+        <button class="fila"><span class="cuando tarde">ayer</span><span class="barra" style="background:var(--cliente-2)"></span><span><span class="t">Responder DMs de la semana · Donna's</span><span class="sub">✦ 3 respuestas listas para revisar</span></span></button>
+        <button class="fila"><span class="cuando">hoy</span><span class="barra" style="background:var(--cliente-2)"></span><span><span class="t">Post jueves: 5 cosas antes de adoptar · Donna's</span><span class="sub">✦ Carrusel de 5 slides con fotos del casting</span></span></button>
+      </section>
+    </div>
+  </main>
+  <aside class="chat-m">
+    <div class="chat-cab"><span class="ctx"><i data-lucide="sun" style="width:14px;height:14px"></i>Mi día</span>
+      <span class="acc"><span title="Pantalla completa"><i data-lucide="maximize-2"></i></span><span title="Cerrar (⌘J)"><i data-lucide="x"></i></span></span></div>
+    <div class="msgs">
+      <div class="yo">Anota que Paula pidió cambiar el día de los posts de jueves a viernes desde noviembre</div>
+      <div class="pasos-m">
+        <div><span class="ok-t">✓</span>Lo anoté en Donna's › Lo que aprendimos</div>
+        <div><span class="ok-t">✓</span>Moví 4 posts de noviembre a viernes</div>
+        <div><span class="ok-t">✓</span>Actualicé el plan contratado</div>
+      </div>
+      <div class="cl-txt">Listo. El post de este jueves lo dejé igual porque ya está en curso. ¿Le aviso a Cami?</div>
+      <div class="tarjeta-res">
+        <div class="f"><i data-lucide="file-pen-line"></i>4 cambios<span class="der">Ver · Deshacer</span></div>
+      </div>
+    </div>
+    <div class="caja-in">Pídele algo o cuéntale algo nuevo…
+      <div class="recetas"><span>¿Qué adelanto hoy?</span><span>Mi brief de hoy</span><span>Anotar algo de un cliente</span></div>
+      <div class="pista"><span>Enter envía · ⌘J cierra · ⌘⇧J agranda</span></div>
+    </div>
+  </aside>
+</div>
+
+<div class="marco-t">2 · Modo trabajo: Claude a pantalla completa
+  <small>Para sesiones largas: cargar clientes, ordenar la semana, preparar un informe. A la izquierda tus conversaciones (también quedan documentadas en el repo, como cuando trabajas con Claude en la terminal). Lo que Claude cambia aparece como tarjetas que abren el archivo.</small></div>
+<div class="ventana">
+  <nav class="lateral">
+    <button class="buscar"><i data-lucide="search"></i>Buscar o crear…<span class="atajo">⌘K</span></button>
+    <button class="nav-it"><i data-lucide="sun"></i>Hoy<span class="n">3</span></button>
+    <button class="nav-it"><i data-lucide="square-kanban"></i>Tablero</button>
+    <button class="nav-it"><i data-lucide="calendar-days"></i>Calendario</button>
+    <button class="nav-it"><i data-lucide="inbox"></i>Aprobaciones<span class="n">1</span></button>
+    <button class="nav-it"><i data-lucide="users"></i>Equipo</button>
+    <button class="nav-it" aria-current="page"><i data-lucide="sparkles" style="color:var(--foco)"></i>Claude<span class="atajo">⌘J</span></button>
+  </nav>
+  <div class="trabajo">
+    <div class="hilos">
+      <button class="btn" style="width:100%;justify-content:center"><i data-lucide="plus"></i>Conversación nueva</button>
+      <div class="h">Hoy</div>
+      <div class="it on"><i data-lucide="message-square"></i>Carga inicial de clientes</div>
+      <div class="it"><span class="dot" style="background:var(--cliente-2)"></span>Post jueves</div>
+      <div class="h">Esta semana</div>
+      <div class="it"><i data-lucide="message-square"></i>Ordenar noviembre</div>
+      <div class="it"><span class="dot" style="background:var(--cliente-3)"></span>Propuesta Casa Pilates</div>
+    </div>
+    <div class="conv">
+      <div class="chat-cab" style="padding:0 0 14px;border:0"><span class="ctx"><i data-lucide="layout-grid" style="width:14px;height:14px"></i>Todo el espacio</span>
+        <span class="acc"><span title="Volver al costado (⌘⇧J)"><i data-lucide="minimize-2"></i></span></span></div>
+      <div class="msgs">
+        <div class="yo">Te paso la carpeta de clientes de Drive. Arma los que encuentres y pregúntame lo que falte.</div>
+        <div class="pasos-m">
+          <div><span class="ok-t">✓</span>Revisé 14 carpetas en Drive › Clientes</div>
+          <div><span class="ok-t">✓</span>Crucé con correos y calendario de los últimos 3 meses</div>
+        </div>
+        <div class="cl-txt">Encontré 6 clientes. Ya armé los 4 que tenían todo; de los otros 2 me falta información:</div>
+        <div class="tarjeta-res">
+          <div class="f"><span class="dot" style="background:var(--cliente-2)"></span>Donna's<span class="der">listo · falta brandbook</span></div>
+          <div class="f"><span class="dot" style="background:var(--cliente-3)"></span>Casa Pilates<span class="der">listo</span></div>
+          <div class="f"><span class="dot" style="background:var(--cliente-5)"></span>Clima Simple<span class="der">¿es cliente o prospecto?</span></div>
+          <div class="f"><span class="dot" style="background:var(--cliente-4)"></span>Bruma Café<span class="der">¿quién aprueba los posts?</span></div>
+        </div>
+        <div class="cl-txt">Partamos por Clima Simple: veo 3 reuniones en septiembre pero ningún contrato. ¿Es cliente activo o prospecto?</div>
+      </div>
+      <div class="caja-in" style="margin:16px 0 0">Responde…
+        <div class="recetas"><span>Es prospecto</span><span>Es cliente activo</span><span>Sáltalo por ahora</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="marco-t">3 · ⌘K: buscar, ir y crear desde cualquier lado
+  <small>Se abre con ⌘K o con el botón "Buscar o crear…" de arriba a la izquierda. Escribes y filtra clientes, tareas, reuniones y acciones; Enter ejecuta. Si nada calza, la última opción es preguntárselo a Claude. Sin animación al abrir: se usa decenas de veces al día.</small></div>
+<div class="ventana">
+  <nav class="lateral">
+    <button class="buscar" style="border-color:var(--foco)"><i data-lucide="search"></i>Buscar o crear…<span class="atajo">⌘K</span></button>
+    <button class="nav-it" aria-current="page"><i data-lucide="sun"></i>Hoy<span class="n">3</span></button>
+    <button class="nav-it"><i data-lucide="square-kanban"></i>Tablero</button>
+    <button class="nav-it"><i data-lucide="calendar-days"></i>Calendario</button>
+  </nav>
+  <main class="principal"><h1 class="titulo">Martes 27</h1></main>
+  <div></div>
+  <div class="velo"></div>
+  <div class="paleta">
+    <div class="in"><i data-lucide="search"></i><span class="cursor">donna</span></div>
+    <div class="grupo-p">Clientes</div>
+    <div class="op hl"><span class="dot" style="background:var(--cliente-2)"></span>Donna's<span class="der">Ir · Enter</span></div>
+    <div class="grupo-p">Tareas</div>
+    <div class="op"><i data-lucide="square-kanban"></i>Post jueves: 5 cosas antes de adoptar<span class="der">Donna's · hoy</span></div>
+    <div class="op"><i data-lucide="square-kanban"></i>Cotización campaña de Navidad<span class="der">Donna's · jue 29</span></div>
+    <div class="grupo-p">Acciones</div>
+    <div class="op"><i data-lucide="plus"></i>Nueva tarea para Donna's<span class="der">⌘N</span></div>
+    <div class="op"><i data-lucide="file-text"></i>Abrir brief de la reunión de hoy</div>
+    <div class="op"><i data-lucide="sparkles"></i>Preguntarle a Claude: "donna"</div>
+    <div class="pie-p"><span>↑↓ moverse</span><span>Enter abrir</span><span>⌘Enter abrir al lado</span><span>Esc cerrar</span></div>
+  </div>
+</div>
+<script>lucide.createIcons();</script>
+</body></html>
