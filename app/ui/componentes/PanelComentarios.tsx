@@ -54,7 +54,10 @@ export function PanelComentarios({ ruta, cuerpo, onError }: { ruta: string; cuer
         <textarea
           aria-label="Comentario" placeholder="Comenta o menciona con @…" rows={2} value={texto}
           onChange={(e) => setTexto(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); void enviar(); } }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); void enviar(); }
+            if (e.key === "Escape" && texto.trim()) e.preventDefault(); // con borrador, Escape no cierra el panel
+          }}
         />
         <button className="btn pri" type="submit" aria-disabled={!listo}>Comentar <kbd className="kbd">⌘↵</kbd></button>
       </form>

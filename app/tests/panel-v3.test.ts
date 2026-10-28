@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { writeFileSync } from "node:fs";
 import type { Commit } from "../shared/puente";
 import { debeAvisar } from "../shell/avisos";
@@ -66,6 +66,8 @@ describe("interruptor de menciones", () => {
 });
 
 describe("cambiarCuerpo", () => {
+  const original = (globalThis as { window?: unknown }).window;
+  afterEach(() => { (globalThis as { window?: unknown }).window = original; });
   it("relee, cambia el cuerpo y deja el frontmatter byte a byte", async () => {
     const fm = "---\ntipo: entregable\netiquetas: [a,  b]   # ojo\nvence: 2026-10-30\n---\n";
     const archivo = { texto: `${fm}## Checklist\n\n- [ ] Copy\n` };
