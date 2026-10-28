@@ -25,3 +25,18 @@ Después queda un ícono en la barra de menú (aprobaciones, reuniones y estado 
 1. Edita los archivos de `app/ui/`.
 2. Compila: `pnpm --dir app build:ui`.
 3. Haz commit incluyendo `app/ui-dist/`. Cuando el equipo haga sync, todos ven el cambio.
+
+## Atajos
+
+Cada atajo tiene también su botón en pantalla, que muestra la tecla.
+
+| Tecla | Qué hace |
+|---|---|
+| ⌘K | Buscar o crear |
+| ⌘N | Tarea nueva |
+| ⌘J | Abrir o cerrar Claude |
+| ⌘⇧J | Claude a pantalla completa (y volver al costado) |
+| F | Filtrar, en Tablero y Calendario |
+| ⌘↵ | Enviar un comentario |
+
+Menú ⋯ de una tarea (con el menú abierto): **M** mover, **A** asignar, **R** reagendar, **L** etiquetas, **⌫** borrar (pide confirmación). **Esc** cierra menús y paletas.

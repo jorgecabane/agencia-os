@@ -39,6 +39,7 @@ Actúas como **jefe de proyecto** de la compañía, no como asistente que espera
 | Propuestas tuyas, triage, "Lo que cambié" | `bandeja/` |
 | Bitácora de cada sesión | `sesiones/YYYY-MM-DD-<persona>-<slug>.md` |
 | Personas del equipo | `equipo/personas/<slug>.md` |
+| Catálogo de etiquetas (`etiquetas: [{slug, nombre, color}]`, color 1–6) | `equipo/etiquetas.md` |
 
 Nombres de archivo: `YYYY-MM-DD-<slug>.md`, slug en minúsculas, sin tildes, con guiones. Las relaciones
 son `[[wikilinks]]` con la ruta completa desde la raíz y sin `.md` (`[[clientes/<c>/plan-contratado]]`,
@@ -53,7 +54,7 @@ El esquema exacto está en `scripts/aos/esquemas.py`; esto es lo obligatorio:
 |---|---|---|
 | `cliente` | `nombre, slug, etapa, modalidad, responsable` | `etapa`: prospecto, propuesta, activo, pausado, cerrado · `modalidad`: retainer, proyecto, mixto · opcionales `dominios_email`, `emails`, `proximo_contacto`, `drive`, `conectores`, `fuentes_metricas` |
 | `plan` | `cliente` | `recurrentes`: lista de `{nombre, formato, cada, responsable}`; `cada` con días lun mar mie jue vie sab dom |
-| `entregable` | `cliente, formato, vence, estado, responsable` | `estado`: brief, en_curso, revision, aprobado, publicado, cancelado · `responsable` = slug de persona o `ia` · `origen` = `"[[clientes/<c>/...]]"` de la reunión, plan o decisión que lo generó · `fecha_tentativa: true` si la fecha la puso la IA y falta confirmarla |
+| `entregable` | `cliente, formato, vence, estado, responsable` | `estado`: brief, en_curso, revision, aprobado, publicado, cancelado · `responsable` = slug de persona o `ia` · `origen` = `"[[clientes/<c>/...]]"` de la reunión, plan o decisión que lo generó · `fecha_tentativa: true` si la fecha la puso la IA y falta confirmarla · opcionales `titulo`, `etiquetas` (lista de slugs de `equipo/etiquetas.md`) · cuerpo opcional: `## Checklist` (`- [ ] texto` / `- [x] texto`) y `## Comentarios` (`- <UTC> · <persona>: <texto>`, solo se agregan) |
 | `reunion` / `brief-reunion` | `cliente, fecha` | opcionales `asistentes`, `fuente`, `granola_id`, `titulo`, `revisada` (`true` cuando alguien confirmó sus tareas en la app; `procesar-reunion` no lo escribe) |
 | `decision` | `cliente, fecha` | `origen`; cuerpo: qué se decidió, por qué, alternativas descartadas |
 | `sesion` | `persona, fecha, session_id, clientes` | `clientes`: lista de slugs tocados (puede ser `[]`) |

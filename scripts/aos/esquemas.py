@@ -75,6 +75,8 @@ def validar(meta: dict) -> list[str]:
     if tipo == "cliente":
         errs += [f"'{c}' debe ser lista" for c in ("dominios_email", "emails")
                  if meta.get(c) is not None and not isinstance(meta[c], list)]
+    if tipo == "entregable" and meta.get("etiquetas") is not None and not isinstance(meta["etiquetas"], list):
+        errs.append("'etiquetas' debe ser lista")
     if tipo == "plan":
         rec = meta.get("recurrentes") or []
         if not isinstance(rec, list):

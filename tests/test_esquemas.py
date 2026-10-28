@@ -133,3 +133,10 @@ def test_aprobacion():
     assert validar(ok) == []
     assert "'canal' debe ser uno de" in validar({**ok, "canal": "fax"})[0]
     assert "'estado' debe ser uno de" in validar({**ok, "estado": "listo"})[0]
+
+
+def test_entregable_etiquetas_debe_ser_lista():
+    base = {"tipo": "entregable", "cliente": "acme", "formato": "post", "vence": date(2026, 10, 30),
+            "estado": "brief", "responsable": "ia"}
+    assert validar({**base, "etiquetas": ["navidad"]}) == []
+    assert validar({**base, "etiquetas": "navidad"}) == ["'etiquetas' debe ser lista"]
