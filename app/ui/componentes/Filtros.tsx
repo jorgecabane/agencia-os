@@ -1,13 +1,15 @@
 import { type KeyboardEvent, type MouseEvent, type ReactNode, type RefObject, useCallback, useEffect, useRef, useState } from "react";
 import { aplicar, alternar, CAMPO, conteos, ESTADOS, type Filtro, type Lista, type Vence } from "../datos/filtros";
+import { colorEtiqueta } from "../datos/etiquetas";
 import { colorPara } from "../datos/hoy";
 import { useSesion } from "../datos/sesion";
 import type { Entregable } from "../datos/tipos";
 import { ESTADO } from "./Panel";
 
-const CATEGORIAS: { k: Lista | "vence"; nombre: string }[] = [
+type Categoria = Lista | "etiquetas" | "vence";
+const CATEGORIAS: { k: Categoria; nombre: string }[] = [
   { k: "personas", nombre: "Persona" }, { k: "clientes", nombre: "Cliente" }, { k: "formatos", nombre: "Formato" },
-  { k: "vence", nombre: "Vence" }, { k: "estados", nombre: "Estado" },
+  { k: "vence", nombre: "Vence" }, { k: "estados", nombre: "Estado" }, { k: "etiquetas", nombre: "Etiquetas" },
 ];
 const VENCE: Record<Exclude<Vence, "todo">, string> = { hoy: "hoy", semana: "esta semana", atrasado: "atrasado" };
 
@@ -24,11 +26,15 @@ function useNombres(es: Entregable[]) {
     for (const e of es) if (!m.has(String(e[k]))) m.set(String(e[k]), String(e[k]));
     return m;
   };
+  const etiquetas = new Map(indice.etiquetas.map((t) => [t.slug, t.nombre]));
+  for (const t of es.flatMap((e) => e.etiquetas ?? [])) if (!etiquetas.has(t)) etiquetas.set(t, t); // fuera del catálogo
   return {
     personas: con([...indice.personas.map((p): [string, string] => [p.slug, p.nombre]), ["ia", "Claude"]], "responsable"),
     clientes: con(indice.clientes.map((c) => [c.slug, c.nombre]), "cliente"),
     formatos: con([], "formato"),
     estados: new Map<string, string>(ESTADOS.map((e) => [e, etiquetaEstado(e)])),
+    etiquetas,
+    colorEtiqueta: new Map(indice.etiquetas.map((t) => [t.slug, colorEtiqueta(t)])),
   };
 }
 
@@ -95,12 +101,13 @@ function Chips({ filtro, cambiar, nombres }: Pick<Contexto, "filtro" | "cambiar"
       >×</button>
     </span>
   );
-  const listas = (["clientes", "formatos", "estados"] as const).filter((k) => filtro[k]?.length);
+  const listas = (["clientes", "formatos", "estados", "etiquetas"] as const).filter((k) => filtro[k]?.length);
   return (
     <>
       {listas.map((k) => chip(k, CATEGORIAS.find((c) => c.k === k)!.nombre, filtro[k]!.map((v) => (
         <span key={v} className="valor">
           {k === "clientes" && <span className="dot" style={{ background: colorPara(v) }} aria-hidden />}
+          {k === "etiquetas" && <span className="dot" style={{ background: nombres.colorEtiqueta.get(v) ?? "var(--tenue)" }} aria-hidden />}
           {nombres[k].get(v) ?? v}
         </span>
       ))))}
@@ -112,8 +119,14 @@ function Chips({ filtro, cambiar, nombres }: Pick<Contexto, "filtro" | "cambiar"
 
 type Contexto = { es: Entregable[]; filtro: Filtro; cambiar: (f: Filtro) => void; fecha: string; nombres: ReturnType<typeof useNombres> };
 
+function conteoEtiquetas(es: Entregable[]): Record<string, number> {
+  const n: Record<string, number> = {};
+  for (const t of es.flatMap((e) => e.etiquetas ?? [])) n[t] = (n[t] ?? 0) + 1;
+  return n;
+}
+
 /** Opciones de una categoría, con su conteo según los demás filtros. */
-function valoresDe(k: Lista | "vence", { es, filtro, cambiar, fecha, nombres }: Contexto): Opcion[] {
+function valoresDe(k: Categoria, { es, filtro, cambiar, fecha, nombres }: Contexto): Opcion[] {
   const nombreCat = CATEGORIAS.find((c) => c.k === k)!.nombre;
   if (k === "vence") {
     return (Object.keys(VENCE) as (keyof typeof VENCE)[]).map((v) => ({
@@ -122,16 +135,17 @@ function valoresDe(k: Lista | "vence", { es, filtro, cambiar, fecha, nombres }: 
       hacer: () => cambiar({ ...filtro, vence: filtro.vence === v ? undefined : v }),
     }));
   }
-  const n = conteos(aplicar(es, { ...filtro, [k]: undefined }, fecha), CAMPO[k]);
+  const otros = aplicar(es, { ...filtro, [k]: undefined }, fecha);
+  const n = k === "etiquetas" ? conteoEtiquetas(otros) : conteos(otros, CAMPO[k]);
   return [...nombres[k]].map(([v, etiqueta]) => ({
     id: `${k}-${v}`, k: nombreCat, etiqueta, n: n[v] ?? 0, marcado: filtro[k]?.includes(v),
-    color: k === "clientes" ? colorPara(v) : k === "personas" ? colorPersona(v) : undefined,
+    color: k === "clientes" ? colorPara(v) : k === "personas" ? colorPersona(v) : k === "etiquetas" ? nombres.colorEtiqueta.get(v) : undefined,
     hacer: () => cambiar(alternar(filtro, k, v)),
   }));
 }
 
 /** Un clic fuera del menú (y fuera de su botón) lo cierra. */
-function useClicAfuera(caja: RefObject<HTMLElement | null>, boton: RefObject<HTMLElement | null>, onCerrar: () => void) {
+export function useClicAfuera(caja: RefObject<HTMLElement | null>, boton: RefObject<HTMLElement | null>, onCerrar: () => void) {
   useEffect(() => {
     const fuera = (e: PointerEvent) => {
       const t = e.target as Node;
@@ -145,13 +159,13 @@ function useClicAfuera(caja: RefObject<HTMLElement | null>, boton: RefObject<HTM
 function Menu({ animar, onCerrar, boton, ...ctx }: Contexto & {
   animar: boolean; onCerrar: () => void; boton: RefObject<HTMLButtonElement | null>;
 }) {
-  const [cat, setCat] = useState<Lista | "vence" | null>(null);
+  const [cat, setCat] = useState<Categoria | null>(null);
   const [q, setQ] = useState("");
   const [hl, setHl] = useState(0);
   const caja = useRef<HTMLDivElement>(null);
   useClicAfuera(caja, boton, onCerrar);
 
-  const entrar = (k: Lista | "vence" | null) => { setCat(k); setQ(""); setHl(0); };
+  const entrar = (k: Categoria | null) => { setCat(k); setQ(""); setHl(0); };
   const busca = q.trim().toLowerCase();
   const calza = (o: Opcion) => o.etiqueta.toLowerCase().includes(busca);
   const opciones: Opcion[] = cat

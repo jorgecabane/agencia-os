@@ -272,6 +272,7 @@
 }
 @media (hover: hover) and (pointer: fine) { .tarjeta:hover { border-color: var(--linea); } }
 .tarjeta:active { transform: scale(0.985); cursor: grabbing; }
+.tarjeta:has(.menu):active { transform: none; cursor: default; }
 .tarjeta.fantasma { opacity: 0.55; }
 .tarjeta:has(.abrir[aria-pressed="true"]) { border-color: var(--foco); background: var(--elevado); }
 .tarjeta .abrir { all: unset; display: block; font-size: 14px; font-weight: 550; line-height: 1.35; cursor: inherit; }
@@ -285,13 +286,6 @@
 .pie-tarjeta .tarde { color: var(--atraso); }
 .pie-tarjeta .av { width: 20px; height: 20px; font-size: 9.5px; margin-left: auto; }
 .pie-tarjeta > span:first-child { white-space: nowrap; }
-.mover {
-  position: absolute; z-index: 1; right: 38px; bottom: 7px; max-width: calc(100% - 50px); font: inherit; font-size: 14px; color: var(--apagado);
-  background: var(--fondo); border: 1px solid var(--linea); border-radius: 6px; height: 24px; padding: 0 4px; opacity: 0;
-}
-.tarjeta:hover .mover, .tarjeta:focus-within .mover { opacity: 1; }
-.mover:focus-visible { outline: 2px solid var(--foco); outline-offset: 1px; }
-
 /* Página de cliente */
 .cliente { max-width: 1080px; }
 .cliente-cabeza { display: flex; align-items: flex-start; gap: 16px; }

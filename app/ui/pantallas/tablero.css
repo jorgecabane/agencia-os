@@ -1,0 +1,73 @@
+/* Tablero v3: ⋯ de la tarjeta, etiquetas y tarea nueva desde la columna. */
+.tarjeta .abrir { padding-right: 24px; }
+.puntos, .mas-col {
+  all: unset; box-sizing: border-box; cursor: pointer; width: 24px; height: 24px; border-radius: 6px; display: inline-flex;
+  align-items: center; justify-content: center; color: var(--apagado); transition: background-color 150ms ease, color 150ms ease, transform 160ms var(--ease-out);
+}
+.puntos { position: absolute; z-index: 2; top: 7px; right: 7px; opacity: 0; }
+.tarjeta:hover .puntos, .tarjeta:focus-within .puntos, .puntos.on { opacity: 1; }
+.puntos:hover, .puntos.on, .mas-col:hover, .mas-col[aria-expanded="true"] { background: var(--elevado); color: var(--texto); }
+.puntos:active, .mas-col:active { transform: scale(0.97); }
+.puntos:focus-visible, .mas-col:focus-visible { outline: 2px solid var(--foco); outline-offset: 1px; }
+.mas-col { margin-left: auto; color: var(--tenue); }
+.etqs { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.etq {
+  font-size: 12px; line-height: 20px; padding: 0 7px; border-radius: 5px; color: var(--c, var(--apagado));
+  background: color-mix(in srgb, var(--c, var(--tenue)) 16%, transparent);
+}
+
+/* Menú ⋯ de la tarjeta */
+.menu {
+  position: fixed; inset: auto; margin: 4px 0; position-area: bottom span-left; position-try-fallbacks: flip-block;
+  width: 250px; padding: 5px; border-radius: 10px; cursor: default; color: var(--texto); overflow: visible;
+  background: var(--elevado); border: 1px solid var(--linea); box-shadow: 0 14px 34px var(--sombra); font-size: 14px; transform-origin: top right;
+}
+.menu.anima { animation: pop-entra 180ms var(--ease-out); }
+.menu .o {
+  all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 9px; width: 100%; padding: 7px 9px; border-radius: 6px;
+  color: var(--texto); font-size: 14px; cursor: pointer;
+}
+.menu .o svg { color: var(--apagado); }
+.menu .o:hover, .menu .o:focus-visible, .menu .o:focus-within { background: var(--resaltado); }
+.menu .o:focus-visible { outline: 2px solid var(--foco); outline-offset: -2px; }
+.menu .o[aria-current="true"] { font-weight: 550; }
+.menu .o.vacia { color: var(--tenue); cursor: default; background: none; }
+.menu .o .der { margin-left: auto; color: var(--tenue); font-size: 12.5px; font-family: inherit; }
+.menu .o.peligro, .menu .o.peligro svg { color: var(--atraso); }
+.menu .sep { height: 1px; background: var(--linea-suave); margin: 4px 2px; }
+.menu .h, .elegir-etq .h { color: var(--tenue); font-size: 12px; padding: 6px 9px 3px; }
+.menu .error, .nueva .error { font-size: 14px; margin: 6px 9px; }
+.campo { display: flex; flex-direction: column; gap: 6px; padding: 6px 9px; color: var(--apagado); font-size: 14px; }
+.campo input {
+  font: inherit; font-size: 14px; color: var(--texto); background: var(--fondo); border: 1px solid var(--linea); border-radius: 7px;
+  height: 30px; padding: 0 8px;
+}
+.campo input:focus-visible { outline: 2px solid var(--foco); outline-offset: 1px; }
+.confirmar-menu { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 6px 9px; font-size: 14px; }
+.elegir-etq .buscar-etq { display: flex; align-items: center; gap: 9px; padding: 7px 9px; border-bottom: 1px solid var(--linea-suave); margin-bottom: 4px; color: var(--tenue); }
+.elegir-etq .buscar-etq input { all: unset; flex: 1; color: var(--texto); font-size: 14px; }
+.elegir-etq .buscar-etq:focus-within { outline: 2px solid var(--foco); outline-offset: -2px; border-radius: 6px; }
+.elegir-etq .buscar-etq input::placeholder { color: var(--tenue); }
+.elegir-etq input[type="checkbox"] { accent-color: var(--foco); margin: 0; }
+
+/* Tarea nueva desde la columna */
+.nueva { background: var(--superficie); border: 1px solid var(--foco); border-radius: var(--radio); padding: 10px 12px; margin-bottom: 8px; }
+.nueva > input { all: unset; box-sizing: border-box; width: 100%; font-size: 14px; font-weight: 600; color: var(--texto); }
+.nueva > input::placeholder { color: var(--tenue); font-weight: 400; }
+.nueva .opc { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+.chip-m {
+  all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 9px;
+  border-radius: 7px; border: 1px solid var(--linea); font-size: 14px; color: var(--apagado); transition: border-color 150ms ease, transform 160ms var(--ease-out);
+}
+.chip-m:hover, .chip-m[aria-expanded="true"] { border-color: var(--tenue); color: var(--texto); }
+.chip-m:active { transform: scale(0.97); }
+.chip-m:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+.chip-m .av { width: 18px; height: 18px; font-size: 9.5px; }
+.nueva .lista-nueva, .nueva .elegir-etq, .nueva .campo { margin-top: 8px; border-top: 1px solid var(--linea-suave); padding-top: 6px; }
+.nueva .o {
+  all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 9px; width: 100%; padding: 6px 9px; border-radius: 6px;
+  font-size: 14px; color: var(--texto); cursor: pointer;
+}
+.nueva .o:hover, .nueva .o:focus-within, .nueva .o[aria-pressed="true"] { background: var(--resaltado); }
+.nueva .o:focus-visible { outline: 2px solid var(--foco); outline-offset: -2px; }
+.nueva .ayuda { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; margin-top: 9px; font-size: 12.5px; color: var(--tenue); }

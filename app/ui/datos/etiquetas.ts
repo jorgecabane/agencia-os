@@ -42,3 +42,12 @@ export async function guardarEtiqueta(e: Etiqueta): Promise<void> {
 }
 
 export const colorEtiqueta = (e: Etiqueta): string => `var(--cliente-${e.color})`;
+
+const norm = (t: string) => t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+
+/** Etiquetas que contienen `q` (sin tildes ni mayúsculas) y el texto a `crear` si ningún nombre es igual a `q`. */
+export function opcionesEtiqueta(catalogo: Etiqueta[], q: string): { lista: Etiqueta[]; crear: string | null } {
+  const b = norm(q);
+  const lista = catalogo.filter((e) => norm(e.nombre).includes(b));
+  return { lista, crear: b && !catalogo.some((e) => norm(e.nombre) === b) ? q.trim() : null };
+}

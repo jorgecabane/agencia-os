@@ -47,7 +47,7 @@ export function conteos(es: Entregable[], campo: keyof Entregable): Record<strin
 }
 
 /** Suma o quita `valor` de la lista `k`; una lista vacía desaparece del filtro. */
-export function alternar(f: Filtro, k: Lista, valor: string): Filtro {
+export function alternar(f: Filtro, k: Lista | "etiquetas", valor: string): Filtro {
   const actual = f[k] ?? [];
   const nueva = actual.includes(valor) ? actual.filter((v) => v !== valor) : [...actual, valor];
   return { ...f, [k]: nueva.length ? nueva : undefined };
