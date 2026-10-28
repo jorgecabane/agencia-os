@@ -11,19 +11,19 @@ test("config por defecto y guardado parcial", () => {
     repo: null,
     ultimoVisto: null,
     sesiones: {},
-    avisos: { reuniones: true, actas: true, dia: true },
+    avisos: { reuniones: true, actas: true, dia: true, menciones: true },
     yaAvisados: [],
     pausaHasta: null,
   });
 
-  guardarConfig({ ultimoVisto: "abc123", avisos: { reuniones: false, actas: true, dia: true } }, ruta);
+  guardarConfig({ ultimoVisto: "abc123", avisos: { reuniones: false, actas: true, dia: true, menciones: true } }, ruta);
   guardarConfig({ repo: "/tmp/agencia" }, ruta);
 
   expect(leerConfig(ruta)).toEqual({
     repo: "/tmp/agencia",
     ultimoVisto: "abc123",
     sesiones: {},
-    avisos: { reuniones: false, actas: true, dia: true },
+    avisos: { reuniones: false, actas: true, dia: true, menciones: true },
     yaAvisados: [],
     pausaHasta: null,
   });

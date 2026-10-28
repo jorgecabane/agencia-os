@@ -1,0 +1,39 @@
+/* Panel de la tarea: pestañas, checklist, actividad y comentarios */
+.panel .pestanas { margin: 0; }
+.pestanas > button[aria-selected="true"] { color: var(--texto); border-color: var(--texto); }
+.pestana { display: flex; flex-direction: column; gap: 14px; }
+.panel .historial-cuerpo { grid-template-columns: minmax(0, 1fr); }
+
+.sub-t { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; color: var(--apagado); }
+.checklist ul { list-style: none; padding: 0; margin: 4px 0; font-size: 14px; }
+.checklist li { display: flex; gap: 9px; align-items: center; padding: 4px 0; }
+.checklist input { width: 15px; height: 15px; margin: 0; accent-color: var(--avance); }
+.checklist input:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+.checklist label { cursor: pointer; }
+.checklist .hecho { color: var(--tenue); text-decoration: line-through; }
+.checklist .agregar { align-self: flex-start; padding-left: 0; }
+
+.linea-act { list-style: none; margin: 0; padding: 0; font-size: 14px; }
+.linea-act li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; padding: 0 0 14px; position: relative; }
+.linea-act li::before { content: ""; position: absolute; left: 10.5px; top: 26px; bottom: 2px; width: 1px; background: var(--linea-suave); }
+.linea-act li:last-child::before { display: none; }
+.linea-act .q { color: var(--texto); }
+.linea-act .d { color: var(--apagado); }
+.linea-act .cuando { display: block; color: var(--tenue); font-size: 12.5px; margin-top: 2px; }
+.comentario {
+  display: block; border: 1px solid var(--linea-suave); border-radius: 9px; padding: 9px 11px; background: var(--fondo);
+  margin-top: 6px; line-height: 1.45; overflow-wrap: anywhere;
+}
+.mencion { color: var(--foco); font-weight: 550; }
+
+.comentar { display: flex; flex-direction: column; gap: 8px; }
+.comentar textarea {
+  font: inherit; font-size: 14px; color: var(--texto); background: var(--fondo); border: 1px solid var(--linea);
+  border-radius: 10px; padding: 10px 12px; resize: vertical;
+}
+.comentar textarea::placeholder { color: var(--tenue); }
+.comentar textarea:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+.comentar .btn { align-self: flex-end; }
+.btn.pri .kbd { color: inherit; border-color: currentColor; }
+.pestana > .btn { align-self: flex-start; }
+.panel .historial-cabeza { flex-direction: column; align-items: flex-start; gap: 6px; }

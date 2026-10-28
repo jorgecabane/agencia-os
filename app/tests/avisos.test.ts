@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { debeAvisar, esHttps, recordar } from "../shell/avisos";
 
-const config = { avisos: { reuniones: true, actas: true, dia: true }, pausaHasta: null, yaAvisados: [] as string[] };
+const config = { avisos: { reuniones: true, actas: true, dia: true, menciones: true }, pausaHasta: null, yaAvisados: [] as string[] };
 const ahora = new Date("2026-10-27T19:52:00Z");
 
 describe("esHttps", () => {

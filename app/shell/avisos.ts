@@ -1,7 +1,7 @@
 import type { Aviso, Config } from "../shared/puente";
 
 const RECORDADOS_MAX = 500; // ids de avisos guardados en config.json; los más viejos ya no vuelven a calzar
-const INTERRUPTOR: Record<string, keyof Config["avisos"]> = { reunion: "reuniones", acta: "actas", dia: "dia" };
+const INTERRUPTOR: Record<string, keyof Config["avisos"]> = { reunion: "reuniones", acta: "actas", dia: "dia", mencion: "menciones" };
 
 /** Solo links https (nunca javascript:, file: ni http:). */
 export function esHttps(url: unknown): boolean {

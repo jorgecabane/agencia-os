@@ -20,6 +20,14 @@ export function actividad(ultimo: Commit | undefined, hoy: Date, personas: Perso
 export const autor = (c: Commit, personas: Persona[]): string =>
   personas.find((p) => p.nombre.toLowerCase() === c.autor.toLowerCase())?.nombre ?? c.autor;
 
+/** Lo que pasó con un archivo, del más nuevo al más viejo: quién y qué (el mensaje sin `app: `/`ia: `). */
+export function historial(commits: Commit[], personas: Persona[]): { quien: string; texto: string; fecha: string }[] {
+  return [...commits].sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha)).map((c) => {
+    const m = c.mensaje.replace(/^(app|ia): /, "");
+    return { quien: autor(c, personas), texto: m.charAt(0).toLowerCase() + m.slice(1), fecha: c.fecha };
+  });
+}
+
 /** "recién", "hace 3 h", "ayer" o "hace 5 días". */
 export function hace(fecha: string, hoy: Date): string {
   const horas = Math.max(0, Math.floor((hoy.getTime() - Date.parse(fecha)) / HORA_MS));

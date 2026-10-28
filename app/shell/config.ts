@@ -12,14 +12,16 @@ const POR_DEFECTO: Config = {
   repo: null,
   ultimoVisto: null,
   sesiones: {},
-  avisos: { reuniones: true, actas: true, dia: true },
+  avisos: { reuniones: true, actas: true, dia: true, menciones: true },
   yaAvisados: [],
   pausaHasta: null,
 };
 
 export function leerConfig(ruta = rutaConfig()): Config {
   try {
-    return { ...structuredClone(POR_DEFECTO), ...JSON.parse(readFileSync(ruta, "utf8")) };
+    const guardada = JSON.parse(readFileSync(ruta, "utf8")) as Partial<Config>;
+    // `avisos` se mezcla clave a clave: un config viejo no trae los interruptores nuevos.
+    return { ...structuredClone(POR_DEFECTO), ...guardada, avisos: { ...POR_DEFECTO.avisos, ...guardada.avisos } };
   } catch {
     return structuredClone(POR_DEFECTO);
   }

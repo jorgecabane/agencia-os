@@ -38,14 +38,14 @@ export interface Config {
   repo: string | null;
   ultimoVisto: string | null;
   sesiones: Record<string, string>;
-  avisos: { reuniones: boolean; actas: boolean; dia: boolean };
+  avisos: { reuniones: boolean; actas: boolean; dia: boolean; menciones: boolean };
   /** Ids de avisos ya mostrados (para no repetirlos al reiniciar). */
   yaAvisados: string[];
   /** "Pausar avisos 1 h": ISO hasta cuándo no se avisa nada. */
   pausaHasta: string | null;
 }
 
-/** Un aviso del sistema. `id` empieza con su clase (`reunion:`, `acta:`, `dia:`); `ruta` es lo que abre al hacer clic. */
+/** Un aviso del sistema. `id` empieza con su clase (`reunion:`, `acta:`, `dia:`, `mencion:`); `ruta` es lo que abre al hacer clic. */
 export type Aviso = { id: string; titulo: string; texto: string; ruta: string };
 
 /** Lo que la barra o un aviso le piden a la ventana principal: abrir un archivo o mandar una captura al chat. */

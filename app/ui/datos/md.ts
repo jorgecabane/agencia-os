@@ -60,6 +60,13 @@ export async function cambiar(ruta: string, cambios: Record<string, unknown>): P
   await window.aos.repo.write(ruta, unir(actual.fm, cambios, actual.cuerpo));
 }
 
+/** Relee `ruta` justo antes de escribir y cambia solo el cuerpo con `f`; el frontmatter queda byte a byte. */
+export async function cambiarCuerpo(ruta: string, f: (cuerpo: string) => string): Promise<void> {
+  const actual = separar(await window.aos.repo.read(ruta));
+  if (actual.error) throw new Error(actual.error);
+  await window.aos.repo.write(ruta, unir(actual.fm, {}, f(actual.cuerpo)));
+}
+
 /** Rango [ini, fin) de las líneas bajo `## <nombre>`, o null si la sección no existe. */
 export function seccion(lineas: string[], nombre: string): [number, number] | null {
   const ini = lineas.findIndex((l) => new RegExp(`^##\\s+${nombre}\\s*$`, "i").test(l));

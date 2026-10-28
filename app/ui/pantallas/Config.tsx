@@ -13,6 +13,7 @@ const AVISOS: { k: keyof ConfigLocal["avisos"]; nombre: string; detalle: string 
   { k: "reuniones", nombre: "Reuniones", detalle: "10 minutos antes de una reunión tuya" },
   { k: "actas", nombre: "Actas", detalle: "cuando queda el acta de una reunión donde estuviste" },
   { k: "dia", nombre: "Resumen del día", detalle: "cuando tu resumen de la mañana está listo" },
+  { k: "menciones", nombre: "Menciones", detalle: "cuando alguien te menciona en un comentario" },
 ];
 const abrir = (url: string) => void window.aos.sistema.abrir(url).catch(() => {});
 

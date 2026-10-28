@@ -1,10 +1,13 @@
 import type { Aviso } from "../../shared/puente";
 import { diaDe, fechaLocal, horaDe, hoy, titulo } from "./hoy";
+import { menciones } from "./comentarios";
 import type { Indice } from "./indice";
 import type { Entregable, Reunion } from "./tipos";
 
 const MIN_MS = 60_000;
 const AVISO_REUNION_MIN = 10;
+const MENCION_MS = 48 * 3_600_000;
+const MENCION_LARGO = 120;
 const SIGUE_PROXIMA_MIN = 10; // una reunión que ya empezó sigue como "próxima" (con "Unirme") estos minutos
 // Nunca a `publicado`: marcar algo como publicado es decir que salió hacia afuera (ruling R17).
 const SIGUIENTE: Record<string, string> = { brief: "en_curso", en_curso: "revision", revision: "aprobado" };
@@ -65,9 +68,20 @@ function avisoActa(i: Indice, r: Reunion, persona: string): Aviso {
   };
 }
 
+/** Comentarios de otra persona de las últimas 48 h que mencionan a `persona`. */
+function avisosMencion(i: Indice, persona: string, ahora: Date): Aviso[] {
+  return i.entregables.flatMap((e) => (e.comentarios ?? [])
+    .filter((c) => c.autor !== persona && ahora.getTime() - Date.parse(c.fecha) <= MENCION_MS && menciones(c.texto, i.personas).includes(persona))
+    .map((c) => {
+      const nombre = i.personas.find((p) => p.slug === c.autor)?.nombre.split(" ")[0] ?? c.autor;
+      return { id: `mencion:${e.ruta}:${c.fecha}`, ruta: e.ruta, titulo: `${nombre} te mencionó`, texto: c.texto.slice(0, MENCION_LARGO) };
+    }));
+}
+
 /**
  * Avisos del sistema por mostrar: reunión mía en ≤ 10 min, acta de hoy o ayer donde soy asistente y el resumen
- * del día cuando aparece mi `bandeja/<hoy>-hoy-<persona>.md` (`bandejas` = rutas de `bandeja/*.md`).
+ * del día cuando aparece mi `bandeja/<hoy>-hoy-<persona>.md` (`bandejas` = rutas de `bandeja/*.md`) y las menciones
+ * en comentarios.
  */
 export function avisosPendientes(i: Indice, persona: string, ahora: Date, yaAvisados: Set<string>, bandejas: string[] = []): Aviso[] {
   const fecha = fechaLocal(ahora);
@@ -75,7 +89,9 @@ export function avisosPendientes(i: Indice, persona: string, ahora: Date, yaAvis
   const h = hoy(i, persona, fecha);
   const pronto = h.reuniones.filter((r) => conHora(r) && inicio(r) >= ahora.getTime() && inicio(r) - ahora.getTime() <= AVISO_REUNION_MIN * MIN_MS);
   const actas = i.reuniones.filter((r) => r.tipo === "reunion" && (r.asistentes ?? []).includes(persona) && diaDe(r.fecha) >= ayer);
-  const avisos = [...pronto.map((r) => avisoReunion(i, r, ahora)), ...actas.map((r) => avisoActa(i, r, persona))];
+  const avisos = [
+    ...pronto.map((r) => avisoReunion(i, r, ahora)), ...actas.map((r) => avisoActa(i, r, persona)), ...avisosMencion(i, persona, ahora),
+  ];
   const bandeja = `bandeja/${fecha}-hoy-${persona}.md`;
   if (bandejas.includes(bandeja)) {
     const reuniones = new Set(h.reuniones.map((r) => String(r.fecha))).size; // brief y acta de una misma reunión cuentan una vez
