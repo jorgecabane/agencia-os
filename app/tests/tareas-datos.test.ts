@@ -26,7 +26,7 @@ describe("etiquetas", () => {
     const cat = [{ slug: "a", nombre: "A", color: 6 }];
     expect(nuevaEtiqueta(cat, "Campaña Navidad")).toEqual({ slug: "campana-navidad", nombre: "Campaña Navidad", color: 1 });
     expect(nuevaEtiqueta(cat, "a")).toBe(cat[0]);
-    expect(nuevaEtiqueta([], "X").color).toBe(1);
+    expect(nuevaEtiqueta([], "X")?.color).toBe(1);
     expect(colorEtiqueta(cat[0])).toBe("var(--cliente-6)");
   });
 });
@@ -80,6 +80,12 @@ describe("tarea nueva", () => {
     expect(interpretar("Guion reel @cami #donnas", indice)).toEqual({ titulo: "Guion reel", responsable: "cami", cliente: "donnas" });
     expect(interpretar("Revisar @claude", indice).responsable).toBe("ia");
     expect(interpretar("Post #1 @nadie", indice)).toEqual({ titulo: "Post #1 @nadie", cliente: undefined, responsable: undefined });
+  });
+  it("nuevaEtiqueta rechaza nombres sin letras ni números", () => {
+    expect(nuevaEtiqueta([], "🎉!!")).toBeNull();
+  });
+  it("rutaNueva usa 'tarea' si el título no deja slug", () => {
+    expect(rutaNueva(nueva({ titulo: "🎉!!" }), new Set())).toBe("clientes/donnas/entregables/2026-11-02-tarea.md");
   });
   it("rutaNueva evita choques", () => {
     const base = "clientes/donnas/entregables/2026-11-02-guion-reel.md";

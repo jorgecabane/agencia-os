@@ -17,9 +17,10 @@ export function leerCatalogo(texto: string): Etiqueta[] {
   return Array.isArray(lista) && lista.every(valida) ? lista.map(({ slug, nombre, color }) => ({ slug, nombre, color })) : [];
 }
 
-/** Etiqueta para `nombre`: la existente con ese slug o una nueva con el color siguiente al más alto. */
-export function nuevaEtiqueta(catalogo: Etiqueta[], nombre: string): Etiqueta {
+/** Etiqueta para `nombre`: la existente con ese slug o una nueva con el color siguiente al más alto; null si no deja slug. */
+export function nuevaEtiqueta(catalogo: Etiqueta[], nombre: string): Etiqueta | null {
   const slug = slugDe(nombre);
+  if (!slug) return null;
   const existente = catalogo.find((e) => e.slug === slug);
   if (existente) return existente;
   const ultimo = Math.max(0, ...catalogo.map((e) => e.color));

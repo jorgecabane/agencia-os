@@ -55,6 +55,16 @@ describe("índice", () => {
     expect(actualizarIndice(i2, new Map([[ENT, null]])).entregables).toEqual([]);
   });
 
+  it("etiquetas no-lista va a rotos y queda []; titulo no-texto se vuelve texto", () => {
+    const fm = entregable("brief").replace("---\n", "---\netiquetas: urgente\ntitulo: 2026\n");
+    const i = construirIndice(new Map([[ENT, fm]]));
+    expect(i.entregables[0]).toMatchObject({ etiquetas: [], titulo: "2026" });
+    expect(i.rotos.map((r) => r.error)).toEqual(["'etiquetas' debe ser lista"]);
+    const ok = construirIndice(new Map([[ENT, entregable("brief").replace("---\n", "---\netiquetas: [a, 3]\n")]]));
+    expect(ok.entregables[0].etiquetas).toEqual(["a", "3"]);
+    expect(ok.rotos).toEqual([]);
+  });
+
   it("reuniones llevan link y asistentes", () => {
     const r = "clientes/acme/reuniones/2026-10-01-k.md";
     const i = construirIndice(new Map([[r, "---\ntipo: reunion\ncliente: acme\nfecha: 2026-10-01\nlink: https://x.cl\nasistentes: [ana]\n---\n"]]));

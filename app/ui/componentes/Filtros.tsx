@@ -43,7 +43,7 @@ function useNombres(es: Entregable[]) {
 function useTeclaF(abrir: () => void) {
   useEffect(() => {
     const tecla = (e: globalThis.KeyboardEvent) => {
-      const escribiendo = (e.target as HTMLElement).closest("input, textarea, select, [contenteditable], dialog");
+      const escribiendo = (e.target as HTMLElement).closest("input, textarea, select, [contenteditable], dialog, [role=\"dialog\"]");
       if (e.key.toLowerCase() !== "f" || e.metaKey || e.ctrlKey || e.altKey || escribiendo) return;
       e.preventDefault();
       abrir();

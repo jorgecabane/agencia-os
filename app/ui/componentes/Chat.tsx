@@ -49,7 +49,7 @@ export function Chat({ contextoId, contexto, etiqueta, color, formato, pedido, o
   useEffect(() => { fin.current?.scrollIntoView({ block: "end" }); }, [turnos]);
 
   return (
-    <section className={onCerrar ? "chat cajon" : onAchicar ? "chat ancho" : "chat"} aria-label="Chat con Claude"
+    <section className={onCerrar ? "chat cajon" : onAchicar ? "chat ancho" : "chat"} aria-label="Chat con Claude" data-pedido={pedido ? "" : undefined}
       onKeyDown={(e) => { if (onOcultar && e.key === "Escape") { e.preventDefault(); onOcultar(); } }}>
       <div className="chat-cabeza">
         <span className="ctx">{color && <span className="dot" style={{ background: color }} aria-hidden />}{etiqueta}</span>

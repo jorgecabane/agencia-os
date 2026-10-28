@@ -69,9 +69,15 @@ function leer(ruta: string, texto: string): Entrada | null {
   if (!(tipo in COLECCION)) return { errores: [`tipo desconocido '${tipo}'`] };
   if (!esperados.includes(tipo)) return { errores: [`tipo '${tipo}' no corresponde a esta carpeta`] };
   const obj = { ...meta, ruta } as Record<string, unknown>;
+  const errores = REQUERIDOS[tipo].filter((c) => meta[c] == null).map((c) => `falta '${c}'`);
   if (tipo === "entregable") obj.comentarios = comentarios(cuerpo);
   for (const c of ["fecha", "vence", "proximo_contacto"]) if (c in obj) obj[c] = iso(obj[c]);
-  const errores = REQUERIDOS[tipo].filter((c) => meta[c] == null).map((c) => `falta '${c}'`);
+  if ("titulo" in obj) obj.titulo = obj.titulo == null ? undefined : String(obj.titulo);
+  if ("etiquetas" in obj) {
+    const v = obj.etiquetas;
+    if (v != null && !Array.isArray(v)) errores.push("'etiquetas' debe ser lista");
+    obj.etiquetas = Array.isArray(v) ? v.filter((x) => x != null).map(String) : [];
+  }
   return { coleccion: COLECCION[tipo], obj: obj as { ruta: string }, errores };
 }
 

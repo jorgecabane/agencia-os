@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ICONO } from "../componentes/Lateral";
 import { colorPara, cuando, horaDe, titulo } from "../datos/hoy";
 import { cambiar, separar } from "../datos/md";
+import { fechaValida } from "../datos/menu";
 import { promesasDeActa } from "../datos/promesas";
 import { confirmarActa, deActa } from "../datos/revision";
 import { useSesion } from "../datos/sesion";
@@ -132,7 +133,7 @@ function FilaTarea({ e, marcada, onAlternar, onError }: { e: Entregable; marcada
           </select>
           <label className="oculto" htmlFor={`vence-${e.ruta}`}>Fecha de {t}</label>
           <input type="date" id={`vence-${e.ruta}`} defaultValue={String(e.vence).slice(0, 10)}
-            onChange={(ev) => ev.target.value && guardar({ vence: ev.target.value, fecha_tentativa: undefined })} />
+            onChange={(ev) => fechaValida(ev.target.value) && guardar({ vence: ev.target.value, fecha_tentativa: undefined })} />
           {e.fecha_tentativa && <span className="tentativa">fecha por confirmar</span>}
         </span>
       </span>

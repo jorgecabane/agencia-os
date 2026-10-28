@@ -29,7 +29,7 @@ export function interpretar(texto: string, i: Indice): { titulo: string; cliente
 
 /** `clientes/<c>/entregables/<vence>-<slug>.md`; si ya existe suma `-2`, `-3`... */
 export function rutaNueva(t: NuevaTarea, existentes: Set<string>): string {
-  const base = `clientes/${t.cliente}/entregables/${t.vence}-${slugDe(t.titulo)}`;
+  const base = `clientes/${t.cliente}/entregables/${t.vence}-${slugDe(t.titulo) || "tarea"}`;
   let ruta = `${base}.md`;
   for (let n = 2; existentes.has(ruta); n++) ruta = `${base}-${n}.md`;
   return ruta;

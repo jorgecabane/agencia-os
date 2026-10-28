@@ -5,6 +5,8 @@ import type { ContextoChat } from "./contexto-chat";
 
 export type Cajon = Omit<ContextoChat, "etiqueta"> & { etiqueta?: string; pedido?: Pedido };
 const GLOBAL = { contextoId: "global", contexto: "Todo el espacio" };
+/** Con un panel de tarea abierto, ⌘J y "Claude ⌘J" enfocan su chat (el cajón está oculto, ver app.css). */
+export const ENFOCAR_CHAT_PANEL = "aos:enfocar-chat-panel";
 
 /**
  * Chat de la derecha. Arranca según `chatAbierto` (cerrado hasta leer la config) y su contexto sigue a la pantalla.
@@ -63,11 +65,15 @@ export function useCajon(pantalla: Pantalla, ir: (p: Pantalla) => void, contexto
   };
   const pedir = (texto: string, contexto: string) => pedirCon({ contextoId: contexto, contexto, pedido: { texto } });
   const capturar = (texto: string) => pedirCon({ ...GLOBAL, pedido: { texto } });
-  const alternar = () => (cajon ? cerrar() : abrir());
+  const alternar = () => {
+    if (document.querySelector(".panel") && !cajon?.pedido) return void window.dispatchEvent(new Event(ENFOCAR_CHAT_PANEL));
+    return cajon ? cerrar() : abrir();
+  };
 
   const teclas = useRef({ alternar, pantallaCompleta });
   teclas.current = { alternar, pantallaCompleta };
   useEffect(() => {
+    if (location.hash === "#barra") return; // la ventana de la barra de menú no tiene cajón
     const tecla = (e: KeyboardEvent) => {
       if (!e.metaKey || e.key.toLowerCase() !== "j") return;
       e.preventDefault();

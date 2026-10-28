@@ -33,8 +33,9 @@ describe("sinContacto", () => {
 
 describe("porMes", () => {
   it("agrupa por mes, lo más nuevo primero", () => {
-    const g = porMes(["2026-09-29", "2026-10-24", "2026-10-13"], (x) => x, true);
-    expect(g).toEqual([{ mes: "Octubre", items: ["2026-10-24", "2026-10-13"] }, { mes: "Septiembre", items: ["2026-09-29"] }]);
+    const a = new Date().getFullYear();
+    const g = porMes([`${a}-09-29`, `${a}-10-24`, `${a}-10-13`], (x) => x, true);
+    expect(g).toEqual([{ mes: "Octubre", items: [`${a}-10-24`, `${a}-10-13`] }, { mes: "Septiembre", items: [`${a}-09-29`] }]);
   });
   it("ascendente y con año si no es el actual", () => {
     const año = Number(new Date().getFullYear());

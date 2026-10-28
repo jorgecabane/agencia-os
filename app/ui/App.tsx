@@ -144,7 +144,7 @@ export function App() {
         </p>
       )}
       <div className="app">
-        <Lateral pantalla={pantalla} ir={ir} fecha={fecha} onCambiarPersona={() => setEligiendo(true)}
+        <Lateral pantalla={pantalla} ir={ir} fecha={fecha} onCambiarPersona={() => setEligiendo(true)} onNueva={() => ejecutar({ tipo: "nueva" })}
           onMezclar={() => capturar(MOTIVO_CONFLICTO)} onClaude={alternar} onBuscar={() => setPaleta(true)} />
         {pantalla.nombre === "hoy" && <Hoy fecha={fecha} onEditar={editar} onRevisar={(ruta) => ir({ nombre: "revisar", ruta })} />}
         {pantalla.nombre === "revisar" && <RevisarActa key={pantalla.ruta} ruta={pantalla.ruta} fecha={fecha} onVolver={() => ir({ nombre: "hoy" })}

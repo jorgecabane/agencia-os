@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { Commit } from "../../shared/puente";
+import { ENFOCAR_CHAT_PANEL } from "../datos/cajon";
 import { comentarios } from "../datos/comentarios";
 import { colorPara, cuando, fechaLocal, titulo } from "../datos/hoy";
 import { separar } from "../datos/md";
@@ -41,12 +42,13 @@ export function Panel({ ruta, onCerrar, onEditar, animar = true, enfocarChat }: 
   const texto = useArchivo(ruta, onCerrar);
   useEffect(() => { setError(null); setPestana("detalle"); setHistorial(false); }, [ruta]);
   const [foco, setFoco] = useState(0);
+  const irAlChat = (n: number) => { setPestana("detalle"); setHistorial(false); setFoco(n); };
+  useEffect(() => { if (enfocarChat) irAlChat(enfocarChat); }, [enfocarChat]);
   useEffect(() => {
-    if (!enfocarChat) return;
-    setPestana("detalle");
-    setHistorial(false);
-    setFoco(enfocarChat);
-  }, [enfocarChat]);
+    const f = () => irAlChat(Date.now());
+    window.addEventListener(ENFOCAR_CHAT_PANEL, f);
+    return () => window.removeEventListener(ENFOCAR_CHAT_PANEL, f);
+  }, []);
   if (texto === null) return <aside ref={caja} tabIndex={-1} className="panel" aria-label="Detalle" />;
   const { meta, cuerpo } = separar(texto);
   const esEntregable = meta?.tipo === "entregable";

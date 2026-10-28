@@ -108,11 +108,11 @@
 
 /* "+" del día (v3-cliente.html, frame 4): aparece al pasar el mouse o con foco. */
 .cal-agregar {
-  all: unset; position: absolute; top: 5px; right: 5px; width: 22px; height: 22px; display: grid; place-items: center; cursor: pointer;
+  all: unset; position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; display: grid; place-items: center; cursor: pointer;
   border-radius: 5px; color: var(--texto); background: var(--elevado); opacity: 0;
   transition: opacity 150ms ease, transform 160ms var(--ease-out);
 }
-.cal-dia:hover .cal-agregar, .cal-agregar:focus-visible, .cal-agregar[aria-expanded="true"] { opacity: 1; }
+.cal-dia:hover .cal-agregar, .cal-agregar:focus, .cal-agregar[aria-expanded="true"] { opacity: 1; }
 .cal-agregar:active { transform: scale(0.97); }
 .cal-agregar:focus-visible { outline: 2px solid var(--foco); outline-offset: 1px; }
 .cal-pop {

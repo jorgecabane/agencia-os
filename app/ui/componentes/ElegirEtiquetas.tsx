@@ -13,6 +13,7 @@ export function ElegirEtiquetas({ elegidas, onCambiar }: { elegidas: string[]; o
   const alternar = (slug: string) => onCambiar(elegidas.includes(slug) ? elegidas.filter((s) => s !== slug) : [...elegidas, slug]);
   const nueva = async (nombre: string) => {
     const e = nuevaEtiqueta(indice.etiquetas, nombre);
+    if (!e) return setError("Usa letras o números");
     try {
       await guardarEtiqueta(e);
       setError(null);

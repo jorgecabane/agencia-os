@@ -35,7 +35,7 @@
 .menu .o .der { margin-left: auto; color: var(--tenue); font-size: 12.5px; font-family: inherit; }
 .menu .o.peligro, .menu .o.peligro svg { color: var(--atraso); }
 .menu .sep { height: 1px; background: var(--linea-suave); margin: 4px 2px; }
-.menu .h, .elegir-etq .h { color: var(--tenue); font-size: 12px; padding: 6px 9px 3px; }
+.menu .h, .elegir-etq .h { color: var(--apagado); font-size: 12px; padding: 6px 9px 3px; }
 .menu .error, .nueva .error { font-size: 14px; margin: 6px 9px; }
 .campo { display: flex; flex-direction: column; gap: 6px; padding: 6px 9px; color: var(--apagado); font-size: 14px; }
 .campo input {

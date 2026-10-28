@@ -62,7 +62,8 @@ function Caja({ modo, animar, boton, onCerrar, onModo, ...props }: Props & {
     const c = caja.current as (HTMLElement & { showPopover(o?: { source?: HTMLElement | null }): void }) | null;
     if (!c) return;
     if (!c.matches(":popover-open")) c.showPopover({ source: boton.current });
-    c.querySelector<HTMLElement>("input, button")?.focus();
+    // Al confirmar un borrado el foco parte en "Cancelar": un Enter de más no borra.
+    (c.querySelector<HTMLElement>(".confirmar-menu .plano") ?? c.querySelector<HTMLElement>("input, button"))?.focus();
   }, [boton, modo]);
   const hecho = (cambios: Partial<Entregable>) => { props.onCambiar(cambios); onCerrar(); };
   return (
@@ -98,7 +99,7 @@ function Lista({ e, onPedirClaude, onAbrir, onModo, onCerrar, onError }: Props &
     try {
       const nueva = { titulo: `${t} (copia)`, cliente: e.cliente, responsable: e.responsable, vence: e.vence, estado: e.estado, etiquetas: e.etiquetas ?? [] };
       const ruta = await crearTarea(nueva, persona, new Set(indice.entregables.map((x) => x.ruta)));
-      if (e.formato !== "tarea") await cambiar(ruta, { formato: e.formato }); // crearTarea siempre escribe "tarea"
+      if (e.formato && e.formato !== "tarea") await cambiar(ruta, { formato: e.formato }); // crearTarea siempre escribe "tarea"
       onCerrar();
       onAbrir(ruta);
     } catch {

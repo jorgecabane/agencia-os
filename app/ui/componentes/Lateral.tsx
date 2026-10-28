@@ -1,4 +1,4 @@
-import { CalendarDays, ClockAlert, Inbox, Search, Settings, Sparkles, SquareKanban, Sun, TriangleAlert, Users } from "lucide-react";
+import { CalendarDays, ClockAlert, Inbox, Plus, Search, Settings, Sparkles, SquareKanban, Sun, TriangleAlert, Users } from "lucide-react";
 import { sinContacto } from "../datos/contacto";
 import type { Filtro } from "../datos/filtros";
 import { colorPara, hoy } from "../datos/hoy";
@@ -14,10 +14,10 @@ export type Pantalla = Principal | { nombre: "editar"; ruta: string; desde: Prin
 
 export const ICONO = 16;
 
-/** Barra lateral común. "Claude ⌘J" abre o cierra el chat de la derecha; `onBuscar` (⌘K) llega con la paleta. */
-export function Lateral({ pantalla, ir, fecha, onCambiarPersona, onMezclar, onBuscar, onClaude }: {
+/** Barra lateral común. "Claude ⌘J" abre o cierra el chat de la derecha; `onBuscar` (⌘K) y `onNueva` (⌘N) llegan de App. */
+export function Lateral({ pantalla, ir, fecha, onCambiarPersona, onMezclar, onBuscar, onNueva, onClaude }: {
   pantalla: Pantalla; ir: (p: Pantalla) => void; fecha: string; onCambiarPersona: () => void; onMezclar: () => void;
-  onBuscar?: () => void; onClaude: () => void;
+  onBuscar?: () => void; onNueva?: () => void; onClaude: () => void;
 }) {
   const { indice, persona } = useSesion();
   const h = hoy(indice, persona, fecha);
@@ -30,6 +30,11 @@ export function Lateral({ pantalla, ir, fecha, onCambiarPersona, onMezclar, onBu
       {onBuscar && (
         <button className="buscar" onClick={onBuscar}>
           <Search size={ICONO} aria-hidden />Buscar o crear…<kbd className="atajo">⌘K</kbd>
+        </button>
+      )}
+      {onNueva && (
+        <button className="nav-it" onClick={onNueva}>
+          <Plus size={ICONO} aria-hidden />Nueva tarea<kbd className="atajo">⌘N</kbd>
         </button>
       )}
       <button className="nav-it" aria-current={pantalla.nombre === "hoy" ? "page" : undefined} onClick={() => ir({ nombre: "hoy" })}>

@@ -1,14 +1,14 @@
 /* Lateral v3 (mockups-app/v3-claude.html): botón de búsqueda y atajos visibles. */
 .buscar {
   all: unset; cursor: pointer; display: flex; align-items: center; gap: 9px; margin: 0 0 10px; padding: 7px 10px; border-radius: 8px;
-  border: 1px solid var(--linea); color: var(--tenue); font-size: 14px; background: var(--superficie);
+  border: 1px solid var(--linea); color: var(--apagado); font-size: 14px; background: var(--superficie);
   transition: border-color 150ms ease, color 150ms ease, transform 160ms var(--ease-out);
 }
-.buscar:hover { border-color: var(--tenue); color: var(--apagado); }
+.buscar:hover { border-color: var(--tenue); color: var(--texto); }
 .buscar:active { transform: scale(0.97); }
 .buscar:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
 .atajo {
-  margin-left: auto; font-family: inherit; font-size: 12px; color: var(--tenue); border: 1px solid var(--linea);
+  margin-left: auto; font-family: inherit; font-size: 12px; color: var(--apagado); border: 1px solid var(--linea);
   border-radius: 5px; padding: 0 5px; line-height: 18px;
 }
 .lateral .chispa { color: var(--foco); }
