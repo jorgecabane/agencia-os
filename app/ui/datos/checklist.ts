@@ -13,9 +13,11 @@ export function checklist(cuerpo: string): Casilla[] {
   });
 }
 
+/** Alterna la casilla de esa línea, solo si está dentro de `## Checklist`. */
 export function alternarCasilla(cuerpo: string, linea: number): string {
   const lineas = cuerpo.split("\n");
-  const m = CASILLA.exec(lineas[linea] ?? "");
+  const [ini, fin] = seccion(lineas, "Checklist") ?? [0, 0];
+  const m = linea >= ini && linea < fin ? CASILLA.exec(lineas[linea] ?? "") : null;
   if (m) lineas[linea] = `${m[1]}${m[2] === " " ? "x" : " "}${m[3]}${m[4]}`;
   return lineas.join("\n");
 }

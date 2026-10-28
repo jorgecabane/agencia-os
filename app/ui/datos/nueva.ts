@@ -45,7 +45,13 @@ export function archivoNueva(t: NuevaTarea): string {
 
 /** Escribe la tarea y, si el cliente tiene línea de tiempo, anota `entregable_creado`. Devuelve la ruta. */
 export async function crearTarea(t: NuevaTarea, persona: string, existentes: Set<string>): Promise<string> {
-  const ruta = rutaNueva(t, existentes);
+  const ocupadas = new Set(existentes);
+  let ruta = rutaNueva(t, ocupadas);
+  // Un sync pudo traer el archivo después de armar `existentes`: se revisa el repo antes de escribir.
+  while ((await window.aos.repo.list(ruta)).includes(ruta)) {
+    ocupadas.add(ruta);
+    ruta = rutaNueva(t, ocupadas);
+  }
   await window.aos.repo.write(ruta, archivoNueva(t));
   const linea = `clientes/${t.cliente}/linea-de-tiempo.md`;
   const actual = await window.aos.repo.read(linea).catch(() => null);

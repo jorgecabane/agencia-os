@@ -28,10 +28,15 @@ export function nuevaEtiqueta(catalogo: Etiqueta[], nombre: string): Etiqueta {
 
 /** Relee el catálogo y suma (o reemplaza) la etiqueta. Crea el archivo si no existe. */
 export async function guardarEtiqueta(e: Etiqueta): Promise<void> {
-  const texto = await window.aos.repo.read(CATALOGO).catch(() => "");
+  const existe = (await window.aos.repo.list(CATALOGO)).includes(CATALOGO);
+  const texto = existe ? await window.aos.repo.read(CATALOGO) : "";
   const actual = separar(texto);
   if (actual.error) throw new Error(actual.error);
   const catalogo = leerCatalogo(texto);
+  const crudo = actual.meta?.etiquetas;
+  if (!catalogo.length && crudo != null && !(Array.isArray(crudo) && !crudo.length)) {
+    throw new Error(`${CATALOGO} tiene etiquetas que no se pueden leer; arréglalo a mano`);
+  }
   const etiquetas = [...catalogo.filter((x) => x.slug !== e.slug), e];
   await window.aos.repo.write(CATALOGO, unir(actual.fm, { etiquetas }, actual.cuerpo));
 }

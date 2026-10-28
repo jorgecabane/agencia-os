@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { agregarCasilla, alternarCasilla, checklist } from "../ui/datos/checklist";
 import { agregarComentario, comentarios, menciones } from "../ui/datos/comentarios";
-import { colorEtiqueta, leerCatalogo, nuevaEtiqueta } from "../ui/datos/etiquetas";
+import { CATALOGO, colorEtiqueta, guardarEtiqueta, leerCatalogo, nuevaEtiqueta } from "../ui/datos/etiquetas";
 import { aplicar } from "../ui/datos/filtros";
 import { construirIndice } from "../ui/datos/indice";
 import { separar } from "../ui/datos/md";
-import { archivoNueva, interpretar, rutaNueva, type NuevaTarea } from "../ui/datos/nueva";
+import { archivoNueva, crearTarea, interpretar, rutaNueva, type NuevaTarea } from "../ui/datos/nueva";
 import type { Entregable, Persona } from "../ui/datos/tipos";
 
 const personas = [
@@ -114,5 +114,37 @@ describe("integración con filtros e índice", () => {
     const i = construirIndice(new Map([["clientes/c/entregables/x.md",
       "---\ntipo: entregable\ncliente: c\nformato: f\nvence: 2026-11-01\nestado: brief\nresponsable: x\n---\n## Comentarios\n\n- 2026-10-27T21:06Z · a: hola\n"]]));
     expect(i.entregables[0].comentarios).toHaveLength(1);
+  });
+});
+
+describe("correcciones de seguridad de datos", () => {
+  const usarRepo = (archivos: Record<string, string>) => {
+    const escritos: Record<string, string> = {};
+    (globalThis as { window?: unknown }).window = { aos: { repo: {
+      list: async (g: string) => Object.keys(archivos).filter((r) => r === g),
+      read: async (r: string) => { if (r in archivos) return archivos[r]; throw new Error("no existe"); },
+      write: async (r: string, c: string) => void (escritos[r] = c),
+    } } };
+    return escritos;
+  };
+  it("alternarCasilla ignora índices fuera de ## Checklist", () => {
+    const c = "## Promesas\n\n- [ ] x\n\n## Checklist\n\n- [ ] y\n";
+    expect(alternarCasilla(c, 2)).toBe(c);
+  });
+  it("guardarEtiqueta no pisa un catálogo con contenido que no se puede leer", async () => {
+    const escritos = usarRepo({ [CATALOGO]: "---\netiquetas:\n  - {slug: a, nombre: A, color: 9}\n---\n" });
+    await expect(guardarEtiqueta({ slug: "b", nombre: "B", color: 1 })).rejects.toThrow();
+    expect(escritos).toEqual({});
+  });
+  it("guardarEtiqueta crea el catálogo si no existe", async () => {
+    const escritos = usarRepo({});
+    await guardarEtiqueta({ slug: "b", nombre: "B", color: 1 });
+    expect(leerCatalogo(escritos[CATALOGO])).toHaveLength(1);
+  });
+  it("crearTarea no pisa un archivo que ya existe en el repo", async () => {
+    const base = "clientes/donnas/entregables/2026-11-02-guion-reel.md";
+    const escritos = usarRepo({ [base]: "sync" });
+    expect(await crearTarea(nueva(), "cami", new Set())).toBe(base.replace(".md", "-2.md"));
+    expect(Object.keys(escritos)).toEqual([base.replace(".md", "-2.md")]);
   });
 });
