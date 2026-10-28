@@ -2,7 +2,7 @@ import { type FormEvent, type ReactNode, useEffect, useLayoutEffect, useRef, use
 import type { Estado } from "../../shared/puente";
 import { ESTADO } from "../componentes/Panel";
 import { agenda, avisosPendientes, cuentaRegresiva, nombreCliente, siguienteEstado } from "../datos/agenda";
-import { colorPara, fechaLocal, titulo } from "../datos/hoy";
+import { colorPara, fechaLocal, horaDe, titulo, zonaActual } from "../datos/hoy";
 import type { Indice } from "../datos/indice";
 import { cambiar } from "../datos/md";
 import { useSesion } from "../datos/sesion";
@@ -19,7 +19,7 @@ const SYNC: Record<Estado, { icono: string; texto: string; clase: string }> = {
   conflicto: { icono: "⚠", texto: "Conflicto", clase: "tarde" },
 };
 const leido = (estado: string) => ESTADO[estado] ?? estado;
-const hora = (fecha: string) => String(fecha).slice(11, 16) || "hoy";
+const hora = (fecha: string) => horaDe(fecha) || "hoy";
 const cerrar = () => window.close(); // el shell la oculta en vez de cerrarla
 
 /** La hora actual, al minuto y al mostrar la ventana. */
@@ -199,7 +199,7 @@ function Pie({ ahora }: { ahora: Date }) {
       <span className={s.clase} role="status"><span aria-hidden>{s.icono} </span>{s.texto}</span>
       {error && <span className="tarde" role="alert">⚠ No pude guardar la pausa</span>}
       {enPausa
-        ? <button className="link" onClick={() => pausar(null)}>Avisos en pausa hasta las {new Date(hasta).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })} · Reanudar</button>
+        ? <button className="link" onClick={() => pausar(null)}>Avisos en pausa hasta las {new Date(hasta).toLocaleTimeString("es-CL", { timeZone: zonaActual(), hour: "2-digit", minute: "2-digit", hourCycle: "h23" })} · Reanudar</button>
         : <button className="link" onClick={() => pausar(new Date(ahora.getTime() + PAUSA_MS).toISOString())}>Pausar avisos 1 h</button>}
     </footer>
   );

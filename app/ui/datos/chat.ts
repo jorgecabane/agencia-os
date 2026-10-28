@@ -85,7 +85,12 @@ const SKILLS_POR_FORMATO: [RegExp, string[]][] = [
   [/reel|video/, ["ig-reel"]], [/carrusel|post/, ["ig-carousel", "ig-caption"]], [/story/, ["ig-story"]],
   [/email|correo|newsletter/, ["emails"]], [/ads?\b|anuncio/, ["ad-creative"]],
 ];
-const skill = (s: string): Receta => ({ etiqueta: s, mensaje: `Usa la skill ${s} para esto.` });
+const NOMBRES_SKILL: Record<string, string> = {
+  "ig-reel": "Guion de reel", "ig-carousel": "Armar carrusel", "ig-caption": "Escribir caption", "ig-story": "Idea de story",
+  emails: "Redactar correo", "ad-creative": "Ideas de anuncio", "content-strategy": "Estrategia de contenido",
+  "copy-editing": "Pulir el texto", "brief-del-dia": "Mi brief de hoy",
+};
+const skill = (s: string): Receta => ({ etiqueta: NOMBRES_SKILL[s] ?? s, mensaje: `Usa la skill ${s} para esto.` });
 const corta = (etiqueta: string, mensaje = etiqueta): Receta => ({ etiqueta, mensaje });
 
 /** Atajos según dónde se abre el chat: skills que calzan y acciones cortas. */

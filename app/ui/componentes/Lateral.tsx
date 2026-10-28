@@ -1,3 +1,4 @@
+import { CalendarDays, Inbox, Settings, SquareKanban, Sun, TriangleAlert } from "lucide-react";
 import { colorPara, hoy } from "../datos/hoy";
 import { useSesion } from "../datos/sesion";
 import { IndicadorSync } from "./IndicadorSync";
@@ -6,6 +7,8 @@ type Principal =
   | { nombre: "hoy" } | { nombre: "tablero" } | { nombre: "cliente"; slug: string } | { nombre: "calendario" }
   | { nombre: "aprobaciones"; ruta?: string } | { nombre: "config" };
 export type Pantalla = Principal | { nombre: "editar"; ruta: string; desde: Principal };
+
+export const ICONO = 16;
 
 /** Barra lateral común. */
 export function Lateral({ pantalla, ir, fecha, onCambiarPersona, onMezclar }: {
@@ -20,16 +23,16 @@ export function Lateral({ pantalla, ir, fecha, onCambiarPersona, onMezclar }: {
   return (
     <nav className="lateral" aria-label="Secciones">
       <button className="nav-it" aria-current={pantalla.nombre === "hoy" ? "page" : undefined} onClick={() => ir({ nombre: "hoy" })}>
-        <span aria-hidden>◉</span>Hoy<span className="n">{h.entregas.length + h.reuniones.length}</span>
+        <Sun size={ICONO} aria-hidden />Hoy<span className="n">{h.entregas.length + h.reuniones.length}</span>
       </button>
       <button className="nav-it" aria-current={pantalla.nombre === "tablero" ? "page" : undefined} onClick={() => ir({ nombre: "tablero" })}>
-        <span aria-hidden>▦</span>Tablero
+        <SquareKanban size={ICONO} aria-hidden />Tablero
       </button>
       <button className="nav-it" aria-current={actual("calendario")} onClick={() => ir({ nombre: "calendario" })}>
-        <span aria-hidden>▤</span>Calendario
+        <CalendarDays size={ICONO} aria-hidden />Calendario
       </button>
       <button className="nav-it" aria-current={actual("aprobaciones")} onClick={() => ir({ nombre: "aprobaciones" })}>
-        <span aria-hidden>✓</span>Aprobaciones
+        <Inbox size={ICONO} aria-hidden />Aprobaciones
         {porAprobar > 0 && <span className="n" aria-label={`${porAprobar} tuyas por revisar`}>{porAprobar}</span>}
       </button>
       <div className="grupo">Clientes</div>
@@ -44,13 +47,13 @@ export function Lateral({ pantalla, ir, fecha, onCambiarPersona, onMezclar }: {
       <div className="pie">
         {rotos.length > 0 && (
           <details className="rotos">
-            <summary>⚠ {rotos.length === 1 ? "1 archivo con problemas" : `${rotos.length} archivos con problemas`}</summary>
+            <summary><TriangleAlert size={14} aria-hidden /> {rotos.length === 1 ? "1 archivo con problemas" : `${rotos.length} archivos con problemas`}</summary>
             <ul>{rotos.map((r) => <li key={r.ruta + r.error}>{r.ruta}: {r.error}</li>)}</ul>
           </details>
         )}
         <IndicadorSync onMezclar={onMezclar} />
         <button className="nav-it" aria-current={actual("config")} onClick={() => ir({ nombre: "config" })}>
-          <span aria-hidden>⚙</span>Configuración
+          <Settings size={ICONO} aria-hidden />Configuración
         </button>
         <button className="nav-it" onClick={onCambiarPersona} title="Cambiar de persona">
           <span className="av" style={{ background: colorPara(persona) }} aria-hidden>{(yo?.nombre ?? persona)[0]}</span>

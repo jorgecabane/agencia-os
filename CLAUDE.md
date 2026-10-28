@@ -57,12 +57,15 @@ El esquema exacto está en `scripts/aos/esquemas.py`; esto es lo obligatorio:
 | `reunion` / `brief-reunion` | `cliente, fecha` | opcionales `asistentes`, `fuente`, `granola_id` |
 | `decision` | `cliente, fecha` | `origen`; cuerpo: qué se decidió, por qué, alternativas descartadas |
 | `sesion` | `persona, fecha, session_id, clientes` | `clientes`: lista de slugs tocados (puede ser `[]`) |
-| `aprobacion` | `persona, cliente, canal, estado` | `canal`: email, instagram, dm, ads, otro · `estado`: pendiente, aprobado, descartado, ejecutado · el borrador va en el cuerpo |
+| `aprobacion` | `persona, cliente, canal, estado` | `canal`: email, instagram, dm, ads, otro · `estado`: pendiente, aprobado, descartado, ejecutado · el borrador va en el cuerpo · si `canal: email`, `para` (email o lista) y `asunto`: sin `para` la app no deja aprobarlo |
 | `persona` | `nombre, slug, rol, nivel_automatizacion` | `nivel_automatizacion`: alto, medio, bajo · `zona_horaria` IANA (default `America/Santiago`) |
+
+Todo archivo con `tipo` (salvo `cliente`, `persona`, `plan` y `sesion`) lleva `titulo:` legible, con tildes y mayúscula inicial
+(`titulo: Revisión mensual de octubre`; entre comillas si lleva `:`): es lo que muestra la app; el nombre del archivo sigue siendo el slug.
 
 Fechas en formato `YYYY-MM-DD`. Marcas de tiempo de máquina (`ultima_recoleccion`, `ultimo_indexado`,
 commits) en UTC: `YYYY-MM-DDTHH:MMZ` (`date -u +%Y-%m-%dT%H:%MZ`). Horas de reuniones con su zona
-(`2026-01-20T10:00-03:00`). "Hoy", "mañana" y los horarios de briefs, en la `zona_horaria` de cada persona. `contexto.md`, `brandbook.md`, `material.md` y
+(`2026-01-20T10:00-03:00`) o en UTC; la app las muestra en la `zona_horaria` de quien la tiene abierta. "Hoy", "mañana" y los horarios de briefs, en la `zona_horaria` de cada persona. `contexto.md`, `brandbook.md`, `material.md` y
 `linea-de-tiempo.md` no llevan `tipo`.
 
 La app de escritorio (`app/`) muestra y edita este repo. Si tocas `app/ui/`, corre

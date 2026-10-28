@@ -5,7 +5,7 @@ import { Chat, type Pedido } from "./componentes/Chat";
 import { Editor } from "./componentes/Editor";
 import { ElegirPersona } from "./componentes/ElegirPersona";
 import { Lateral, type Pantalla } from "./componentes/Lateral";
-import { clienteDeRuta, colorPara, fechaLocal, titulo } from "./datos/hoy";
+import { clienteDeRuta, colorPara, fechaLocal, fijarZona, titulo } from "./datos/hoy";
 import { APROBACION } from "./datos/pasos";
 import { sePuedeRecargar } from "./datos/recarga";
 import { SesionCtx, useIndice } from "./datos/sesion";
@@ -92,6 +92,7 @@ export function App() {
     );
   }
   if (!indice || persona === undefined) return null;
+  fijarZona(indice.personas.find((p) => p.slug === persona)?.zona_horaria);
   if (BARRA) {
     return persona ? <SesionCtx.Provider value={{ indice, persona }}><Barra /></SesionCtx.Provider> : <BarraSinPersona />;
   }

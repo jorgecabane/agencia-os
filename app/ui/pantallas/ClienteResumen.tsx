@@ -1,7 +1,7 @@
 import type { MouseEvent, ReactNode } from "react";
 import { etiquetaEstado } from "../componentes/Filtros";
 import { ANILLO } from "../componentes/Panel";
-import { cuando, titulo } from "../datos/hoy";
+import { cuando, horaDe, titulo } from "../datos/hoy";
 import { evento, resumen, sinWikilinks, type Cuerpos } from "../datos/resumen";
 import { useSesion } from "../datos/sesion";
 import type { Cliente as Ficha } from "../datos/tipos";
@@ -62,7 +62,7 @@ export function Resumen({ ficha, fecha, datos, abrir, abrirPanel, irA, onPedirCl
         </Seccion>
         <Seccion titulo="Lo que nos debe">
           {r.debe.length ? <ul className="lista">{r.debe.map((p, k) => (
-            <Fila key={p.acta + k} cuandoF={p.fecha} fecha={fecha} t={p.que} sub={`${p.quien} lo prometió en ${titulo(p.acta)}`} onClick={() => abrir(p.acta)} alerta />
+            <Fila key={p.acta + k} cuandoF={p.fecha} fecha={fecha} t={p.que[0].toUpperCase() + p.que.slice(1)} sub={`${p.quien} lo prometió en ${titulo(p.acta)}`} onClick={() => abrir(p.acta)} alerta />
           ))}</ul> : <p className="vacio">No nos debe nada.</p>}
         </Seccion>
       </div>
@@ -88,7 +88,7 @@ function Proxima({ r, fecha, abrir, cliente, onPedirClaude }: {
   r: ReturnType<typeof resumen>["proxima"]; fecha: string; abrir: (r: string) => void; cliente: string; onPedirClaude?: (t: string) => void;
 }) {
   if (!r) return <p className="vacio">No hay reuniones con brief por delante.</p>;
-  const hora = /T(\d{2}:\d{2})/.exec(String(r.fecha))?.[1];
+  const hora = horaDe(r.fecha);
   const c = cuando(r.fecha, fecha).texto;
   return (
     <div className="proxima">

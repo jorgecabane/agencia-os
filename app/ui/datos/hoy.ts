@@ -11,8 +11,14 @@ export function colorPara(slug: string): string {
   return COLORES[h % COLORES.length];
 }
 
-/** "clientes/acme/entregables/2026-10-30-carrusel-lanzamiento.md" → "Carrusel lanzamiento". */
+// Título legible por ruta (frontmatter `titulo` o el primer `# `), lo llena el índice al leer cada archivo.
+const titulos = new Map<string, string>();
+export const registrarTitulo = (ruta: string, t: string | null): void => void (t ? titulos.set(ruta, t) : titulos.delete(ruta));
+
+/** El título del archivo; si no tiene, sale del nombre: "…/2026-10-30-carrusel-lanzamiento.md" → "Carrusel lanzamiento". */
 export function titulo(ruta: string): string {
+  const registrado = titulos.get(ruta);
+  if (registrado) return registrado;
   const base = (ruta.split("/").pop() ?? ruta).replace(/\.md$/, "").replace(/^\d{4}-\d{2}-\d{2}-?/, "");
   const t = base.replace(/-/g, " ").trim();
   return t ? t[0].toUpperCase() + t.slice(1) : base;
@@ -32,7 +38,7 @@ export function hoy(i: Indice, persona: string, fecha: string, promesas: Promesa
   const misClientes = new Set(i.clientes.filter((c) => c.responsable === persona).map((c) => c.slug));
   return {
     reuniones: i.reuniones
-      .filter((r) => String(r.fecha).slice(0, 10) === fecha && (r.asistentes ?? []).includes(persona))
+      .filter((r) => diaDe(r.fecha) === fecha && (r.asistentes ?? []).includes(persona))
       .sort((a, b) => String(a.fecha).localeCompare(String(b.fecha))),
     entregas: mias.filter((e) => !e.fecha_tentativa && String(e.vence) <= fecha).sort(porVence),
     tentativas: mias.filter((e) => e.fecha_tentativa).sort(porVence),
@@ -40,15 +46,30 @@ export function hoy(i: Indice, persona: string, fecha: string, promesas: Promesa
   };
 }
 
-/** Fecha local de hoy, YYYY-MM-DD. */
-export const fechaLocal = (d = new Date()): string => d.toLocaleDateString("sv-SE");
+// Las horas se guardan en UTC (o con su offset) y se muestran en la zona de quien tiene la app abierta.
+const SISTEMA = Intl.DateTimeFormat().resolvedOptions().timeZone;
+let zona = SISTEMA;
+const valida = (z: string) => { try { new Intl.DateTimeFormat("es-CL", { timeZone: z }); return true; } catch { return false; } };
+/** La `zona_horaria` de la persona; sin una válida, la del Mac. */
+export const fijarZona = (z?: string): void => void (zona = z && valida(z) ? z : SISTEMA);
+export const zonaActual = (): string => zona;
+
+/** Fecha de hoy en la zona de la persona, YYYY-MM-DD. */
+export const fechaLocal = (d = new Date()): string => d.toLocaleDateString("sv-SE", { timeZone: zona });
+
+const conHora = (f: string) => String(f).length > 10;
+/** Día (YYYY-MM-DD) en la zona de la persona; una fecha sin hora queda igual. */
+export const diaDe = (f: string): string => (conHora(f) ? fechaLocal(new Date(f)) : String(f).slice(0, 10));
+/** "10:00" en la zona de la persona; "" si la fecha no trae hora. */
+export const horaDe = (f: string): string =>
+  conHora(f) ? new Date(f).toLocaleTimeString("es-CL", { timeZone: zona, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }) : "";
 
 const DIA_MS = 86_400_000;
 const aDate = (f: string) => new Date(`${f}T12:00:00`);
 
 /** "hoy", "ayer", "mañana" o "jue 29"; `tarde` si ya pasó. */
 export function cuando(fecha: string, hoyF: string): { texto: string; tarde: boolean } {
-  const f = String(fecha).slice(0, 10);
+  const f = diaDe(fecha);
   const dias = Math.round((aDate(f).getTime() - aDate(hoyF).getTime()) / DIA_MS);
   const nombres: Record<number, string> = { [-1]: "ayer", 0: "hoy", 1: "mañana" };
   const texto = nombres[dias] ?? aDate(f).toLocaleDateString("es-CL", { weekday: "short", day: "numeric" }).replace(".", "");

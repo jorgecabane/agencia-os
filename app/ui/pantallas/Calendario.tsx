@@ -3,7 +3,7 @@ import { Filtros } from "../componentes/Filtros";
 import { Panel } from "../componentes/Panel";
 import { type Dia, dias, esReunion, type Item, lunes, semanas, sumarDias, sumarMeses } from "../datos/calendario";
 import type { Filtro } from "../datos/filtros";
-import { colorPara, cuando, titulo } from "../datos/hoy";
+import { colorPara, cuando, horaDe, titulo } from "../datos/hoy";
 import { useSesion } from "../datos/sesion";
 import type { Entregable } from "../datos/tipos";
 import { useMovidos } from "./Tablero";
@@ -138,7 +138,7 @@ function CalItem({ x, ctx }: { x: Item; ctx: Ctx }) {
   const cliente = indice.clientes.find((c) => c.slug === x.cliente)?.nombre ?? x.cliente;
   const t = titulo(x.ruta);
   if (esReunion(x)) {
-    const hora = String(x.fecha).length > 10 ? String(x.fecha).slice(11, 16) : "";
+    const hora = horaDe(x.fecha);
     return (
       <button className="cal-item reunion" aria-pressed={ctx.sel === x.ruta} onClick={ctx.abrir(x.ruta)} title={`Reunión con ${cliente}`}>
         <span className="cal-ic" aria-hidden>◷</span>{hora && <span className="cal-hora">{hora}</span>}

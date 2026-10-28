@@ -14,12 +14,12 @@ it("agrupa por persona, nombra lo que cambió y omite mis commits", () => {
     c("seba", "seba@a.cl", ["clientes/beta/reuniones/2026-10-26-kickoff.md", "clientes/beta/contexto.md"]),
   ], "cami@a.cl", [{ ruta: "equipo/personas/jorge.md", nombre: "Jorge", slug: "jorge", rol: "x", nivel_automatizacion: "alto" }]);
   expect(frases).toEqual([
-    "Jorge cambió carrusel lanzamiento (acme)",
+    "Jorge cambió “Carrusel lanzamiento” (acme)",
     "seba cambió una reunión de beta y contexto de beta",
   ]);
 });
 
 it("resume cuando son muchas cosas", () => {
   const rutas = ["a", "b", "c", "d"].map((x) => `clientes/acme/entregables/2026-10-30-${x}.md`);
-  expect(novedades([c("jorge", "j@a.cl", rutas)], "yo@a.cl")).toEqual(["jorge cambió a (acme), b (acme) y 2 más"]);
+  expect(novedades([c("jorge", "j@a.cl", rutas)], "yo@a.cl")).toEqual(["jorge cambió “A” (acme), “B” (acme) y 2 más"]);
 });

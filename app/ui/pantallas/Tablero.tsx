@@ -4,7 +4,7 @@ import {
 import type { Commit } from "../../shared/puente";
 import { colorPersona, etiquetaEstado, Filtros } from "../componentes/Filtros";
 import { ANILLO, Panel } from "../componentes/Panel";
-import { actividad, useUltimosCommits } from "../datos/actividad";
+import { actividad, autor, useUltimosCommits } from "../datos/actividad";
 import { aplicar, ESTADOS } from "../datos/filtros";
 import { colorPara, cuando, titulo } from "../datos/hoy";
 import { cambiar } from "../datos/md";
@@ -208,7 +208,7 @@ function Columnas({ es, buscar, onSoltar, tarjeta }: {
             onDrop={soltar(estado)}
           >
             <h3>
-              <span className={`anillo ${estado}`} style={{ borderColor: ANILLO[estado] }} aria-hidden />
+              <span className="anillo" data-estado={estado} style={{ borderColor: ANILLO[estado] }} aria-hidden />
               {etiquetaEstado(estado)} <span className="c">{aqui.length}</span>
             </h3>
             {aqui.map(tarjeta)}
@@ -223,11 +223,13 @@ function Tarjeta({ e, fecha, commit, abierta, onAbrir, onMover }: {
   e: Entregable; fecha: string; commit: Commit | undefined | null; abierta: boolean;
   onAbrir: (ev: MouseEvent<HTMLElement>) => void; onMover: (estado: string) => void;
 }) {
-  const { indice } = useSesion();
+  const { indice, persona: yo } = useSesion();
   const cliente = indice.clientes.find((c) => c.slug === e.cliente)?.nombre ?? e.cliente;
   const persona = e.responsable === "ia" ? "Claude" : indice.personas.find((p) => p.slug === e.responsable)?.nombre ?? e.responsable;
   const a = commit === null ? null : actividad(commit, new Date(), indice.personas);
-  const act = a && (e.estado !== "publicado" || a.tipo === "avanzo") ? a : null; // lo publicado no está "quieto"
+  const mio = commit && autor(commit, indice.personas) === indice.personas.find((p) => p.slug === yo)?.nombre;
+  // Lo publicado no está "quieto"; y lo que avanzaste tú ya lo sabes.
+  const act = a && (e.estado !== "publicado" || a.tipo === "avanzo") && !(a.tipo === "avanzo" && mio) ? a : null;
   const c = cuando(e.vence, fecha);
   const tarde = c.tarde && e.estado !== "publicado";
   const t = titulo(e.ruta);

@@ -1,4 +1,4 @@
-import { clienteDeRuta, titulo } from "./hoy";
+import { clienteDeRuta, diaDe, titulo } from "./hoy";
 import type { Indice } from "./indice";
 import type { Entregable, Promesa, Reunion } from "./tipos";
 
@@ -25,11 +25,10 @@ function aprendimosDe(contexto: string): string[] {
 export function resumen(i: Indice, cliente: string, hoy: string, cuerpos: Cuerpos = {}): {
   proxima?: Reunion; abiertos: Entregable[]; debe: Promesa[]; aprendimos: string[]; linea: string[];
 } {
-  const fecha = (f: string) => String(f).slice(0, 10);
   const proxima = i.reuniones
-    .filter((r) => r.cliente === cliente && r.tipo === "brief-reunion" && fecha(r.fecha) >= hoy)
+    .filter((r) => r.cliente === cliente && r.tipo === "brief-reunion" && diaDe(r.fecha) >= hoy)
     .sort((a, b) => String(a.fecha).localeCompare(String(b.fecha)))[0];
-  const eventos = sinComentarios(cuerpos.linea ?? "").split(/\r?\n/).map((l) => l.trim()).filter((l) => l && !l.startsWith("#"));
+  const eventos = sinComentarios(cuerpos.linea ?? "").split(/\r?\n/).map((l) => l.trim().replace(/^[-*]\s+/, "")).filter((l) => l && !l.startsWith("#"));
   return {
     proxima,
     abiertos: i.entregables

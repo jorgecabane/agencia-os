@@ -1,7 +1,7 @@
 import { type MouseEvent, type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import type { Commit } from "../../shared/puente";
 import { Panel } from "../componentes/Panel";
-import { clienteDeRuta, colorPara, cuando, hoy, titulo } from "../datos/hoy";
+import { clienteDeRuta, colorPara, cuando, horaDe, hoy, titulo } from "../datos/hoy";
 import { separar } from "../datos/md";
 import { novedades } from "../datos/novedades";
 import { promesasDeActa } from "../datos/promesas";
@@ -78,8 +78,8 @@ export function Hoy({ fecha, onEditar }: { fecha: string; onEditar: (ruta: strin
   const { recomendada, promesas } = useCuerpos([...base.entregas, ...base.tentativas], actas);
   const h = hoy(indice, persona, fecha, promesas);
   const { commits, yo } = useDesdeUltimaVisita();
-  const frases = novedades(commits, yo, indice.personas);
-  const nombre = indice.personas.find((p) => p.slug === persona)?.nombre ?? persona;
+  const frases = novedades(commits, yo, indice.personas, indice.clientes);
+  const nombre = (indice.personas.find((p) => p.slug === persona)?.nombre ?? persona).split(" ")[0];
   const origen = useRef<HTMLElement | null>(null);
   const cerrar = useCallback(() => {
     setSel(null);
@@ -119,7 +119,7 @@ export function Hoy({ fecha, onEditar }: { fecha: string; onEditar: (ruta: strin
           {nada && <p className="vacio">Nada vence hoy. Buen momento para adelantar lo de la semana o pedirle ideas a Claude.</p>}
 
           <Seccion titulo="Reuniones" n={h.reuniones.length}>
-            {h.reuniones.map((r) => fila(r.ruta, String(r.fecha).slice(11, 16) || "hoy", false, r.cliente,
+            {h.reuniones.map((r) => fila(r.ruta, horaDe(r.fecha) || "hoy", false, r.cliente,
               `${titulo(r.ruta)} · ${nombreCliente(r.cliente)}`, r.tipo === "brief-reunion" ? "Brief listo" : "Acta",
               r.tipo === "brief-reunion" && <span className="chip ok"><span aria-hidden>✓</span>brief listo</span>))}
           </Seccion>

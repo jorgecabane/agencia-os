@@ -91,7 +91,10 @@ function Detalle({ ruta, onEditar }: { ruta: string; onEditar: (ruta: string) =>
     return false;
   });
   // Primero queda aprobada en el repo; el shell solo deja enviar si el archivo dice `estado: aprobado`.
+  const para = typeof meta?.para === "string" ? meta.para : Array.isArray(meta?.para) ? meta.para.join(", ") : "";
+  const asunto = typeof meta?.asunto === "string" ? meta.asunto : "";
   const aprobar = async () => {
+    if (canal === "email" && !para) return setError("Este correo no dice a quién va. Pídele a Claude que agregue el destinatario y vuelve a aprobar.");
     if (canal === "otro") return void guardar("aprobado"); // Claude no envía por "otro": lo envías tú
     if (ocupado) return setError("Claude está respondiendo otra cosa. Espera a que termine y vuelve a aprobar.");
     setError(null);
@@ -107,6 +110,12 @@ function Detalle({ ruta, onEditar }: { ruta: string; onEditar: (ruta: string) =>
         <span className={`chip estado-${estado}`}><span aria-hidden>{ICONO[estado] ?? "·"}</span>{ESTADO[estado] ?? estado}</span>
       </div>
       <h2>{nombre(ruta)}</h2>
+      {canal === "email" && (
+        <dl className="aprob-meta">
+          <dt>Para</dt><dd>{para || <span className="tarde">Falta el destinatario</span>}</dd>
+          <dt>Asunto</dt><dd>{asunto || <span className="tenue">Sin asunto</span>}</dd>
+        </dl>
+      )}
       <div className="borrador">{cuerpo.trim() || "El borrador está vacío."}</div>
       {ABIERTAS.has(estado) && (
         <Acciones estado={estado} canal={canal} ocupado={ocupado} onAprobar={() => void aprobar()} onGuardar={guardar}

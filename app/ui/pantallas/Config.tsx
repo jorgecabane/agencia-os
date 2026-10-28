@@ -1,6 +1,7 @@
 import { type ReactNode, useEffect, useState } from "react";
 import type { Config as ConfigLocal } from "../../shared/puente";
-import { colorPara } from "../datos/hoy";
+import { colorPara, horaDe, zonaActual } from "../datos/hoy";
+import { cambiar } from "../datos/md";
 import { useSesion } from "../datos/sesion";
 import { activar, leerSkills, type Skill } from "../datos/skills";
 import "./pantallas.css";
@@ -56,6 +57,7 @@ function TuEspacio({ onCambiarPersona }: { onCambiarPersona: () => void }) {
         <span className="conf-t">{yo?.nombre ?? persona}<span className="sub">{yo?.rol ?? "Persona"}</span></span>
         <button className="btn" onClick={onCambiarPersona}>Cambiar persona</button>
       </div>
+      <ZonaHoraria />
       <div className="conf-fila">
         <span className="conf-t">Carpeta del repo<span className="sub ruta">{repo ?? "…"}</span></span>
         <button className="btn" aria-expanded={confirmar} onClick={() => setConfirmar(true)}>Cambiar carpeta</button>
@@ -69,6 +71,29 @@ function TuEspacio({ onCambiarPersona }: { onCambiarPersona: () => void }) {
         </div>
       )}
     </Seccion>
+  );
+}
+
+const ZONAS = Intl.supportedValuesOf("timeZone");
+
+/** Las horas se guardan en UTC; cada persona las ve en su zona (`zona_horaria` de su ficha). */
+function ZonaHoraria() {
+  const { indice, persona } = useSesion();
+  const yo = indice.personas.find((p) => p.slug === persona);
+  const [error, setError] = useState(false);
+  if (!yo) return null;
+  const cambiarZona = (z: string) => {
+    setError(false);
+    cambiar(yo.ruta, { zona_horaria: z }).catch(() => setError(true));
+  };
+  return (
+    <div className="conf-fila">
+      <label className="conf-t" htmlFor="zona">Zona horaria<span className="sub">Las horas de reuniones y avisos se muestran en esta zona. Ahora son las {horaDe(new Date().toISOString())}.</span></label>
+      <select id="zona" className="conf-select" value={zonaActual()} onChange={(e) => cambiarZona(e.target.value)}>
+        {ZONAS.map((z) => <option key={z} value={z}>{z.replace(/_/g, " ")}</option>)}
+      </select>
+      {error && <p className="error" role="alert">No pude guardar la zona en tu ficha.</p>}
+    </div>
   );
 }
 

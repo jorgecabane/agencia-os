@@ -1,3 +1,4 @@
+import { registrarTitulo } from "./hoy";
 import { separar } from "./md";
 import type { Aprobacion, Cliente, Decision, Entregable, Persona, Reunion } from "./tipos";
 
@@ -28,6 +29,16 @@ function iso(v: unknown): unknown {
   if (!(v instanceof Date)) return v;
   const s = v.toISOString();
   return s.endsWith("T00:00:00.000Z") ? s.slice(0, 10) : s;
+}
+
+/** `titulo` (o `asunto` de un correo) del frontmatter o, si no hay, el primer `# ` del cuerpo. */
+function tituloDe(texto: string): string | null {
+  const { meta, cuerpo } = separar(texto);
+  for (const k of ["titulo", "asunto"]) {
+    const v = meta?.[k];
+    if (typeof v === "string" && v.trim()) return v.trim();
+  }
+  return /^#\s+(.+?)\s*$/m.exec(cuerpo)?.[1] ?? null;
 }
 
 type Entrada = { coleccion?: Coleccion; obj?: { ruta: string }; errores: string[] };
@@ -66,6 +77,7 @@ export function actualizarIndice(i: Indice, cambios: Map<string, string | null>)
     (nuevo[k] as { ruta: string }[]) = (i[k] as { ruta: string }[]).filter((x) => !cambios.has(x.ruta));
   }
   for (const [ruta, texto] of cambios) {
+    registrarTitulo(ruta, texto === null ? null : tituloDe(texto));
     const e = texto === null ? null : leer(ruta, texto);
     if (!e) continue;
     for (const error of e.errores) nuevo.rotos.push({ ruta, error });

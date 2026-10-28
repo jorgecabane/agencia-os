@@ -94,3 +94,9 @@
   font: 12.5px/1.5 ui-monospace, Menlo, monospace; color: var(--apagado); white-space: pre-wrap; word-break: break-word;
 }
 .conf-salida:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+.conf-select { max-width: 240px; height: 32px; padding: 0 8px; border-radius: var(--radio); border: 1px solid var(--linea); background: var(--superficie); color: var(--texto); font: inherit; font-size: 14px; }
+.aprob-meta { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0 0 12px; font-size: 14px; }
+.aprob-meta dt { color: var(--apagado); }
+.aprob-meta dd { margin: 0; }
+.aprob-meta .tarde { color: var(--atraso); }
+.aprob-meta .tenue { color: var(--tenue); }

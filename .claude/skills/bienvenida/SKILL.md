@@ -55,7 +55,7 @@ nombre: <nombre>
 slug: <slug>
 rol: <rol>
 nivel_automatizacion: <alto|medio|bajo>
-zona_horaria: <IANA; detecta con `readlink /etc/localtime`, ej. America/Santiago>
+zona_horaria: <IANA; detecta con `readlink /etc/localtime` y confírmala: "Veo que estás en America/Santiago (allá son las HH:MM), ¿correcto?". Se cambia después en la app, Configuración → Zona horaria>
 excluir_remitentes: []
 excluir_calendarios: []
 consentimiento_privacidad: <YYYY-MM-DD de hoy>   # solo si dijo sí; si rechazó, omite esta línea

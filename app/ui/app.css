@@ -265,7 +265,7 @@
 .col.sobre { background: var(--superficie); }
 .col h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; font-size: 12.5px; font-weight: 550; color: var(--apagado); }
 .col h3 .c { color: var(--tenue); font-weight: 400; }
-.anillo.publicado { background: var(--tenue); }
+.anillo[data-estado="publicado"] { background: var(--tenue); }
 .tarjeta {
   position: relative; background: var(--superficie); border: 1px solid var(--linea-suave); border-radius: var(--radio);
   padding: 10px 11px 9px; margin-bottom: 8px; cursor: grab; transition: border-color 150ms ease, transform 160ms var(--ease-out);
@@ -400,3 +400,6 @@ h2.s { display: flex; align-items: center; justify-content: space-between; gap: 
   border: 1px solid var(--foco); border-radius: var(--radio); background: var(--superficie);
 }
 .confirmar > span { flex: 1; }
+.nav-it svg { flex: none; color: var(--apagado); }
+.nav-it[aria-current="page"] svg { color: var(--texto); }
+.rotos summary svg { vertical-align: -2px; }

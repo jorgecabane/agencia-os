@@ -1,5 +1,5 @@
 import type { Aviso } from "../../shared/puente";
-import { fechaLocal, hoy, titulo } from "./hoy";
+import { diaDe, fechaLocal, horaDe, hoy, titulo } from "./hoy";
 import type { Indice } from "./indice";
 import type { Entregable, Reunion } from "./tipos";
 
@@ -20,7 +20,7 @@ export function cuentaRegresiva(fecha: string, ahora: Date): string {
   const min = Math.round((new Date(fecha).getTime() - ahora.getTime()) / MIN_MS);
   if (min <= 0) return "Ahora";
   if (min < 60) return `En ${plural(min, "minuto", "minutos")}`;
-  return `A las ${String(fecha).slice(11, 16)}`;
+  return `A las ${horaDe(fecha)}`;
 }
 
 /** Lo que muestra la barra de menú: próxima reunión, el resto del día y mis entregas (vencen hoy o antes). */
@@ -74,7 +74,7 @@ export function avisosPendientes(i: Indice, persona: string, ahora: Date, yaAvis
   const ayer = fechaLocal(new Date(ahora.getTime() - 86_400_000));
   const h = hoy(i, persona, fecha);
   const pronto = h.reuniones.filter((r) => conHora(r) && inicio(r) >= ahora.getTime() && inicio(r) - ahora.getTime() <= AVISO_REUNION_MIN * MIN_MS);
-  const actas = i.reuniones.filter((r) => r.tipo === "reunion" && (r.asistentes ?? []).includes(persona) && String(r.fecha).slice(0, 10) >= ayer);
+  const actas = i.reuniones.filter((r) => r.tipo === "reunion" && (r.asistentes ?? []).includes(persona) && diaDe(r.fecha) >= ayer);
   const avisos = [...pronto.map((r) => avisoReunion(i, r, ahora)), ...actas.map((r) => avisoActa(i, r, persona))];
   const bandeja = `bandeja/${fecha}-hoy-${persona}.md`;
   if (bandejas.includes(bandeja)) {

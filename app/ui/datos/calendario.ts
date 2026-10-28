@@ -1,5 +1,5 @@
 import { aplicar, type Filtro } from "./filtros";
-import { fechaLocal } from "./hoy";
+import { diaDe, fechaLocal } from "./hoy";
 import type { Indice } from "./indice";
 import type { Entregable, Reunion } from "./tipos";
 
@@ -22,7 +22,7 @@ export function sumarMeses(mes: string, n: number): string {
 }
 
 export const esReunion = (x: Item): x is Reunion => "fecha" in x;
-const diaDe = (x: Item) => String(esReunion(x) ? x.fecha : x.vence).slice(0, 10);
+const diaItem = (x: Item) => diaDe(String(esReunion(x) ? x.fecha : x.vence));
 
 /** Reuniones que pasan el filtro: solo cuentan cliente y persona (asistentes); lo demás es de entregables. */
 function reunionesFiltradas(rs: Reunion[], f: Filtro): Reunion[] {
@@ -37,7 +37,7 @@ export function dias(i: Indice, desde: string, hasta: string, f: Filtro, hoy = f
     ...aplicar(i.entregables, f, hoy),
   ];
   const salida: Dia[] = [];
-  for (let d = desde; d <= hasta; d = sumarDias(d, 1)) salida.push({ dia: d, items: items.filter((x) => diaDe(x) === d) });
+  for (let d = desde; d <= hasta; d = sumarDias(d, 1)) salida.push({ dia: d, items: items.filter((x) => diaItem(x) === d) });
   return salida;
 }
 
