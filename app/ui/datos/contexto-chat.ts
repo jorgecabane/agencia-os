@@ -1,7 +1,13 @@
 import type { Pantalla } from "../componentes/Lateral";
-import { titulo } from "./hoy";
+import { clienteDeRuta, colorPara, titulo } from "./hoy";
 
 export type ContextoChat = { contextoId: string; contexto: string; etiqueta: string };
+
+/** Color del cliente si el contexto es suyo (`clientes/<c>` o un archivo dentro). */
+export const colorDeContexto = (contexto: string): string | undefined => {
+  const c = clienteDeRuta(`${contexto}/`);
+  return c ? colorPara(c) : undefined;
+};
 
 const global = (etiqueta: string): ContextoChat => ({ contextoId: "global", contexto: etiqueta, etiqueta });
 

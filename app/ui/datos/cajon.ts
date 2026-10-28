@@ -25,18 +25,19 @@ export function useCajon(pantalla: Pantalla, ir: (p: Pantalla) => void, contexto
 
   const enModoClaude = pantalla.nombre === "claude";
   const cajon: Cajon | null = pedido?.en === pantalla ? pedido.cajon : abierto || enModoClaude ? contextoDe(pantalla) : null;
-  const guardar = (v: boolean) => {
+  const guardar = (v: boolean, persistir = true) => {
     setAbierto(v);
-    window.aos.config.guardar({ chatAbierto: v }).catch(() => {}); // si no se guarda, solo se pierde la preferencia
+    if (persistir) window.aos.config.guardar({ chatAbierto: v }).catch(() => {}); // si no se guarda, solo se pierde la preferencia
   };
   const abrir = () => {
     origen.current ??= document.activeElement;
     setFoco(ahora.current);
     guardar(true);
   };
-  const cerrar = () => {
+  /** ⌘J y × guardan la preferencia; Escape (`persistir` false) solo lo cierra por ahora. */
+  const cerrar = (persistir = true) => {
     setPedido(null);
-    guardar(false);
+    guardar(false, persistir);
     if (ahora.current.nombre === "claude") ir(antes.current);
     (origen.current as HTMLElement | null)?.focus?.();
     origen.current = null;
@@ -76,5 +77,6 @@ export function useCajon(pantalla: Pantalla, ir: (p: Pantalla) => void, contexto
     window.addEventListener("keydown", tecla);
     return () => window.removeEventListener("keydown", tecla);
   }, []);
-  return { cajon, enfocar: foco === pantalla, cerrar, alternar, pantallaCompleta, pedir, capturar };
+  const ocultar = () => cerrar(false);
+  return { cajon, enfocar: foco === pantalla, cerrar: () => cerrar(), ocultar, alternar, pantallaCompleta, pedir, capturar };
 }

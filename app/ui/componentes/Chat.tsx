@@ -16,15 +16,17 @@ type Props = {
   pedido?: Pedido; onAbrir?: (ruta: string) => void;
   /** En el cajón de la derecha: cerrar (⌘J) y pasar a pantalla completa (⌘⇧J). En pantalla completa: volver al costado (⌘⇧J). */
   onCerrar?: () => void; onAgrandar?: () => void; onAchicar?: () => void;
-  /** Enfoca la entrada al montar (solo cuando la persona lo abrió recién). */
-  enfocar?: boolean;
+  /** Escape en el cajón: lo cierra sin guardar la preferencia (si falta, usa onCerrar). */
+  onOcultar?: () => void;
+  /** Enfoca la entrada al montar y cada vez que cambia a otro valor verdadero (un número sirve para volver a pedirlo). */
+  enfocar?: boolean | number;
 };
 
 const ICONO: Record<Estado, string> = { ok: "✓", corriendo: "◐", error: "✕" };
 const LEIDO: Record<Estado, string> = { ok: "listo", corriendo: "en curso", error: "falló" };
 
 /** Conversación con Claude en un contexto (tarea, cliente o todo el espacio), según `chat.html`. */
-export function Chat({ contextoId, contexto, etiqueta, color, formato, pedido, onAbrir, onCerrar, onAgrandar, onAchicar, enfocar = false }: Props) {
+export function Chat({ contextoId, contexto, etiqueta, color, formato, pedido, onAbrir, onCerrar, onAgrandar, onAchicar, onOcultar = onCerrar, enfocar = false }: Props) {
   const turnos = useConversacion(contextoId);
   const enCurso = Boolean(turnos.at(-1)?.enCurso);
   const claudeOcupado = useAlgunoEnCurso(); // un turno a la vez en toda la app
@@ -48,7 +50,7 @@ export function Chat({ contextoId, contexto, etiqueta, color, formato, pedido, o
 
   return (
     <section className={onCerrar ? "chat cajon" : onAchicar ? "chat ancho" : "chat"} aria-label="Chat con Claude"
-      onKeyDown={(e) => { if (onCerrar && e.key === "Escape") { e.preventDefault(); onCerrar(); } }}>
+      onKeyDown={(e) => { if (onOcultar && e.key === "Escape") { e.preventDefault(); onOcultar(); } }}>
       <div className="chat-cabeza">
         <span className="ctx">{color && <span className="dot" style={{ background: color }} aria-hidden />}{etiqueta}</span>
         {onCerrar || onAchicar ? (
@@ -120,9 +122,11 @@ function BloqueVista({ b, onAbrir }: { b: Bloque; onAbrir?: (ruta: string) => vo
 }
 
 function Entrada({ enCurso, onEnviar, recetas: rs, enfocar }: {
-  enCurso: boolean; onEnviar: (t: string) => void; recetas: { etiqueta: string; mensaje: string }[]; enfocar: boolean;
+  enCurso: boolean; onEnviar: (t: string) => void; recetas: { etiqueta: string; mensaje: string }[]; enfocar: boolean | number;
 }) {
   const [texto, setTexto] = useState("");
+  const caja = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => { if (enfocar) caja.current?.focus(); }, [enfocar]);
   const id = useRef(`chat-${Math.random().toString(36).slice(2)}`).current;
   const enviarForm = (e?: FormEvent) => {
     e?.preventDefault();
@@ -137,8 +141,8 @@ function Entrada({ enCurso, onEnviar, recetas: rs, enfocar }: {
   return (
     <form className="entrada" onSubmit={enviarForm}>
       <label className="sr" htmlFor={id}>Mensaje para Claude</label>
-      <textarea id={id} rows={2} value={texto} onChange={(e) => setTexto(e.target.value)} onKeyDown={tecla}
-        autoFocus={enfocar} placeholder="Responde o pide un cambio…" />
+      <textarea ref={caja} id={id} rows={2} value={texto} onChange={(e) => setTexto(e.target.value)} onKeyDown={tecla}
+        placeholder="Responde o pide un cambio…" />
       <div className="entrada-pie">
         <div className="recetas" aria-label="Atajos">
           {rs.map((r) => <button key={r.etiqueta} type="button" className="receta" aria-disabled={enCurso} onClick={() => onEnviar(r.mensaje)}>{r.etiqueta}</button>)}

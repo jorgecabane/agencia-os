@@ -26,8 +26,9 @@ function contexto(cuerpo: string): string | null {
 }
 
 /** Detalle de un archivo del repo: etiquetas, contexto, propuestas, inspiración, acciones y el chat de esa tarea. */
-export function Panel({ ruta, onCerrar, onEditar, animar = true }: {
-  ruta: string; onCerrar: () => void; onEditar?: (ruta: string) => void; animar?: boolean;
+/** `enfocarChat`: cada valor nuevo lleva a Detalle y enfoca la entrada del chat ("Pedirle a Claude" del menú ⋯). */
+export function Panel({ ruta, onCerrar, onEditar, animar = true, enfocarChat }: {
+  ruta: string; onCerrar: () => void; onEditar?: (ruta: string) => void; animar?: boolean; enfocarChat?: number;
 }) {
   const { indice } = useSesion();
   const [error, setError] = useState<string | null>(null);
@@ -39,6 +40,13 @@ export function Panel({ ruta, onCerrar, onEditar, animar = true }: {
   useEffect(() => { caja.current?.focus(); }, [ruta]); // al abrir, el foco entra al panel
   const texto = useArchivo(ruta, onCerrar);
   useEffect(() => { setError(null); setPestana("detalle"); setHistorial(false); }, [ruta]);
+  const [foco, setFoco] = useState(0);
+  useEffect(() => {
+    if (!enfocarChat) return;
+    setPestana("detalle");
+    setHistorial(false);
+    setFoco(enfocarChat);
+  }, [enfocarChat]);
   if (texto === null) return <aside ref={caja} tabIndex={-1} className="panel" aria-label="Detalle" />;
   const { meta, cuerpo } = separar(texto);
   const esEntregable = meta?.tipo === "entregable";
@@ -57,7 +65,7 @@ export function Panel({ ruta, onCerrar, onEditar, animar = true }: {
 
       {esEntregable && (
         <Pestanas ver={ver} actividad={commits?.length} comentarios={comentarios(cuerpo).length}
-          elegir={(k) => { setPestana(k); setHistorial(false); setPedido(undefined); }} />
+          elegir={(k) => { setPestana(k); setHistorial(false); setPedido(undefined); setFoco(0); }} />
       )}
       {historial ? <Historial ruta={ruta} onVolver={() => setHistorial(false)} /> : (
         <div id="panel-pestana" className="pestana" {...(esEntregable && { role: "tabpanel", "aria-labelledby": `pestana-${ver}` })}>
@@ -71,7 +79,7 @@ export function Panel({ ruta, onCerrar, onEditar, animar = true }: {
       {error && <p className="error" role="alert">{error}</p>}
 
       {ver === "detalle" && !historial && <Chat contextoId={ruta} contexto={ruta} etiqueta={titulo(ruta)} color={meta?.cliente ? colorPara(String(meta.cliente)) : undefined}
-        formato={esEntregable ? String(meta?.formato ?? "") || undefined : undefined} pedido={pedido} onAbrir={onEditar} />}
+        formato={esEntregable ? String(meta?.formato ?? "") || undefined : undefined} pedido={pedido} onAbrir={onEditar} enfocar={foco} />}
     </aside>
   );
 }

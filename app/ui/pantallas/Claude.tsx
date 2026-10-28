@@ -2,7 +2,8 @@ import { MessageSquare, Plus } from "lucide-react";
 import { Chat, type Pedido } from "../componentes/Chat";
 import { ICONO } from "../componentes/Lateral";
 import { type Conversacion, useConversaciones } from "../datos/chat";
-import { clienteDeRuta, colorPara, fechaLocal } from "../datos/hoy";
+import { colorDeContexto as colorDe } from "../datos/contexto-chat";
+import { fechaLocal } from "../datos/hoy";
 import "./claude.css";
 
 const GENERAL = "Todo el espacio";
@@ -13,11 +14,6 @@ function sinTurnos(id: string, etiquetaDe: (contexto: string) => string): Omit<C
   if (id.startsWith("nueva-")) return { id, contexto: GENERAL, etiqueta: "Conversación nueva" };
   return { id, contexto: id, etiqueta: etiquetaDe(id) };
 }
-
-const colorDe = (contexto: string) => {
-  const c = clienteDeRuta(`${contexto}/`);
-  return c ? colorPara(c) : undefined;
-};
 
 /** Modo trabajo: Claude a pantalla completa, con las conversaciones de esta sesión a la izquierda. */
 export function Claude({ id = "global", fecha, pedido, etiquetaDe, onElegir, onAbrir, onAchicar }: {

@@ -1,11 +1,12 @@
 import { CalendarDays, Inbox, Search, Settings, Sparkles, SquareKanban, Sun, TriangleAlert } from "lucide-react";
+import type { Filtro } from "../datos/filtros";
 import { colorPara, hoy } from "../datos/hoy";
 import { useSesion } from "../datos/sesion";
 import { IndicadorSync } from "./IndicadorSync";
 import "./lateral.css";
 
 type Principal =
-  | { nombre: "hoy" } | { nombre: "tablero" } | { nombre: "cliente"; slug: string } | { nombre: "calendario" }
+  | { nombre: "hoy" } | { nombre: "tablero"; filtro?: Filtro } | { nombre: "cliente"; slug: string } | { nombre: "calendario" }
   | { nombre: "aprobaciones"; ruta?: string } | { nombre: "config" }
   | { nombre: "claude"; id?: string } | { nombre: "equipo" } | { nombre: "revisar"; ruta: string };
 export type Pantalla = Principal | { nombre: "editar"; ruta: string; desde: Principal };

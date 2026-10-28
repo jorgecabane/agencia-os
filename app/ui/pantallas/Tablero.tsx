@@ -10,7 +10,7 @@ import { NuevaTarea } from "../componentes/NuevaTarea";
 import { ANILLO, Panel } from "../componentes/Panel";
 import { actividad, autor, useUltimosCommits } from "../datos/actividad";
 import { colorEtiqueta } from "../datos/etiquetas";
-import { aplicar, ESTADOS } from "../datos/filtros";
+import { aplicar, ESTADOS, type Filtro } from "../datos/filtros";
 import { colorPara, cuando, titulo } from "../datos/hoy";
 import { cambiar } from "../datos/md";
 import { useSesion } from "../datos/sesion";
@@ -70,14 +70,14 @@ export function useMovidos(onError: (msg: string) => void) {
   return { es, mover };
 }
 
-export function Tablero({ fecha, onEditar, onPedirClaude }: {
-  fecha: string; onEditar: (ruta: string) => void; onPedirClaude?: (texto: string, contexto: string) => void;
+export function Tablero({ fecha, onEditar, filtroInicial }: {
+  fecha: string; onEditar: (ruta: string) => void; filtroInicial?: Filtro;
 }) {
   const { indice } = useSesion();
-  const [actual, setActual] = useState<Actual>({ filtro: POR_DEFECTO[0].filtro, agrupar: "estado" });
+  const [actual, setActual] = useState<Actual>({ filtro: filtroInicial ?? POR_DEFECTO[0].filtro, agrupar: "estado" });
   const [error, setError] = useState<string | null>(null);
   const { es, mover } = useMovidos(setError);
-  const [sel, setSel] = useState<{ ruta: string; animar: boolean } | null>(null);
+  const [sel, setSel] = useState<{ ruta: string; animar: boolean; chat?: number } | null>(null);
   const origen = useRef<HTMLElement | null>(null);
   const cerrar = useCallback(() => { setSel(null); origen.current?.focus(); }, []);
 
@@ -88,13 +88,18 @@ export function Tablero({ fecha, onEditar, onPedirClaude }: {
     setSel(sel?.ruta === ruta ? null : { ruta, animar: ev.detail !== 0 });
   };
   const abrirNueva = (ruta: string) => { origen.current = null; setSel({ ruta, animar: true }); };
+  // "Pedirle a Claude" del menú ⋯: abre el panel de la tarea en Detalle con el chat enfocado; no envía nada.
+  const pedirClaude = (ruta: string) => {
+    origen.current = document.querySelector<HTMLElement>(`[data-ruta="${CSS.escape(ruta)}"] .puntos`);
+    setSel({ ruta, animar: false, chat: Date.now() });
+  };
   const tarjeta = (e: Entregable) => (
     <Tarjeta
       key={e.ruta} e={e} fecha={fecha} commit={commits.get(e.ruta)} abierta={sel?.ruta === e.ruta} onAbrir={abrir(e.ruta)}
       onCambiar={(c) => {
         mover(e, c);
         if ("estado" in c || "responsable" in c) seguirFoco(e.ruta); // cambia de columna o carril; etiquetas y fecha no
-      }} onPedirClaude={onPedirClaude && ((t) => onPedirClaude(t, e.ruta))} onAbrirOtra={abrirNueva}
+      }} onPedirClaude={() => pedirClaude(e.ruta)} onAbrirOtra={abrirNueva}
     />
   );
   const otraAgrupacion = actual.agrupar === "estado" ? "persona" : "estado";
@@ -118,7 +123,7 @@ export function Tablero({ fecha, onEditar, onPedirClaude }: {
         {/* Las columnas se ven aunque estén vacías: su "+" crea la primera tarea. */}
         <Carriles visibles={visibles} porPersona={actual.agrupar === "persona"} mover={mover} tarjeta={tarjeta} onCreada={abrirNueva} />
       </main>
-      {sel && <Panel key={sel.ruta} ruta={sel.ruta} animar={sel.animar} onCerrar={cerrar} onEditar={onEditar} />}
+      {sel && <Panel key={sel.ruta} ruta={sel.ruta} animar={sel.animar} enfocarChat={sel.chat} onCerrar={cerrar} onEditar={onEditar} />}
     </>
   );
 }

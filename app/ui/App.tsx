@@ -5,9 +5,9 @@ import { Chat } from "./componentes/Chat";
 import { Editor } from "./componentes/Editor";
 import { ElegirPersona } from "./componentes/ElegirPersona";
 import { Lateral, type Pantalla } from "./componentes/Lateral";
-import { contextoDe } from "./datos/contexto-chat";
+import { colorDeContexto, contextoDe } from "./datos/contexto-chat";
 import { useCajon } from "./datos/cajon";
-import { clienteDeRuta, colorPara, fechaLocal, fijarZona, titulo } from "./datos/hoy";
+import { clienteDeRuta, fechaLocal, fijarZona, titulo } from "./datos/hoy";
 import { APROBACION } from "./datos/pasos";
 import { sePuedeRecargar } from "./datos/recarga";
 import { SesionCtx, useIndice } from "./datos/sesion";
@@ -35,7 +35,7 @@ export function App() {
   const [pantalla, ir] = useState<Pantalla>({ nombre: "hoy" });
   const [errorGuardar, setErrorGuardar] = useState<string | null>(null);
   const nombreCliente = (slug: string) => indice?.clientes.find((c) => c.slug === slug)?.nombre ?? slug;
-  const { cajon, enfocar, cerrar, alternar, pantallaCompleta, pedir, capturar } = useCajon(pantalla, ir, (p) => contextoDe(p, nombreCliente));
+  const { cajon, enfocar, cerrar, ocultar, alternar, pantallaCompleta, pedir, capturar } = useCajon(pantalla, ir, (p) => contextoDe(p, nombreCliente));
   const [nuevaUI, setNuevaUI] = useState(false);
   useEffect(() => window.aos.sistema.onNuevaUI(() => (sePuedeRecargar() ? window.aos.sistema.recargar() : setNuevaUI(true))), []);
   useEffect(() => {
@@ -86,10 +86,6 @@ export function App() {
   // Los borradores para aprobar se revisan en Aprobaciones, no en el editor.
   const abrirArchivo = (ruta: string) => (APROBACION.test(ruta) ? ir({ nombre: "aprobaciones", ruta }) : editar(ruta));
   const nombreDe = (p: typeof desde) => (p.nombre === "cliente" ? nombreCliente(p.slug) : NOMBRES[p.nombre]);
-  const colorDe = (contexto: string) => {
-    const c = clienteDeRuta(`${contexto}/`);
-    return c ? colorPara(c) : undefined;
-  };
   const etiquetaDe = (contexto: string) => {
     if (contexto.endsWith(".md")) return titulo(contexto);
     const c = clienteDeRuta(`${contexto}/`);
@@ -121,7 +117,7 @@ export function App() {
         <Lateral pantalla={pantalla} ir={ir} fecha={fecha} onCambiarPersona={() => setEligiendo(true)}
           onMezclar={() => capturar(MOTIVO_CONFLICTO)} onClaude={alternar} />
         {pantalla.nombre === "hoy" && <Hoy fecha={fecha} onEditar={editar} />}
-        {pantalla.nombre === "tablero" && <Tablero fecha={fecha} onEditar={editar} onPedirClaude={pedir} />}
+        {pantalla.nombre === "tablero" && <Tablero key={JSON.stringify(pantalla.filtro ?? null)} fecha={fecha} onEditar={editar} filtroInicial={pantalla.filtro} />}
         {pantalla.nombre === "calendario" && <Calendario fecha={fecha} onEditar={editar} />}
         {pantalla.nombre === "aprobaciones" && <Aprobaciones key={pantalla.ruta} inicial={pantalla.ruta} onEditar={editar} />}
         {pantalla.nombre === "config" && <Config onEditar={editar} onCambiarPersona={() => setEligiendo(true)} />}
@@ -138,7 +134,7 @@ export function App() {
         )}
         {cajon && pantalla.nombre !== "claude" && (
           <Chat key={cajon.contextoId} {...cajon} etiqueta={cajon.etiqueta ?? etiquetaDe(cajon.contexto)} onAbrir={abrirArchivo}
-            onCerrar={cerrar} onAgrandar={pantallaCompleta} enfocar={enfocar} color={colorDe(cajon.contexto)} />
+            onCerrar={cerrar} onOcultar={ocultar} onAgrandar={pantallaCompleta} enfocar={enfocar} color={colorDeContexto(cajon.contexto)} />
         )}
       </div>
     </SesionCtx.Provider>
