@@ -24,6 +24,15 @@ if ! git pull -q --rebase --autostash; then
   echo "agencia-os: no se pudo sincronizar (sin red); tu commit quedó local y se reintenta en la próxima respuesta" >&2
   exit 4
 fi
+# El repo del producto nunca recibe datos de una agencia: esos van en su propio repo privado.
+producto="${AOS_PRODUCTO:-jorgecabane/agencia-os}"
+case "$(git remote get-url origin)" in
+  *"$producto"|*"$producto.git")
+    if [ -n "$(git ls-files clientes equipo marca sesiones)" ]; then
+      echo "agencia-os: este repo es el producto y no sube datos de clientes; corre /setup-espacio para crear el repo de tu agencia (tu commit quedó local)" >&2
+      exit 4
+    fi ;;
+esac
 if ! git push -q; then
   echo "agencia-os: no pude subir los cambios; se reintenta en la próxima respuesta" >&2
   exit 4

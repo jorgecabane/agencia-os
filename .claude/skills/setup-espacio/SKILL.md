@@ -12,7 +12,7 @@ hacer push) se confirma antes, uno por uno. Los datos de la agencia viven solo e
 ## 1. Revisa el punto de partida
 
 - `ls marca/` : si ya existe `marca/marca.md`, muéstrala y pregunta si quieren actualizarla; no la pises sin permiso.
-- `git remote -v` : si ya hay `origin`, salta el paso 4.
+- `git remote -v` : si `origin` es el repo del producto (`jorgecabane/agencia-os`), este es una copia recién clonada: haz el paso 4. Si `origin` es otro repo, ya es el de la agencia: salta el paso 4.
 
 ## 2. Pregunta (una cosa a la vez)
 
@@ -60,9 +60,12 @@ Luego `uv run scripts/validar.py` (debe quedar en silencio).
 
 1. `gh auth status`. Si no hay sesión, pídele que corra `gh auth login` y espera.
 2. Propón el nombre del repo (slug de la agencia, ej. `<slug>-os`) y dile exactamente qué va a pasar:
-   "Voy a correr `gh repo create <nombre> --private --source . --push`: crea un repo **privado** con tu
-   cuenta de GitHub y sube todo lo que hay en este repo, incluida la carpeta `marca/`. ¿Lo hago? (sí/no)"
-3. Solo con un "sí" claro: haz commit de `marca/` (`feat: marca de <nombre>`) y corre el comando. Con otra respuesta, no hagas nada y avisa que pueden hacerlo después.
+   "Voy a crear un repo **privado** `<nombre>` con tu cuenta de GitHub y subir ahí este repo, incluida la
+   carpeta `marca/`. El repo del producto queda conectado como `producto`, solo para traer mejoras; tus
+   datos nunca van ahí. ¿Lo hago? (sí/no)"
+3. Solo con un "sí" claro: haz commit de `marca/` (`feat: marca de <nombre>`); si `origin` es el producto,
+   `git remote rename origin producto`; luego `gh repo create <nombre> --private --source . --push`.
+   Con otra respuesta, no hagas nada y avisa que pueden hacerlo después.
 4. No configures protección de ramas: el modo de trabajo es push directo a `main`.
 
 ## 5. Cierra
@@ -70,4 +73,5 @@ Luego `uv run scripts/validar.py` (debe quedar en silencio).
 Resume qué se creó y recuerda lo que viene:
 - Cada integrante corre `/bienvenida` en su máquina.
 - Para cada cliente, `/nuevo-cliente`.
+- Para traer mejoras del producto (skills, app): `git pull producto main`.
 - Las skills de marca (generadas desde `marca/`) llegan en la fase 2; por ahora `marca/` solo guarda los datos.

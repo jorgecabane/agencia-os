@@ -104,3 +104,13 @@ def test_sin_red_sale_4(tmp_path):
     git(a, "remote", "set-url", "origin", str(tmp_path / "no-existe.git"))
     (a / "f.txt").write_text("x\n")
     assert sync(a).returncode == 4
+
+
+def test_producto_no_recibe_datos(tmp_path):
+    remoto, a, _ = setup(tmp_path)
+    (a / "clientes/acme").mkdir(parents=True)
+    (a / "clientes/acme/_ficha.md").write_text("x\n")
+    r = subprocess.run([str(SYNC)], capture_output=True, text=True, cwd=a,
+                       env={**ENV, "CLAUDE_PROJECT_DIR": str(a), "AOS_PRODUCTO": str(remoto)})
+    assert r.returncode == 4 and "setup-espacio" in r.stderr
+    assert "clientes/acme/_ficha.md" not in git(remoto, "ls-tree", "-r", "--name-only", "main")
